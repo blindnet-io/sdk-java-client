@@ -1,16 +1,28 @@
 plugins {
-    id 'java'
+    id 'java-library'
+    id 'maven-publish'
 }
 
 group 'io.blindnet.blindnet'
-version '0.0.1'
+version '0.0.4'
 
-sourceCompatibility = 1.8
+sourceCompatibility = 11
 
 repositories {
     mavenCentral()
 }
 
-dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.12'
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
 }
+
+dependencies {
+    testImplementation group: 'junit', name: 'junit', version: '4.12'
+    implementation group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.68'
+    implementation group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: '1.68'
+}
+
