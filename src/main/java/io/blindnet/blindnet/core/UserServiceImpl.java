@@ -10,15 +10,37 @@ import java.util.logging.Logger;
 
 import static io.blindnet.blindnet.domain.EncryptionConstants.*;
 
+/**
+ * Provides API to handle User related operations.
+ *
+ * @author stefanveselinovic
+ */
 class UserServiceImpl implements UserService {
 
     private static final Logger LOGGER = Logger.getLogger(UserServiceImpl.class.getName());
 
+    private KeyStorage keyStorage;
+    private JwtService signingService;
+    private BlindnetClient blindnetClient;
+
+    UserServiceImpl(KeyStorage keyStorage, JwtService signingService, BlindnetClient blindnetClient) {
+        this.keyStorage = keyStorage;
+        this.signingService = signingService;
+        this.blindnetClient = blindnetClient;
+    }
+
+    /**
+     * Registers user using blindnet API.
+     *
+     * @param jwt JWT representing a user that will be registered against blindnet API.
+     * @return tbd
+     */
     // TODO: FR-SDK03; exposed
+    // TODO: define return value
     @Override
-    public String register(String jwt) throws GeneralSecurityException, IOException {
+    public String register(String jwt) {
         // generate encryption key pair
-        KeyPair encryptionKeyPair = KeyFactory.generateKeyPair(RSA_ALGORITHM, BC_PROVIDER, RSA_KEY_SIZE);
+        KeyPair encryptionKeyPair = KeyFactory.generateKeyPair(RSA_ALGORITHM, BC_PROVIDER, RSA_KEY_SIZE_4096);
         PrivateKey encryptionPrivateKey = encryptionKeyPair.getPrivate();
 
         //generate signing key pair
@@ -26,21 +48,15 @@ class UserServiceImpl implements UserService {
         PrivateKey signingPrivateKey = signingKeyPair.getPrivate();
 
         // store encryption and signing private key
-        // todo set this as class level field ?
-        KeyStorage keyStorage = new KeyStorage();
         System.out.println("Writing encryption key");
         keyStorage.storeEncryptionKey(encryptionPrivateKey);
         System.out.println("Writing signing key");
         keyStorage.storeSigningKey(signingPrivateKey);
 
         // signs jwt with private key
-        // todo set this as class level field ?
-        SigningService signingService = new SigningService();
         String signedJwt = signingService.sign(jwt, signingPrivateKey, SHA_256_ECDSA_ALGORITHM);
 
         // sends register request to the blind net api
-        // todo set this as class level field ?
-        BlindnetClient blindnetClient = new BlindnetClient();
         // receives registration confirmation
         blindnetClient.register(jwt, encryptionKeyPair.getPublic(), signingKeyPair.getPublic(), signedJwt);
 

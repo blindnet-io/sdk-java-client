@@ -7,7 +7,11 @@ public class UserServiceProvider {
     private UserServiceProvider() {}
 
     public static UserService getInstance() {
-        return new UserServiceImpl();
+        BlindnetClient blindnetClient = new BlindnetClient();
+        KeyStorage keyStorage = new KeyStorage();
+        JwtService signingService = new JwtService();
+
+        return new UserServiceImpl(keyStorage, signingService, blindnetClient);
     }
 
 }

@@ -4,7 +4,7 @@ plugins {
 }
 
 group 'io.blindnet.blindnet'
-version '0.0.4'
+version '0.0.1'
 
 sourceCompatibility = 11
 
@@ -22,6 +22,7 @@ publishing {
 
 dependencies {
     testImplementation group: 'junit', name: 'junit', version: '4.12'
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.8.0-M1'
     implementation group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.68'
     implementation group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: '1.68'
 }

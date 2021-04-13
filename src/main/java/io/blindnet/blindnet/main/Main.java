@@ -24,7 +24,7 @@ public class Main {
         Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
 
         KeyStorageConfig keyStorageConfig = KeyStorageConfig.INSTANCE;
-        keyStorageConfig.init("/Users/stefanveselinovic/Desktop/enc.pem",
+        keyStorageConfig.setup("/Users/stefanveselinovic/Desktop/enc.pem",
                 "/Users/stefanveselinovic/Desktop/sig.pem");
 
          testUserRegistrationApi();

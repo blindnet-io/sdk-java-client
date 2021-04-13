@@ -5,6 +5,7 @@ import io.blindnet.blindnet.MessageService;
 import java.security.GeneralSecurityException;
 
 import static io.blindnet.blindnet.domain.EncryptionConstants.AES_ALGORITHM;
+import static io.blindnet.blindnet.domain.EncryptionConstants.AES_KEY_SIZE_256;
 
 public class MessageServiceImpl implements MessageService {
 
@@ -20,7 +21,7 @@ public class MessageServiceImpl implements MessageService {
         blindnetClient.fetchPublicKey(jwt, recipientId);
 
         // generates a random symmetric encryption key
-        KeyFactory.generateSecretKey(AES_ALGORITHM, 256);
+        KeyFactory.generateSecretKey(AES_ALGORITHM, AES_KEY_SIZE_256);
 
         // encrypts the generated symmetric key two times and uploads both of them to blindnet
         // the sender id to be used here will be the id extracted from the JWT
@@ -31,7 +32,7 @@ public class MessageServiceImpl implements MessageService {
 
     }
 
-    //TODO: FR-SDK07; exposed
+    //TODO: FR-SDK09; exposed
     @Override
     public void decrypt(String jwt, int senderId, int recipientId, String data) {
         BlindnetClient blindnetClient = new BlindnetClient();

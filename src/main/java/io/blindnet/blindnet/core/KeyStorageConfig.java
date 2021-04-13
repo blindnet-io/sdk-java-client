@@ -1,38 +1,73 @@
 package io.blindnet.blindnet.core;
 
-import java.util.Objects;
+import static java.util.Objects.requireNonNull;
 
 /**
- * Provides Singleton instance for key storage configuration.
+ * Provides Singleton instance for the key storage configuration.
  *
  * @author stefanveselinovic
  */
 public enum KeyStorageConfig {
 
-    //todo add java doc
 
+    /**
+     * Key Storage Config Instance.
+     */
     INSTANCE;
 
+    /**
+     * Represents a file path where a private key used for encryption will be stored.
+     */
     private String encryptionPrivateKeyPath;
+
+    /**
+     * Represents a file path where a private key used for signing will be stored.
+     */
     private String signingPrivateKeyPath;
 
+    /**
+     * A constructor, which is private by default.
+     */
     KeyStorageConfig() { }
 
+    /**
+     * Returns Singleton Instance for Key Storage Config.
+     *
+     * @return KeyStorageConfig Singleton
+     */
+    // todo check if needed
     public KeyStorageConfig getInstance() {
         return INSTANCE;
     }
 
-    public void init(String encryptionPrivateKeyPath, String signingPrivateKeyPath) {
-        Objects.requireNonNull(encryptionPrivateKeyPath, "null encryption private key path");
-        Objects.requireNonNull(signingPrivateKeyPath, "null signing private key path");
+    /**
+     * Setup for Key Storage configuration.
+     *
+     * @param encryptionPrivateKeyPath A file path where a private key used for encryption will be stored.
+     * @param signingPrivateKeyPath A file path where a private key used for signing will be stored.
+     */
+    public void setup(String encryptionPrivateKeyPath, String signingPrivateKeyPath) {
+        requireNonNull(encryptionPrivateKeyPath, "Encryption key filepath cannot be null.");
+        requireNonNull(signingPrivateKeyPath, "Signing key filepath cannot be null.");
+
         this.encryptionPrivateKeyPath = encryptionPrivateKeyPath;
         this.signingPrivateKeyPath = signingPrivateKeyPath;
     }
 
+    /**
+     * Returns a file path where a private key used for encryption will be stored.
+     *
+     * @return A file path as a String.
+     */
     public String getEncryptionPrivateKeyPath() {
         return encryptionPrivateKeyPath;
     }
 
+    /**
+     * Returns a file path where a private key used for signing will be stored.
+     *
+     * @return A file path as a String.
+     */
     public String getSigningPrivateKeyPath() {
         return signingPrivateKeyPath;
     }

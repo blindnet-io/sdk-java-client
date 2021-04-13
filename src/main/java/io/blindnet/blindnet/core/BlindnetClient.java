@@ -5,6 +5,7 @@ import io.blindnet.blindnet.domain.KeyWrapper;
 import java.security.PublicKey;
 
 //todo This class implementation depends on Blindnet REST API
+//todo Check if this should be singleotn
 class BlindnetClient {
 
     // todo; method used in FR-SDK03
@@ -36,7 +37,9 @@ class BlindnetClient {
         // else use local public key (?)
 
         // verifies the key signature with the retrieved public key
-        SigningService.verify("signature from response", publicKey);
+
+        // todo update
+        // SigningService.verify("signature from response", publicKey);
 
         // decrypts the encrypted symmetric keys with the local private key.
     }
