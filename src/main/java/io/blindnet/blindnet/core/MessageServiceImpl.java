@@ -1,49 +1,119 @@
 package io.blindnet.blindnet.core;
 
 import io.blindnet.blindnet.MessageService;
+import io.blindnet.blindnet.domain.KeyEnvelope;
+import io.blindnet.blindnet.domain.MessageWrapper;
+import io.blindnet.blindnet.domain.PublicKeyPair;
+import io.blindnet.blindnet.exception.BlindnetApiException;
 
-import java.security.GeneralSecurityException;
+import javax.crypto.SecretKey;
 
-import static io.blindnet.blindnet.domain.EncryptionConstants.AES_ALGORITHM;
-import static io.blindnet.blindnet.domain.EncryptionConstants.AES_KEY_SIZE_256;
+import java.io.InputStream;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import static io.blindnet.blindnet.domain.EncryptionConstants.*;
+
+/**
+ * todo javadoc
+ *
+ * @author stefanveselinovic
+ */
 public class MessageServiceImpl implements MessageService {
 
-    //TODO: FR-SDK07; exposed
-    @Override
-    public void encrypt(String jwt, int recipientId, String data, String metadata) throws GeneralSecurityException {
-        BlindnetClient blindnetClient = new BlindnetClient();
-        // The sender id to be used here will be the id extracted from the JWT.
-        blindnetClient.fetchSymmetricKey(jwt, 1, recipientId);
+    private static final Logger LOGGER = Logger.getLogger(HttpClient.class.getName());
 
-        // IF KEY NOT RETRIEVED
-        //  retrieves the public key of the recipient, by sending a request to blindnet backend
-        blindnetClient.fetchPublicKey(jwt, recipientId);
+    private KeyEnvelopeService keyEnvelopeService;
+    private JwtService jwtService;
+    private BlindnetClient blindnetClient;
+    private EncryptionService encryptionService;
+    private KeyStorage keyStorage;
 
-        // generates a random symmetric encryption key
-        KeyFactory.generateSecretKey(AES_ALGORITHM, AES_KEY_SIZE_256);
-
-        // encrypts the generated symmetric key two times and uploads both of them to blindnet
-        // the sender id to be used here will be the id extracted from the JWT
-        blindnetClient.sendSymmetricKeys(jwt, null,null);
-
-        // combines message data and metadata, and encrypts everything with the symmetric key
-        // todo; add encryption
-
+    public MessageServiceImpl() {
+        // todo to be changed
+        keyEnvelopeService = new KeyEnvelopeService();
+        jwtService = new JwtService();
+        blindnetClient = new BlindnetClient();
+        encryptionService = new EncryptionService();
+        keyStorage = new KeyStorage();
     }
 
-    //TODO: FR-SDK09; exposed
+    //TODO: FR-SDK07;
+    /**
+     * todo javadoc and The SDK also records the protocol version in the output data
+     *
+     * @param jwt
+     * @param recipientId
+     * @param messageWrapper
+     * @return
+     */
     @Override
-    public void decrypt(String jwt, int senderId, int recipientId, String data) {
-        BlindnetClient blindnetClient = new BlindnetClient();
-        blindnetClient.fetchSymmetricKey(jwt, senderId, recipientId);
+    public byte[] encrypt(String jwt, String recipientId, MessageWrapper messageWrapper) {
 
-        // decrypts the encrypted data with the decrypted symmetric key
-        // todo add decryption
+        String senderId = jwtService.extractUserId(jwt);
+        try {
+            SecretKey secretKey = blindnetClient.fetchSecretKey(jwt, senderId, recipientId);
+            return encryptionService.encryptMessage(secretKey, messageWrapper);
+        } catch (BlindnetApiException exception) {
+            LOGGER.log(Level.INFO, String.format("Unable to fetch secret key from Blindnet API. %s", exception.getMessage()));
+        }
 
-        // splits the decrypted data into message data and message metadata
-        // todo; add split logic and return response
+        // if secret key is not retrieved from blindnet api
+        PublicKeyPair recipientPublicKeyPair = blindnetClient.fetchPublicKeys(jwt, recipientId);
+        SecretKey generatedSecretKey = KeyFactory.generateSecretKey(AES_ALGORITHM, AES_KEY_SIZE);
 
+        PrivateKey senderEncryptionPrivateKey = keyStorage.readEncryptionPrivateKey();
+        PublicKey senderEncryptionPublicKey = KeyFactory.extractPublicKey(senderEncryptionPrivateKey,
+                RSA_ALGORITHM,
+                BC_PROVIDER);
+        PrivateKey senderSigningPrivateKey = keyStorage.readSigningPrivateKey();
+
+        KeyEnvelope sendersKeyEnvelope = keyEnvelopeService.create(generatedSecretKey,
+                senderEncryptionPublicKey,
+                senderSigningPrivateKey,
+                senderId,
+                recipientId,
+                senderId);
+
+        KeyEnvelope recipientKeyEnvelope = keyEnvelopeService.create(generatedSecretKey,
+                recipientPublicKeyPair.getEncryptionKey(),
+                senderSigningPrivateKey,
+                recipientId,
+                recipientId,
+                senderId
+                );
+
+        blindnetClient.sendSecretKey(jwt, sendersKeyEnvelope, recipientKeyEnvelope);
+
+        return encryptionService.encryptMessage(generatedSecretKey, messageWrapper);
+    }
+
+    //TODO: FR-SDK08;
+    @Override
+    public byte[] encrypt(String jwt, String recipientId, InputStream metadata, InputStream data) {
+        return null;
+    }
+
+    //TODO: FR-SDK09;
+    /**
+     * todo javadoc
+     *
+     * @param jwt
+     * @param senderId
+     * @param recipientId
+     * @param data
+     * @return
+     */
+    @Override
+    public MessageWrapper decrypt(String jwt, String senderId, String recipientId, byte[] data) {
+        SecretKey secretKey = blindnetClient.fetchSecretKey(jwt, senderId, recipientId);
+        return encryptionService.decryptMessage(secretKey, data);
+    }
+
+    public MessageWrapper decrypt(String jwt, String senderId, String recipientId, InputStream data) {
+        return null;
     }
 
 }

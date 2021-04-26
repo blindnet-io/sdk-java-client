@@ -1,38 +1,27 @@
 package io.blindnet.blindnet.core;
 
 import io.blindnet.blindnet.exception.KeyStorageException;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 
 import java.io.File;
 import java.security.KeyPair;
-import java.security.Security;
 
 import static io.blindnet.blindnet.domain.EncryptionConstants.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class KeyStorageTest {
+public class KeyStorageTest extends AbstractTest {
 
-    private static final String encryptionKeyFilePath = System.getProperty("java.io.tmpdir") + File.separator + "enc.pem";
-    private static final String signingKeyFilePath = System.getProperty("java.io.tmpdir") + File.separator + "sig.pem";
     private static final String invalidFilePath = "test/fp.pem";
 
     private KeyStorage keyStorage;
     private KeyPair keyPair;
 
-    @BeforeClass
-    public static void setUpClass() {
-        Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
-    }
-
     @Before
-    public void setUp() {
+    public void setup() {
         keyStorage = new KeyStorage();
-        KeyStorageConfig.INSTANCE.setup(encryptionKeyFilePath, signingKeyFilePath);
         keyPair = KeyFactory.generateKeyPair(RSA_ALGORITHM, BC_PROVIDER, RSA_KEY_SIZE_4096);
     }
 
@@ -85,15 +74,6 @@ public class KeyStorageTest {
         KeyStorageException invalidSigningPKeyFilepath = assertThrows(KeyStorageException.class,
                 () -> keyStorage.storeSigningKey(keyPair.getPrivate()));
         assertTrue(invalidSigningPKeyFilepath.getMessage().contains("IO Error writing a private key to a file."));
-    }
-
-    @AfterClass
-    public static void cleanUp() {
-        File encryptionKeyFile = new File(KeyStorageConfig.INSTANCE.getEncryptionPrivateKeyPath());
-        encryptionKeyFile.delete();
-
-        File signingKeyFile = new File(KeyStorageConfig.INSTANCE.getSigningPrivateKeyPath());
-        signingKeyFile.delete();
     }
 
 }

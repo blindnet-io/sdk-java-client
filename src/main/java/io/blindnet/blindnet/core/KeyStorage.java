@@ -1,13 +1,22 @@
 package io.blindnet.blindnet.core;
 
 import io.blindnet.blindnet.exception.KeyStorageException;
+import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPrivateKey;
+import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPublicKey;
+import org.bouncycastle.openssl.PEMKeyPair;
+import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 
 import java.io.*;
 import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.spec.RSAPublicKeySpec;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static io.blindnet.blindnet.domain.EncryptionConstants.*;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -35,6 +44,14 @@ class KeyStorage {
     }
 
     /**
+     * todo javadoc
+     * @return
+     */
+    public PrivateKey readEncryptionPrivateKey() {
+        return read(KeyStorageConfig.INSTANCE.getEncryptionPrivateKeyPath());
+    }
+
+    /**
      * Stores a private key used for signing.
      *
      * @param privateKey Private key to be stored.
@@ -44,6 +61,14 @@ class KeyStorage {
         requireNonNull(privateKey, "Signing private key cannot be null.");
 
         store(privateKey, KeyStorageConfig.INSTANCE.getSigningPrivateKeyPath());
+    }
+
+    /**
+     * todo javadoc
+     * @return
+     */
+    public PrivateKey readSigningPrivateKey() {
+        return read(KeyStorageConfig.INSTANCE.getSigningPrivateKeyPath());
     }
 
     /**
@@ -64,6 +89,22 @@ class KeyStorage {
             throw new KeyStorageException(msg, exception);
         } finally {
             close(writer);
+        }
+    }
+
+    private PrivateKey read(String filepath) {
+        try {
+            PEMParser parser = new PEMParser(new InputStreamReader(new FileInputStream(filepath)));
+            PEMKeyPair pemKeyPair = (PEMKeyPair)parser.readObject();
+            return new JcaPEMKeyConverter().getPrivateKey(pemKeyPair.getPrivateKeyInfo());
+        } catch (FileNotFoundException exception) {
+            String msg = "Invalid file path while reading a private key. " + exception.getMessage();
+            LOGGER.log(Level.SEVERE, msg);
+            throw new KeyStorageException(msg, exception);
+        } catch (IOException exception) {
+            String msg = "IO Error while reading a private key. " + exception.getMessage();
+            LOGGER.log(Level.SEVERE, msg);
+            throw new KeyStorageException(msg, exception);
         }
     }
 

@@ -1,11 +1,15 @@
 package io.blindnet.blindnet;
 
-import java.security.GeneralSecurityException;
+import io.blindnet.blindnet.domain.MessageWrapper;
+
+import java.io.InputStream;
 
 public interface MessageService {
 
-    void encrypt(String jwt, int recipientId, String data, String metadata) throws GeneralSecurityException;
+    byte[] encrypt(String jwt, String recipientId, MessageWrapper messageWrapper);
 
-    void decrypt(String jwt, int senderId, int recipientId, String data);
+    byte[] encrypt(String jwt, String recipientId, InputStream metadata, InputStream data);
+
+    MessageWrapper decrypt(String jwt, String senderId, String recipientId, byte[] data);
 
 }

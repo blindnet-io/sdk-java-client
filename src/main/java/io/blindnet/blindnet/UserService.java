@@ -1,10 +1,12 @@
 package io.blindnet.blindnet;
 
+import io.blindnet.blindnet.domain.UserRegistrationResult;
+
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 
 public interface UserService {
 
-    String register(String jwt) throws GeneralSecurityException, IOException;
+    UserRegistrationResult register(String jwt);
 
 }

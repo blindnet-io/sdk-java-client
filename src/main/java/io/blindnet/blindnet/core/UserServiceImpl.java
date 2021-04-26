@@ -1,9 +1,8 @@
 package io.blindnet.blindnet.core;
 
 import io.blindnet.blindnet.UserService;
+import io.blindnet.blindnet.domain.UserRegistrationResult;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.util.logging.Logger;
@@ -35,32 +34,30 @@ class UserServiceImpl implements UserService {
      * @param jwt JWT representing a user that will be registered against blindnet API.
      * @return tbd
      */
-    // TODO: FR-SDK03; exposed
-    // TODO: define return value
     @Override
-    public String register(String jwt) {
-        // generate encryption key pair
+    public UserRegistrationResult register(String jwt) {
         KeyPair encryptionKeyPair = KeyFactory.generateKeyPair(RSA_ALGORITHM, BC_PROVIDER, RSA_KEY_SIZE_4096);
         PrivateKey encryptionPrivateKey = encryptionKeyPair.getPrivate();
+        keyStorage.storeEncryptionKey(encryptionPrivateKey);
 
-        //generate signing key pair
         KeyPair signingKeyPair = KeyFactory.generateKeyPair(ECDSA_ALGORITHM, BC_PROVIDER, SECRP_256_R_CURVE);
         PrivateKey signingPrivateKey = signingKeyPair.getPrivate();
-
-        // store encryption and signing private key
-        System.out.println("Writing encryption key");
-        keyStorage.storeEncryptionKey(encryptionPrivateKey);
-        System.out.println("Writing signing key");
         keyStorage.storeSigningKey(signingPrivateKey);
 
-        // signs jwt with private key
         String signedJwt = signingService.sign(jwt, signingPrivateKey, SHA_256_ECDSA_ALGORITHM);
 
-        // sends register request to the blind net api
-        // receives registration confirmation
-        blindnetClient.register(jwt, encryptionKeyPair.getPublic(), signingKeyPair.getPublic(), signedJwt);
+        return blindnetClient.register(jwt, encryptionKeyPair.getPublic(), signingKeyPair.getPublic(), signedJwt);
+    }
 
-        return "";
+    /**
+     * todo add javadoc
+     *
+     * @param jwt
+     */
+    // todo FR13
+    public void unregister(String jwt) {
+        // todo 1. delete user private keys
+        // todo 2. send request to blindnet api to delete user
     }
 
 }
