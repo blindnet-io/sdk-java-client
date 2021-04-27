@@ -1,18 +1,15 @@
 package io.blindnet.blindnet.core;
 
 import io.blindnet.blindnet.domain.MessageWrapper;
-import io.blindnet.blindnet.exception.JwtException;
-import org.json.JSONObject;
+import io.blindnet.blindnet.exception.EncryptionException;
+import io.blindnet.blindnet.exception.KeyEncryptionException;
 
-import javax.crypto.*;
+import javax.crypto.Cipher;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
-import java.io.IOException;
-import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.security.*;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.X509EncodedKeySpec;
-import java.util.Base64;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -70,137 +67,8 @@ public class EncryptionService {
     }
 
     /**
-     * Signs data using provided private key.
-     *
-     * @param data             data to be signed.
-     * @param privateKey       Private key used for signing.
-     * @param signingAlgorithm Algorithm to be used for signing.
-     * @return Base64 signed JWT.
-     * @throws InvalidKeyException
-     * @throws SignatureException
-     */
-    public String sign(String data, PrivateKey privateKey, String signingAlgorithm) throws InvalidKeyException,
-            SignatureException {
-
-        return sign(data.getBytes(), privateKey, signingAlgorithm);
-    }
-
-    /**
-     * todo javadoc
-     *
-     * @param object
-     * @param privateKey
-     * @param signingAlgorithm
-     * @return
-     * @throws InvalidKeyException
-     * @throws IOException
-     * @throws SignatureException
-     */
-    public String sign(Object object, PrivateKey privateKey, String signingAlgorithm) throws InvalidKeyException,
-            IOException,
-            SignatureException {
-
-        JSONObject jsonObject = new JSONObject(object);
-        return sign(jsonObject.toString().getBytes(), privateKey, signingAlgorithm);
-    }
-
-    /**
-     * todo javadoc
-     *
-     * @param data
-     * @param privateKey
-     * @param signingAlgorithm
-     * @return
-     * @throws InvalidKeyException
-     * @throws SignatureException
-     */
-    public String sign(byte[] data, PrivateKey privateKey, String signingAlgorithm) throws InvalidKeyException,
-            SignatureException {
-
-        Signature signature = createSignature(signingAlgorithm);
-        signature.initSign(privateKey);
-        signature.update(data);
-        byte[] signatureValue = signature.sign();
-
-        return Base64.getUrlEncoder().encodeToString(signatureValue);
-    }
-
-    /**
-     * todo javadoc
-     *
-     * @param signedObject
-     * @param base64Signature
-     * @param publicKey
-     * @param signingAlgorithm
-     * @return
-     * @throws InvalidKeyException
-     * @throws SignatureException
-     */
-    public boolean verify(Object signedObject,
-                          String base64Signature,
-                          PublicKey publicKey,
-                          String signingAlgorithm) throws InvalidKeyException,
-            SignatureException {
-
-        Signature signature = createSignature(signingAlgorithm);
-        signature.initVerify(publicKey);
-
-        JSONObject jsonObject = new JSONObject(signedObject);
-        signature.update(jsonObject.toString().getBytes());
-
-        return signature.verify(Base64.getUrlDecoder().decode(base64Signature));
-    }
-
-    /**
-     * todo javadoc
-     *
-     * @param secretKey
-     * @param publicKey
-     * @return
-     * @throws NoSuchPaddingException
-     * @throws NoSuchAlgorithmException
-     * @throws InvalidKeyException
-     * @throws NoSuchProviderException
-     * @throws IllegalBlockSizeException
-     */
-    public byte[] wrap(SecretKey secretKey, PublicKey publicKey) throws NoSuchPaddingException,
-            NoSuchAlgorithmException,
-            InvalidKeyException,
-            NoSuchProviderException,
-            IllegalBlockSizeException {
-
-        // todo check padding, check oaep parameters specification
-        Cipher c = Cipher.getInstance("RSA/NONE/OAEPPadding", BC_PROVIDER);
-        c.init(Cipher.WRAP_MODE, publicKey);
-//        c.init(Cipher.WRAP_MODE, publicKey,
-//                new OAEPParameterSpec("SHA-384", "MGF1", new MGF1ParameterSpec("SHA-384"),
-//                        PSource.PSpecified.DEFAULT));
-        return c.wrap(secretKey);
-    }
-
-    /**
-     * todo javadoc
-     *
-     * @param wrappedKey
-     * @param privateKey
-     * @return
-     * @throws NoSuchPaddingException
-     * @throws NoSuchAlgorithmException
-     * @throws NoSuchProviderException
-     * @throws InvalidKeyException
-     */
-    public Key unwrap(byte[] wrappedKey, PrivateKey privateKey) throws NoSuchPaddingException,
-            NoSuchAlgorithmException,
-            NoSuchProviderException, InvalidKeyException {
-
-        // todo check algs
-        Cipher c = Cipher.getInstance("RSA/NONE/OAEPPadding", BC_PROVIDER);
-        c.init(Cipher.UNWRAP_MODE, privateKey);
-        return c.unwrap(wrappedKey, "AES", Cipher.SECRET_KEY);
-    }
-
-    /**
      * todo javadoc and exception handling
+     *
      * @param secretKey
      * @param data
      * @return
@@ -218,22 +86,11 @@ public class EncryptionService {
                     .put(encryptedData)
                     .array();
 
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (NoSuchProviderException e) {
-            e.printStackTrace();
-        } catch (NoSuchPaddingException e) {
-            e.printStackTrace();
-        } catch (IllegalBlockSizeException e) {
-            e.printStackTrace();
-        } catch (BadPaddingException e) {
-            e.printStackTrace();
-        } catch (InvalidAlgorithmParameterException e) {
-            e.printStackTrace();
-        } catch (InvalidKeyException e) {
-            e.printStackTrace();
+        } catch (GeneralSecurityException exception) {
+            String msg = "Error during encryption. " + exception.getMessage();
+            LOGGER.log(Level.SEVERE, msg);
+            throw new EncryptionException(msg, exception);
         }
-        return null;
     }
 
     /**
@@ -258,36 +115,58 @@ public class EncryptionService {
 
             return cipher.doFinal(encryptedData);
 
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (NoSuchPaddingException e) {
-            e.printStackTrace();
-        } catch (InvalidAlgorithmParameterException e) {
-            e.printStackTrace();
-        } catch (IllegalBlockSizeException e) {
-            e.printStackTrace();
-        } catch (BadPaddingException e) {
-            e.printStackTrace();
-        } catch (InvalidKeyException e) {
-            e.printStackTrace();
+        } catch (GeneralSecurityException exception) {
+            String msg = "Error during decryption. " + exception.getMessage();
+            LOGGER.log(Level.SEVERE, msg);
+            throw new EncryptionException(msg, exception);
         }
-
-        return new byte[4];
     }
 
     /**
-     * Creates Signature instance based on provided algorithm.
+     * todo javadoc
      *
-     * @param signingAlgorithm Signing algorithm used to create signature.
-     * @return Signature object.
+     * @param secretKey
+     * @param publicKey
+     * @return
      */
-    private Signature createSignature(String signingAlgorithm) {
+    public byte[] wrap(SecretKey secretKey, PublicKey publicKey) {
+
+        // todo check padding, check oaep parameters specification
         try {
-            return Signature.getInstance(signingAlgorithm);
-        } catch (NoSuchAlgorithmException exception) {
-            String msg = "Unable to create a signature instance. Invalid signature algorithm." + exception.getMessage();
-            LOGGER.log(Level.SEVERE, msg, exception);
-            throw new JwtException(msg, exception);
+            Cipher c = Cipher.getInstance("RSA/NONE/OAEPPadding", BC_PROVIDER);
+            c.init(Cipher.WRAP_MODE, publicKey);
+//        c.init(Cipher.WRAP_MODE, publicKey,
+//                new OAEPParameterSpec("SHA-384", "MGF1", new MGF1ParameterSpec("SHA-384"),
+//                        PSource.PSpecified.DEFAULT));
+            return c.wrap(secretKey);
+        } catch (GeneralSecurityException exception) {
+            String msg = "Error while wrapping secret key. " + exception.getMessage();
+            LOGGER.log(Level.SEVERE, msg);
+            throw new KeyEncryptionException(msg, exception);
+        }
+    }
+
+    /**
+     * todo javadoc
+     *
+     * @param wrappedKey
+     * @param privateKey
+     * @return
+     * @throws NoSuchPaddingException
+     * @throws NoSuchAlgorithmException
+     * @throws NoSuchProviderException
+     * @throws InvalidKeyException
+     */
+    public Key unwrap(byte[] wrappedKey, PrivateKey privateKey) {
+        // todo check algs
+        try {
+            Cipher c = Cipher.getInstance("RSA/NONE/OAEPPadding", BC_PROVIDER);
+            c.init(Cipher.UNWRAP_MODE, privateKey);
+            return c.unwrap(wrappedKey, "AES", Cipher.SECRET_KEY);
+        } catch (GeneralSecurityException exception) {
+            String msg = "Error while unwrapping secret key. " + exception.getMessage();
+            LOGGER.log(Level.SEVERE, msg);
+            throw new KeyEncryptionException(msg, exception);
         }
     }
 

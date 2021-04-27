@@ -2,9 +2,11 @@ package io.blindnet.blindnet.core;
 
 import io.blindnet.blindnet.UserService;
 import io.blindnet.blindnet.domain.UserRegistrationResult;
+import io.blindnet.blindnet.exception.KeyStorageException;
 
 import java.security.KeyPair;
 import java.security.PrivateKey;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static io.blindnet.blindnet.domain.EncryptionConstants.*;
@@ -19,19 +21,20 @@ class UserServiceImpl implements UserService {
     private static final Logger LOGGER = Logger.getLogger(UserServiceImpl.class.getName());
 
     private KeyStorage keyStorage;
-    private JwtService signingService;
+    private JwtService jwtService;
     private BlindnetClient blindnetClient;
 
-    UserServiceImpl(KeyStorage keyStorage, JwtService signingService, BlindnetClient blindnetClient) {
+    UserServiceImpl(KeyStorage keyStorage, JwtService jwtService, BlindnetClient blindnetClient) {
+        // todo to be changed
         this.keyStorage = keyStorage;
-        this.signingService = signingService;
+        this.jwtService = jwtService;
         this.blindnetClient = blindnetClient;
     }
 
     /**
-     * Registers user using blindnet API.
+     * Registers a user using Blindnet API.
      *
-     * @param jwt JWT representing a user that will be registered against blindnet API.
+     * @param jwt JWT representing a user that will be registered.
      * @return tbd
      */
     @Override
@@ -44,20 +47,29 @@ class UserServiceImpl implements UserService {
         PrivateKey signingPrivateKey = signingKeyPair.getPrivate();
         keyStorage.storeSigningKey(signingPrivateKey);
 
-        String signedJwt = signingService.sign(jwt, signingPrivateKey, SHA_256_ECDSA_ALGORITHM);
+        String signedJwt = jwtService.sign(jwt, signingPrivateKey, SHA_256_ECDSA_ALGORITHM);
 
         return blindnetClient.register(jwt, encryptionKeyPair.getPublic(), signingKeyPair.getPublic(), signedJwt);
     }
 
     /**
-     * todo add javadoc
+     * Unregisters a user using Blindnet API and deletes his local data.
      *
-     * @param jwt
+     * @param jwt a JWT representing a user which will be deleted.
      */
-    // todo FR13
     public void unregister(String jwt) {
-        // todo 1. delete user private keys
-        // todo 2. send request to blindnet api to delete user
+        blindnetClient.unregister(jwt);
+
+        if (!keyStorage.deleteSigningKey()) {
+            String msg = "Unable to delete local signing key.";
+            LOGGER.log(Level.SEVERE, msg);
+            throw new KeyStorageException(msg);
+        }
+        if (!keyStorage.deleteEncryptionKey()) {
+            String msg = "Unable to delete local encryption key.";
+            LOGGER.log(Level.SEVERE, msg);
+            throw new KeyStorageException(msg);
+        }
     }
 
 }

@@ -51,6 +51,10 @@ class KeyStorage {
         return read(KeyStorageConfig.INSTANCE.getEncryptionPrivateKeyPath());
     }
 
+    public boolean deleteEncryptionKey() {
+        return new File(KeyStorageConfig.INSTANCE.getEncryptionPrivateKeyPath()).delete();
+    }
+
     /**
      * Stores a private key used for signing.
      *
@@ -69,6 +73,14 @@ class KeyStorage {
      */
     public PrivateKey readSigningPrivateKey() {
         return read(KeyStorageConfig.INSTANCE.getSigningPrivateKeyPath());
+    }
+
+    /**
+     * todo javadoc
+     * @return
+     */
+    public boolean deleteSigningKey() {
+        return new File(KeyStorageConfig.INSTANCE.getSigningPrivateKeyPath()).delete();
     }
 
     /**

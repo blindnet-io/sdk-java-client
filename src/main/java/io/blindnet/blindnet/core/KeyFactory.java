@@ -1,5 +1,7 @@
 package io.blindnet.blindnet.core;
 
+import io.blindnet.blindnet.exception.JwtException;
+import io.blindnet.blindnet.exception.KeyConstructionException;
 import io.blindnet.blindnet.exception.KeyGenerationException;
 import org.bouncycastle.jce.ECNamedCurveTable;
 import org.bouncycastle.jce.interfaces.ECPrivateKey;
@@ -203,14 +205,19 @@ class KeyFactory {
      * @param base64PK Base64 encoded Public Key.
      * @return Public Key object.
      */
-    public static PublicKey convertToPublicKey(String base64PK, String algorithm) throws NoSuchAlgorithmException,
-            InvalidKeySpecException {
+    public static PublicKey convertToPublicKey(String base64PK, String algorithm) {
 
         X509EncodedKeySpec X509publicKey = new X509EncodedKeySpec(
                 Base64.getUrlDecoder()
                         .decode(base64PK.getBytes()));
-        java.security.KeyFactory keyFactory = java.security.KeyFactory.getInstance(algorithm);
-        return keyFactory.generatePublic(X509publicKey);
+        try {
+            java.security.KeyFactory keyFactory = java.security.KeyFactory.getInstance(algorithm);
+            return keyFactory.generatePublic(X509publicKey);
+        } catch (GeneralSecurityException exception) {
+            String msg = "Error while converting Public Key. " + exception.getMessage();
+            LOGGER.log(Level.SEVERE, msg);
+            throw new KeyConstructionException(msg, exception);
+        }
     }
 
     public static PrivateKey convertToPrivateKey(byte[] pkBytes, String algorithm) throws NoSuchAlgorithmException,

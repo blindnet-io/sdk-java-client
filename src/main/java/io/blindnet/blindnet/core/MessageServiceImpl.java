@@ -42,7 +42,7 @@ public class MessageServiceImpl implements MessageService {
 
     //TODO: FR-SDK07;
     /**
-     * todo javadoc and The SDK also records the protocol version in the output data
+     * todo javadoc
      *
      * @param jwt
      * @param recipientId
