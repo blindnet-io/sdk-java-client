@@ -1,8 +1,6 @@
 package io.blindnet.blindnet.core;
 
 import io.blindnet.blindnet.exception.KeyStorageException;
-import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPrivateKey;
-import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPublicKey;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
@@ -10,13 +8,9 @@ import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 
 import java.io.*;
 import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.interfaces.RSAPrivateKey;
-import java.security.spec.RSAPublicKeySpec;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static io.blindnet.blindnet.domain.EncryptionConstants.*;
 import static java.util.Objects.requireNonNull;
 
 /**

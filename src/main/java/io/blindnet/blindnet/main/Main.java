@@ -49,12 +49,6 @@ public class Main {
 //            System.out.println("It is not retreieved fuck");
 //        }
 
-        testEncrypt();
-    }
-
-    private static void testEncrypt() {
-        MessageService messageService = MessageServiceProvider.getInstance();
-        messageService.encrypt(JwtGenerator.generateJwt(), "1", null);
     }
 
     private static void testFetchSymmetricKey() {

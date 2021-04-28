@@ -1,15 +1,18 @@
 package io.blindnet.blindnet;
 
-import io.blindnet.blindnet.domain.MessageWrapper;
+import io.blindnet.blindnet.domain.MessageArrayWrapper;
+import io.blindnet.blindnet.domain.MessageStreamWrapper;
 
 import java.io.InputStream;
 
 public interface MessageService {
 
-    byte[] encrypt(String jwt, String recipientId, MessageWrapper messageWrapper);
+    byte[] encrypt(String jwt, String recipientId, MessageArrayWrapper messageWrapper);
 
-    byte[] encrypt(String jwt, String recipientId, InputStream metadata, InputStream data);
+    InputStream encrypt(String jwt, String recipientId, MessageStreamWrapper messageStreamWrapper);
 
-    MessageWrapper decrypt(String jwt, String senderId, String recipientId, byte[] data);
+    MessageArrayWrapper decrypt(String jwt, String senderId, String recipientId, byte[] data);
+
+    MessageStreamWrapper decrypt(String jwt, String senderId, String recipientId, InputStream inputData);
 
 }

@@ -1,13 +1,17 @@
 package io.blindnet.blindnet.core;
 
-import io.blindnet.blindnet.domain.MessageWrapper;
+import io.blindnet.blindnet.domain.MessageArrayWrapper;
+import io.blindnet.blindnet.domain.MessageStreamWrapper;
 import io.blindnet.blindnet.exception.EncryptionException;
 import io.blindnet.blindnet.exception.KeyEncryptionException;
+import org.bouncycastle.jcajce.io.CipherInputStream;
+import org.bouncycastle.jcajce.io.CipherOutputStream;
 
 import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.security.*;
 import java.util.logging.Level;
@@ -33,11 +37,16 @@ public class EncryptionService {
      * @param messageWrapper
      * @return
      */
-    public byte[] encryptMessage(SecretKey secretKey, MessageWrapper messageWrapper) {
+    public byte[] encryptMessage(SecretKey secretKey, MessageArrayWrapper messageWrapper) {
 
         byte[] metadataLengthBA = ByteBuffer.allocate(4).putInt(messageWrapper.getMetadata().length).array();
 
-        // data to be encrypted -> metadata length + metadata + data
+        /*
+         * Creates data array of:
+         * 1. a length of message metadata
+         * 2. a message metadata
+         * 3. a message data
+         */
         byte[] data = ByteBuffer.allocate(metadataLengthBA.length +
                 messageWrapper.getMetadata().length +
                 messageWrapper.getData().length)
@@ -49,10 +58,15 @@ public class EncryptionService {
         return encrypt(secretKey, data);
     }
 
-    public MessageWrapper decryptMessage(SecretKey secretKey, byte[] data) {
+    public MessageArrayWrapper decryptMessage(SecretKey secretKey, byte[] data) {
         ByteBuffer decryptedDataWrapper = ByteBuffer.wrap(
                 requireNonNull(decrypt(secretKey, data)));
 
+        /*
+         * 1. reads a length of message metadata
+         * 2. based on step 1 reads message metadata
+         * 3. reads a message data which is what is left in the input
+         */
         byte[] decryptedMetadataLengthBA = new byte[4];
         decryptedDataWrapper.get(decryptedMetadataLengthBA);
         int metadataLength = ByteBuffer.wrap(decryptedMetadataLengthBA).getInt();
@@ -63,7 +77,96 @@ public class EncryptionService {
         byte[] decryptedData = new byte[decryptedDataWrapper.remaining()];
         decryptedDataWrapper.get(decryptedData);
 
-        return new MessageWrapper(decryptedMetadata, decryptedData);
+        return new MessageArrayWrapper(decryptedMetadata, decryptedData);
+    }
+
+    public InputStream encryptMessage(SecretKey secretKey, MessageStreamWrapper messageStreamWrapper) {
+        byte[] metadataLengthBA = ByteBuffer.allocate(4).putInt(messageStreamWrapper.getMetadata().length).array();
+
+        InputStream metadataInputStream = new ByteArrayInputStream(ByteBuffer
+                .allocate(metadataLengthBA.length + messageStreamWrapper.getMetadata().length)
+                .put(metadataLengthBA)
+                .put(messageStreamWrapper.getMetadata())
+                .array());
+
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        try {
+            byte[] iv = KeyFactory.generateRandom(NONCE_IV_ALGORITHM, BC_PROVIDER, GCM_IV_LENGTH);
+            /*
+             * 1. writes IV
+             * 2. encrypts a length of message metadata and message metadata
+             * 3. encrypts message stream data
+             */
+
+            Cipher cipher = Cipher.getInstance(AES_GCM_NO_PADDING_ALGORITHM);
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey, new GCMParameterSpec(GCM_T_LENGTH, iv));
+
+            PipedOutputStream pipedOutputStream = new PipedOutputStream();
+            PipedInputStream pipedInputStream = new PipedInputStream(pipedOutputStream);
+            pipedOutputStream.write(iv);
+            try (CipherOutputStream cipherOut = new CipherOutputStream(pipedOutputStream, cipher)) {
+
+                byte[] buf = new byte[4096];
+                int length;
+                while ((length = metadataInputStream.read(buf)) > 0) {
+                    cipherOut.write(buf, 0, length);
+                }
+                metadataInputStream.close();
+
+                buf = new byte[4096];
+                while ((length = messageStreamWrapper.getData().read(buf)) > 0) {
+                    cipherOut.write(buf, 0, length);
+                }
+                messageStreamWrapper.getData().close();
+
+                return pipedInputStream;
+            }
+        } catch (Exception exception) {
+            String msg = "Error during encryption. " + exception.getMessage();
+            LOGGER.log(Level.SEVERE, msg);
+            throw new EncryptionException(msg, exception);
+        }
+    }
+
+    public MessageStreamWrapper decryptMessage(SecretKey secretKey, InputStream input) {
+        byte[] iv = new byte[GCM_IV_LENGTH];
+        byte[] metadataLengthBA = new byte[4];
+
+        try {
+            /*
+             * 1. reads IV
+             * 2. decrypts a length of message metadata
+             * 3. based on step 2 decrypts message metadata
+             * 4. decrypts message input stream which is what is left in the input
+             */
+            input.read(iv);
+
+            Cipher cipher = Cipher.getInstance(AES_GCM_NO_PADDING_ALGORITHM);
+            cipher.init(Cipher.DECRYPT_MODE, secretKey, new GCMParameterSpec(GCM_T_LENGTH, iv));
+
+            PipedOutputStream pipedOutputStream = new PipedOutputStream();
+            PipedInputStream pipedInputStream = new PipedInputStream(pipedOutputStream);
+
+            try (CipherInputStream cipherIn = new CipherInputStream(input, cipher)) {
+                cipherIn.read(metadataLengthBA);
+
+                byte[] metadata = new byte[ByteBuffer.wrap(metadataLengthBA).getInt()];
+                cipherIn.read(metadata);
+
+                byte[] buf = new byte[4096];
+                int length;
+                while ((length = cipherIn.read(buf)) > 0) {
+                    pipedOutputStream.write(buf, 0, length);
+                }
+                pipedOutputStream.close();
+                return new MessageStreamWrapper(metadata, pipedInputStream);
+            }
+        } catch (Exception exception) {
+            String msg = "Error during decryption. " + exception.getMessage();
+            LOGGER.log(Level.SEVERE, msg);
+            throw new EncryptionException(msg, exception);
+        }
+
     }
 
     /**

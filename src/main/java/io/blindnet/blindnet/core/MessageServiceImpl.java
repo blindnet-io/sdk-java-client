@@ -2,7 +2,8 @@ package io.blindnet.blindnet.core;
 
 import io.blindnet.blindnet.MessageService;
 import io.blindnet.blindnet.domain.KeyEnvelope;
-import io.blindnet.blindnet.domain.MessageWrapper;
+import io.blindnet.blindnet.domain.MessageArrayWrapper;
+import io.blindnet.blindnet.domain.MessageStreamWrapper;
 import io.blindnet.blindnet.domain.PublicKeyPair;
 import io.blindnet.blindnet.exception.BlindnetApiException;
 
@@ -40,7 +41,6 @@ public class MessageServiceImpl implements MessageService {
         keyStorage = new KeyStorage();
     }
 
-    //TODO: FR-SDK07;
     /**
      * todo javadoc
      *
@@ -50,12 +50,59 @@ public class MessageServiceImpl implements MessageService {
      * @return
      */
     @Override
-    public byte[] encrypt(String jwt, String recipientId, MessageWrapper messageWrapper) {
+    public byte[] encrypt(String jwt, String recipientId, MessageArrayWrapper messageWrapper) {
+        return encryptionService.encryptMessage(getEncryptionKey(jwt, recipientId), messageWrapper);
+    }
 
+    /**
+     *
+     * @param jwt
+     * @param recipientId
+     * @param messageStreamWrapper
+     * @return
+     */
+    @Override
+    public InputStream encrypt(String jwt, String recipientId, MessageStreamWrapper messageStreamWrapper) {
+        return encryptionService.encryptMessage(getEncryptionKey(jwt, recipientId), messageStreamWrapper);
+    }
+
+    /**
+     * todo javadoc
+     *
+     * @param jwt
+     * @param senderId
+     * @param recipientId
+     * @param data
+     * @return
+     */
+    @Override
+    public MessageArrayWrapper decrypt(String jwt, String senderId, String recipientId, byte[] data) {
+        return encryptionService.decryptMessage(blindnetClient.fetchSecretKey(jwt, senderId, recipientId), data);
+    }
+
+    /**
+     *
+     * @param jwt
+     * @param senderId
+     * @param recipientId
+     * @param inputData
+     * @return
+     */
+    @Override
+    public MessageStreamWrapper decrypt(String jwt, String senderId, String recipientId, InputStream inputData) {
+        return encryptionService.decryptMessage(getEncryptionKey(jwt, recipientId), inputData);
+    }
+
+    /**
+     *
+     * @param jwt
+     * @param recipientId
+     * @return
+     */
+    private SecretKey getEncryptionKey(String jwt, String recipientId) {
         String senderId = jwtService.extractUserId(jwt);
         try {
-            SecretKey secretKey = blindnetClient.fetchSecretKey(jwt, senderId, recipientId);
-            return encryptionService.encryptMessage(secretKey, messageWrapper);
+            return blindnetClient.fetchSecretKey(jwt, senderId, recipientId);
         } catch (BlindnetApiException exception) {
             LOGGER.log(Level.INFO, String.format("Unable to fetch secret key from Blindnet API. %s", exception.getMessage()));
         }
@@ -83,37 +130,11 @@ public class MessageServiceImpl implements MessageService {
                 recipientId,
                 recipientId,
                 senderId
-                );
+        );
 
         blindnetClient.sendSecretKey(jwt, sendersKeyEnvelope, recipientKeyEnvelope);
 
-        return encryptionService.encryptMessage(generatedSecretKey, messageWrapper);
-    }
-
-    //TODO: FR-SDK08;
-    @Override
-    public byte[] encrypt(String jwt, String recipientId, InputStream metadata, InputStream data) {
-        return null;
-    }
-
-    //TODO: FR-SDK09;
-    /**
-     * todo javadoc
-     *
-     * @param jwt
-     * @param senderId
-     * @param recipientId
-     * @param data
-     * @return
-     */
-    @Override
-    public MessageWrapper decrypt(String jwt, String senderId, String recipientId, byte[] data) {
-        SecretKey secretKey = blindnetClient.fetchSecretKey(jwt, senderId, recipientId);
-        return encryptionService.decryptMessage(secretKey, data);
-    }
-
-    public MessageWrapper decrypt(String jwt, String senderId, String recipientId, InputStream data) {
-        return null;
+        return generatedSecretKey;
     }
 
 }

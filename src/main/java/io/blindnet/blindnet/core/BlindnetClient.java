@@ -1,20 +1,13 @@
 package io.blindnet.blindnet.core;
 
 import io.blindnet.blindnet.domain.*;
-import io.blindnet.blindnet.exception.KeyConstructionException;
-import io.blindnet.blindnet.exception.KeyGenerationException;
 import io.blindnet.blindnet.exception.SignatureException;
 import org.json.JSONObject;
 
-import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.security.PublicKey;
-import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
 import java.util.logging.Level;
 import java.util.logging.Logger;

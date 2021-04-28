@@ -1,11 +1,11 @@
 package io.blindnet.blindnet.domain;
 
-public class MessageWrapper {
+public class MessageArrayWrapper {
 
     private final byte[] metadata;
     private final byte[] data;
 
-    public MessageWrapper(byte[] metadata, byte[] data) {
+    public MessageArrayWrapper(byte[] metadata, byte[] data) {
         this.metadata = metadata;
         this.data = data;
     }
