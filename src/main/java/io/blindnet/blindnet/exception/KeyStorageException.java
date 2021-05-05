@@ -1,7 +1,7 @@
 package io.blindnet.blindnet.exception;
 
 /**
- * Exception indicating that a private key could not be stored due to IO problems.
+ * Exception indicating that a private key could not be stored due to IO error.
  *
  * @author stefanveselinovic
  * @since 0.0.1

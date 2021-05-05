@@ -7,6 +7,8 @@ import java.security.GeneralSecurityException;
 
 public interface UserService {
 
-    UserRegistrationResult register(String jwt);
+    UserRegistrationResult register();
+
+    public void unregister();
 
 }

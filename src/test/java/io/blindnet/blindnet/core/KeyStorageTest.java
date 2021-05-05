@@ -21,8 +21,8 @@ public class KeyStorageTest extends AbstractTest {
 
     @Before
     public void setup() {
-        keyStorage = new KeyStorage();
-        keyPair = KeyFactory.generateKeyPair(RSA_ALGORITHM, BC_PROVIDER, RSA_KEY_SIZE_4096);
+        keyStorage = KeyStorage.getInstance();
+        keyPair = new KeyFactory().generateKeyPair(RSA_ALGORITHM, BC_PROVIDER, RSA_KEY_SIZE_4096);
     }
 
     @Test

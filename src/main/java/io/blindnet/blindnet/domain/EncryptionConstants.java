@@ -1,6 +1,15 @@
 package io.blindnet.blindnet.domain;
 
-public class EncryptionConstants {
+/**
+ * Provides constant that are used in encryption/decryption operations.
+ *
+ * @author stefanveselinovic
+ * @since 0.0.1
+ */
+public final class EncryptionConstants {
+
+    private EncryptionConstants() {
+    }
 
     public static final String BC_PROVIDER = "BC";
 
@@ -14,7 +23,7 @@ public class EncryptionConstants {
 
     public static final int AES_KEY_SIZE = 256;
     public static final int AES_KEY_ITERATION_COUNT = 65536;
-    // todo check these 2
+
     public static final int GCM_IV_LENGTH = 12;
     public static final int GCM_T_LENGTH = 128;
     public static final int SALT_LENGTH = 16;

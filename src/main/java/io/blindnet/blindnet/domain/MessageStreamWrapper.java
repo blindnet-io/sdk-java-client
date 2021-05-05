@@ -2,9 +2,22 @@ package io.blindnet.blindnet.domain;
 
 import java.io.InputStream;
 
-public class MessageStreamWrapper {
+/**
+ * A wrapper object of the message represented as input stream and message data.
+ *
+ * @author stefanveselinovic
+ * @since 0.0.1
+ */
+public final class MessageStreamWrapper {
 
+    /**
+     * A metadata of the message.
+     */
     private final byte[] metadata;
+
+    /**
+     * A data of the message.
+     */
     private final InputStream data;
 
     public MessageStreamWrapper(byte[] metadata, InputStream data) {

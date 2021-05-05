@@ -6,9 +6,9 @@ import static java.util.Objects.requireNonNull;
  * Provides Singleton instance for the key storage configuration.
  *
  * @author stefanveselinovic
+ * @since 0.0.1
  */
 public enum KeyStorageConfig {
-
 
     /**
      * Key Storage Config Instance.
@@ -35,7 +35,6 @@ public enum KeyStorageConfig {
      *
      * @return KeyStorageConfig Singleton
      */
-    // todo check if needed
     public KeyStorageConfig getInstance() {
         return INSTANCE;
     }

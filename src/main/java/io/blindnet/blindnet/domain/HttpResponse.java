@@ -1,9 +1,26 @@
 package io.blindnet.blindnet.domain;
 
-public class HttpResponse {
+/**
+ * A wrapper object for the http response.
+ *
+ * @author stefanveselinovic
+ * @since 0.0.1
+ */
+public final class HttpResponse {
 
+    /**
+     * A status of the response.
+     */
     private final int status;
+
+    /**
+     * A message of the response.
+     */
     private final String message;
+
+    /**
+     * A body of the response.
+     */
     private final byte[] body;
 
     private HttpResponse(Builder builder) {
@@ -12,8 +29,11 @@ public class HttpResponse {
         this.body = builder.body;
     }
 
+    /**
+     * Builder pattern implementation.
+     */
     public static class Builder {
-        private int status;
+        private final int status;
         private String message;
         private byte[] body;
 
@@ -21,7 +41,7 @@ public class HttpResponse {
             this.status = status;
         }
 
-        public Builder withMessage(String message){
+        public Builder withMessage(String message) {
             this.message = message;
             return this;
         }
@@ -31,7 +51,7 @@ public class HttpResponse {
             return this;
         }
 
-        public HttpResponse build(){
+        public HttpResponse build() {
             return new HttpResponse(this);
         }
     }
@@ -47,4 +67,5 @@ public class HttpResponse {
     public byte[] getBody() {
         return body;
     }
+
 }

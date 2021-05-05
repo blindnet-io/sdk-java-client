@@ -14,21 +14,40 @@ import java.util.logging.Logger;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Provides api for private key storage.
+ * Provides API for private key storage.
  *
  * @author stefanveselinovic
+ * @since 0.0.1
  */
-// todo check if this should be singleton
 class KeyStorage {
 
     private static final Logger LOGGER = Logger.getLogger(KeyFactory.class.getName());
 
-    public KeyStorage() { }
+    /**
+     * Private constructor as class implements Singleton pattern.
+     */
+    private KeyStorage() {}
+
+    /**
+     * Inner class which holds Singleton instance.
+     */
+    private static class InstanceHolder {
+        public static final KeyStorage instance = new KeyStorage();
+    }
+
+    /**
+     * Returns Singleton instance of the class.
+     *
+     * @return Key Storage object.
+     */
+    public static KeyStorage getInstance() {
+        return InstanceHolder.instance;
+    }
 
     /**
      * Stores a private used for encryption.
      *
-     * @param privateKey Private key to be stored.
+     * @param privateKey a private key to be stored.
      */
     public void storeEncryptionKey(PrivateKey privateKey) {
         requireNonNull(KeyStorageConfig.INSTANCE.getEncryptionPrivateKeyPath(), "Key storage not configured properly.");
@@ -38,13 +57,19 @@ class KeyStorage {
     }
 
     /**
-     * todo javadoc
-     * @return
+     * Returns a private key used for encryption.
+     *
+     * @return a private Key object.
      */
     public PrivateKey readEncryptionPrivateKey() {
         return read(KeyStorageConfig.INSTANCE.getEncryptionPrivateKeyPath());
     }
 
+    /**
+     * Deletes private key used for encryption.
+     *
+     * @return indication if deletion was successful.
+     */
     public boolean deleteEncryptionKey() {
         return new File(KeyStorageConfig.INSTANCE.getEncryptionPrivateKeyPath()).delete();
     }
@@ -52,7 +77,7 @@ class KeyStorage {
     /**
      * Stores a private key used for signing.
      *
-     * @param privateKey Private key to be stored.
+     * @param privateKey a private key to be stored.
      */
     public void storeSigningKey(PrivateKey privateKey) {
         requireNonNull(KeyStorageConfig.INSTANCE.getSigningPrivateKeyPath(), "Key storage not configured properly.");
@@ -62,26 +87,28 @@ class KeyStorage {
     }
 
     /**
-     * todo javadoc
-     * @return
+     * Returns a private key used for signing.
+     *
+     * @return a private key object.
      */
     public PrivateKey readSigningPrivateKey() {
         return read(KeyStorageConfig.INSTANCE.getSigningPrivateKeyPath());
     }
 
     /**
-     * todo javadoc
-     * @return
+     * Deletes private key used for signing.
+     *
+     * @return indication if deletion was successful.
      */
     public boolean deleteSigningKey() {
         return new File(KeyStorageConfig.INSTANCE.getSigningPrivateKeyPath()).delete();
     }
 
     /**
-     * Writes private key to the file.
+     * Writes private key to a file.
      *
-     * @param privateKey Private key to be stored.
-     * @param filepath Path of a file where the private key will be stored.
+     * @param privateKey a private key to be stored.
+     * @param filepath a path of a file where the private key will be stored.
      */
     private void store(PrivateKey privateKey, String filepath) {
         JcaPEMWriter writer = null;
@@ -98,6 +125,12 @@ class KeyStorage {
         }
     }
 
+    /**
+     * Reads private key from a file.
+     *
+     * @param filepath a path of a file which contains private key.
+     * @return a private key object.
+     */
     private PrivateKey read(String filepath) {
         try {
             PEMParser parser = new PEMParser(new InputStreamReader(new FileInputStream(filepath)));

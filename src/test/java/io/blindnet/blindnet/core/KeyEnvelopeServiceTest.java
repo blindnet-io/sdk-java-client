@@ -18,10 +18,12 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 public class KeyEnvelopeServiceTest extends AbstractTest {
 
     private KeyEnvelopeService keyEnvelopeService;
+    private KeyFactory keyFactory;
 
     @Before
     public void setUp() {
         keyEnvelopeService = new KeyEnvelopeService();
+        keyFactory = new KeyFactory();
     }
 
     @Test
@@ -30,17 +32,17 @@ public class KeyEnvelopeServiceTest extends AbstractTest {
 
         // todo change
         // signing private key
-        KeyPair signingKeyPair = KeyFactory.generateKeyPair(ECDSA_ALGORITHM, BC_PROVIDER, SECRP_256_R_CURVE);
+        KeyPair signingKeyPair = keyFactory.generateKeyPair(ECDSA_ALGORITHM, BC_PROVIDER, SECRP_256_R_CURVE);
         PrivateKey signingPrivateKey = signingKeyPair.getPrivate();
         System.out.println("Signing public key: ");
         System.out.println(Base64.getUrlEncoder().encodeToString(signingKeyPair.getPublic().getEncoded()));
         // encryption public key
-        KeyPair encryptionKeyPair = KeyFactory.generateKeyPair(RSA_ALGORITHM, BC_PROVIDER, RSA_KEY_SIZE_4096);
+        KeyPair encryptionKeyPair = keyFactory.generateKeyPair(RSA_ALGORITHM, BC_PROVIDER, RSA_KEY_SIZE_4096);
         // todo this will be used => read local encryption private key and create public key from it
         PublicKey publicKey = encryptionKeyPair.getPublic();
         System.out.println(Base64.getUrlEncoder().encodeToString(publicKey.getEncoded()));
 
-        SecretKey generatedSecretKey = KeyFactory.generateSecretKey(AES_ALGORITHM, AES_KEY_SIZE);
+        SecretKey generatedSecretKey = keyFactory.generateSecretKey(AES_ALGORITHM, AES_KEY_SIZE);
         KeyEnvelope keyEnvelope = keyEnvelopeService.create(generatedSecretKey,
                 publicKey,
                 signingPrivateKey,

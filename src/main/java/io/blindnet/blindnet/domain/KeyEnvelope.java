@@ -2,15 +2,52 @@ package io.blindnet.blindnet.domain;
 
 import java.io.Serializable;
 
-public class KeyEnvelope implements Serializable {
+/**
+ * A wrapper object for key envelope.
+ *
+ * @author stefanveselinovic
+ * @since 0.0.1
+ */
+public final class KeyEnvelope implements Serializable {
 
+    /**
+     * An id of the envelope.
+     */
     private final String envelopeId;
+
+    /**
+     * A version of the envelope.
+     */
     private final String envelopeVersion;
+
+    /**
+     * A key which is enveloped.
+     */
     private final String key;
+
+    /**
+     * An id of the owner.
+     */
     private final String ownerId;
+
+    /**
+     * An id of the recipient.
+     */
     private final String recipientId;
+
+    /**
+     * An id of the sender.
+     */
     private final String senderId;
+
+    /**
+     * A timestamp of the envelope.
+     */
     private final long timestamp;
+
+    /**
+     * A cryptographic signature of the envelop.
+     */
     private String keyEnvelopeSignature;
 
     private KeyEnvelope(Builder builder) {
@@ -24,9 +61,12 @@ public class KeyEnvelope implements Serializable {
         keyEnvelopeSignature = builder.keyEnvelopeSignature;
     }
 
+    /**
+     * Builder pattern implementation.
+     */
     public static class Builder {
 
-        private String envelopeId;
+        private final String envelopeId;
         private String envelopeVersion;
         private String key;
         private String ownerId;
@@ -39,22 +79,22 @@ public class KeyEnvelope implements Serializable {
             this.envelopeId = envelopeId;
         }
 
-        public Builder withVersion(String envelopeVersion){
+        public Builder withVersion(String envelopeVersion) {
             this.envelopeVersion = envelopeVersion;
             return this;
         }
 
-        public Builder withKey(String key){
+        public Builder withKey(String key) {
             this.key = key;
             return this;
         }
 
-        public Builder withOwnerId(String ownerId){
+        public Builder withOwnerId(String ownerId) {
             this.ownerId = ownerId;
             return this;
         }
 
-        public Builder withRecipientId(String recipientId){
+        public Builder withRecipientId(String recipientId) {
             this.recipientId = recipientId;
             return this;
         }
@@ -74,7 +114,7 @@ public class KeyEnvelope implements Serializable {
             return this;
         }
 
-        public KeyEnvelope build(){
+        public KeyEnvelope build() {
             return new KeyEnvelope(this);
         }
     }

@@ -1,15 +1,21 @@
 package io.blindnet.blindnet.domain;
 
-import java.security.PrivateKey;
-
 /**
- * todo javadoc
+ * A wrapper object for the encryption and signing private keys.
  *
  * @author stefanveselinovic
+ * @since 0.0.1
  */
-public class PrivateKeyPair {
+public final class PrivateKeyPair {
 
+    /**
+     * A private key used for encryption.
+     */
     private final String encryptionKey;
+
+    /**
+     * A private key used for signing.
+     */
     private final String signingKey;
 
     public PrivateKeyPair(String encryptionKey, String signingKey) {

@@ -10,10 +10,12 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-// todo java doc
+
 /**
+ * Provides API to for standard HTTP methods.
  *
  * @author stefanveselinovic
+ * @since 0.0.1
  */
 class HttpClient {
 
@@ -26,14 +28,42 @@ class HttpClient {
     private static final int CONNECT_TIMEOUT = 5000;
     private static final int READ_TIMEOUT = 5000;
 
-    public HttpClient() {}
+    /**
+     * Private constructor as class implements Singleton pattern.
+     */
+    private HttpClient() {
+    }
 
+    /**
+     * Inner class which holds Singleton instance.
+     */
+    private static class InstanceHolder {
+        public static final HttpClient instance = new HttpClient();
+    }
+
+    /**
+     * Returns Singleton instance of the class.
+     *
+     * @return Key Storage object.
+     */
+    public static HttpClient getInstance() {
+        return HttpClient.InstanceHolder.instance;
+    }
+
+    /**
+     * Sends HTTP Post request.
+     *
+     * @param url         an url of the request.
+     * @param jwt         a jwt used for authorization.
+     * @param requestBody a body of the request.
+     * @return a http response object.
+     */
     public HttpResponse post(String url, String jwt, byte[] requestBody) {
         Objects.requireNonNull(url, "Url cannot be null.");
         Objects.requireNonNull(requestBody, "Message body cannot be null.");
 
         HttpURLConnection con = init(url, POST_METHOD);
-        con.setRequestProperty("Authorization","Bearer " + jwt);
+        con.setRequestProperty("Authorization", "Bearer " + jwt);
         con.setRequestProperty("Content-Type", "application/json; utf-8");
         con.setRequestProperty("Accept", "application/json");
 
@@ -42,26 +72,51 @@ class HttpClient {
         return createResponse(con, url);
     }
 
+    /**
+     * Sends HTTP Get request.
+     *
+     * @param url an url of the request.
+     * @param jwt a jwt used for authorization.
+     * @return a http response object.
+     */
     public HttpResponse get(String url, String jwt) {
+        Objects.requireNonNull(url, "Url cannot be null.");
+        Objects.requireNonNull(jwt, "JWT cannot be null.");
+
         HttpURLConnection con = init(url, GET_METHOD);
 
-        con.setRequestProperty("Authorization","Bearer " + jwt);
+        con.setRequestProperty("Authorization", "Bearer " + jwt);
         con.setRequestProperty("Accept", "application/json");
 
         // todo; add url params if needed
         return createResponse(con, url);
     }
 
-
+    /**
+     * Sends HTTP Delete request.
+     *
+     * @param url an url of the request.
+     * @param jwt a jwt used for authorization.
+     * @return a http response object.
+     */
     public HttpResponse delete(String url, String jwt) {
+        Objects.requireNonNull(url, "Url cannot be null.");
+        Objects.requireNonNull(jwt, "JWT cannot be null.");
+
         HttpURLConnection con = init(url, DELETE_METHOD);
 
-        con.setRequestProperty("Authorization","Bearer " + jwt);
+        con.setRequestProperty("Authorization", "Bearer " + jwt);
         con.setRequestProperty("Accept", "application/json");
 
         return createResponse(con, url);
     }
 
+    /**
+     * Sends a body of the request.
+     *
+     * @param con         a http url connection object.
+     * @param requestBody a request body as byte array.
+     */
     private void sendRequestBody(HttpURLConnection con, byte[] requestBody) {
         try {
             con.setDoOutput(true);
@@ -75,11 +130,18 @@ class HttpClient {
         }
     }
 
+    /**
+     * Creates a response of the request.
+     *
+     * @param con a http url connection object.
+     * @param url an url of the request.
+     * @return a http response object.
+     */
     private HttpResponse createResponse(HttpURLConnection con, String url) {
         try {
             int responseCode = con.getResponseCode();
 
-            if (responseCode != HttpURLConnection.HTTP_OK && responseCode != HttpURLConnection.HTTP_CREATED){
+            if (responseCode != HttpURLConnection.HTTP_OK && responseCode != HttpURLConnection.HTTP_CREATED) {
                 String msg = String.format("Blindnet API response is %d %s  for url: %s.",
                         responseCode,
                         con.getResponseMessage(),
@@ -103,6 +165,13 @@ class HttpClient {
         }
     }
 
+    /**
+     * Parses response of the request.
+     *
+     * @param inputStream an input stream of the http url connection.
+     * @return a response of the request as byte array.
+     * @throws IOException an exception thrown if parsing fails.
+     */
     private byte[] parseResponse(InputStream inputStream) throws IOException {
         BufferedReader in = new BufferedReader(new InputStreamReader(inputStream));
         String inputLine;
@@ -116,11 +185,11 @@ class HttpClient {
 
 
     /**
+     * Initialises a http url connection object.
      *
-     * @param url
-     * @param method
-     * @return
-     * @throws IOException
+     * @param url    an url of the request.
+     * @param method a HTTP method of the request.
+     * @return a http url connection object.
      */
     private HttpURLConnection init(String url, String method) {
         try {

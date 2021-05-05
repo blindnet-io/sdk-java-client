@@ -9,7 +9,6 @@ import org.junit.jupiter.api.DisplayName;
 import javax.crypto.SecretKey;
 
 import java.io.*;
-import java.security.GeneralSecurityException;
 
 import static io.blindnet.blindnet.domain.EncryptionConstants.AES_ALGORITHM;
 import static io.blindnet.blindnet.domain.EncryptionConstants.AES_KEY_SIZE;
@@ -18,10 +17,12 @@ import static org.junit.jupiter.api.Assertions.*;
 public class EncryptionServiceTest extends AbstractTest {
 
     private EncryptionService encryptionService;
+    private KeyFactory keyFactory;
 
     @Before
     public void setUp() {
-        encryptionService = new EncryptionService();
+        keyFactory = new KeyFactory();
+        encryptionService = new EncryptionService(keyFactory);
     }
 
     @Test
@@ -29,7 +30,7 @@ public class EncryptionServiceTest extends AbstractTest {
     public void testEncryptMessageWithByteArrays() {
         String metadata = "random metadata";
         String data = "random data";
-        SecretKey secretKey = KeyFactory.generateSecretKey(AES_ALGORITHM, AES_KEY_SIZE);
+        SecretKey secretKey = keyFactory.generateSecretKey(AES_ALGORITHM, AES_KEY_SIZE);
 
         MessageArrayWrapper messageWrapper = new MessageArrayWrapper(metadata.getBytes(), data.getBytes());
         byte[] encryptedData = encryptionService.encryptMessage(secretKey, messageWrapper);
@@ -48,7 +49,7 @@ public class EncryptionServiceTest extends AbstractTest {
     public void testEncryptMessageWithStreams() throws IOException {
         String metadata = "random metadata";
         String data = "random data";
-        SecretKey secretKey = KeyFactory.generateSecretKey(AES_ALGORITHM, AES_KEY_SIZE);
+        SecretKey secretKey = keyFactory.generateSecretKey(AES_ALGORITHM, AES_KEY_SIZE);
 
         ByteArrayInputStream input = new ByteArrayInputStream(data.getBytes());
         InputStream inputStream = encryptionService.encryptMessage(secretKey, new MessageStreamWrapper(metadata.getBytes(), input));

@@ -8,7 +8,6 @@ import io.blindnet.blindnet.domain.PublicKeyPair;
 import io.blindnet.blindnet.exception.BlindnetApiException;
 
 import javax.crypto.SecretKey;
-
 import java.io.InputStream;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -16,103 +15,109 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static io.blindnet.blindnet.domain.EncryptionConstants.*;
+import static java.util.Objects.requireNonNull;
 
 /**
- * todo javadoc
+ * Provides API for encryption and decryption of messages.
  *
  * @author stefanveselinovic
+ * @since 0.0.1
  */
 public class MessageServiceImpl implements MessageService {
 
     private static final Logger LOGGER = Logger.getLogger(HttpClient.class.getName());
 
-    private KeyEnvelopeService keyEnvelopeService;
-    private JwtService jwtService;
-    private BlindnetClient blindnetClient;
-    private EncryptionService encryptionService;
-    private KeyStorage keyStorage;
+    private final KeyStorage keyStorage;
+    private final KeyFactory keyFactory;
+    private final EncryptionService encryptionService;
+    private final KeyEnvelopeService keyEnvelopeService;
+    private final BlindnetClient blindnetClient;
+    private final JwtConfig jwtConfig;
 
-    public MessageServiceImpl() {
-        // todo to be changed
-        keyEnvelopeService = new KeyEnvelopeService();
-        jwtService = new JwtService();
-        blindnetClient = new BlindnetClient();
-        encryptionService = new EncryptionService();
-        keyStorage = new KeyStorage();
+    public MessageServiceImpl(KeyStorage keyStorage,
+                              KeyFactory keyFactory,
+                              EncryptionService encryptionService,
+                              KeyEnvelopeService keyEnvelopeService,
+                              BlindnetClient blindnetClient) {
+
+        this.keyStorage = keyStorage;
+        this.keyFactory = keyFactory;
+        this.encryptionService = encryptionService;
+        this.keyEnvelopeService = keyEnvelopeService;
+        this.blindnetClient = blindnetClient;
+        this.jwtConfig = JwtConfig.INSTANCE;
     }
 
     /**
-     * todo javadoc
+     * Encrypts message and message metadata.
      *
-     * @param jwt
-     * @param recipientId
-     * @param messageWrapper
-     * @return
+     * @param recipientId an id of the recipient.
+     * @param messageWrapper a message wrapper object.
+     * @return encrypted message and message metadata as an byte array.
      */
     @Override
-    public byte[] encrypt(String jwt, String recipientId, MessageArrayWrapper messageWrapper) {
-        return encryptionService.encryptMessage(getEncryptionKey(jwt, recipientId), messageWrapper);
+    public byte[] encrypt(String recipientId, MessageArrayWrapper messageWrapper) {
+        return encryptionService.encryptMessage(getEncryptionKey(recipientId), messageWrapper);
     }
 
     /**
+     * Encrypts message and message metadata.
      *
-     * @param jwt
-     * @param recipientId
-     * @param messageStreamWrapper
-     * @return
+     * @param recipientId an id of the recipient.
+     * @param messageStreamWrapper a message wrapper object.
+     * @return encrypted message and message metadata as an input stream.
      */
     @Override
-    public InputStream encrypt(String jwt, String recipientId, MessageStreamWrapper messageStreamWrapper) {
-        return encryptionService.encryptMessage(getEncryptionKey(jwt, recipientId), messageStreamWrapper);
+    public InputStream encrypt(String recipientId, MessageStreamWrapper messageStreamWrapper) {
+        return encryptionService.encryptMessage(getEncryptionKey(recipientId), messageStreamWrapper);
     }
 
     /**
-     * todo javadoc
+     * Decrypts message and message metadata.
      *
-     * @param jwt
-     * @param senderId
-     * @param recipientId
-     * @param data
-     * @return
+     * @param senderId an id of the sender.
+     * @param recipientId an id of the recipient.
+     * @param data encrypted message and message metadata as byte array.
+     * @return decrypted message and message metadata as message wrapper object.
      */
     @Override
-    public MessageArrayWrapper decrypt(String jwt, String senderId, String recipientId, byte[] data) {
-        return encryptionService.decryptMessage(blindnetClient.fetchSecretKey(jwt, senderId, recipientId), data);
+    public MessageArrayWrapper decrypt(String senderId, String recipientId, byte[] data) {
+        return encryptionService.decryptMessage(blindnetClient.fetchSecretKey(senderId, recipientId), data);
     }
 
     /**
+     * Decrypts message and message metadata.
      *
-     * @param jwt
-     * @param senderId
-     * @param recipientId
-     * @param inputData
-     * @return
+     * @param senderId an id of the sender.
+     * @param recipientId an id of the recipient.
+     * @param inputData encrypted message and message metadata as input stream.
+     * @return decrypted message and message metadata as message wrapper object.
      */
     @Override
-    public MessageStreamWrapper decrypt(String jwt, String senderId, String recipientId, InputStream inputData) {
-        return encryptionService.decryptMessage(getEncryptionKey(jwt, recipientId), inputData);
+    public MessageStreamWrapper decrypt(String senderId, String recipientId, InputStream inputData) {
+        return encryptionService.decryptMessage(getEncryptionKey(recipientId), inputData);
     }
 
     /**
+     * Returns secret key by retrieving it from  Blindnet API or generating new one.
      *
-     * @param jwt
-     * @param recipientId
-     * @return
+     * @param recipientId an id of the recipient.
+     * @return a secret key object.
      */
-    private SecretKey getEncryptionKey(String jwt, String recipientId) {
-        String senderId = jwtService.extractUserId(jwt);
+    private SecretKey getEncryptionKey(String recipientId) {
+        String senderId = JwtUtil.extractUserId(requireNonNull(jwtConfig.getJwt(), "JWT not configured properly."));
         try {
-            return blindnetClient.fetchSecretKey(jwt, senderId, recipientId);
+            return blindnetClient.fetchSecretKey(senderId, recipientId);
         } catch (BlindnetApiException exception) {
             LOGGER.log(Level.INFO, String.format("Unable to fetch secret key from Blindnet API. %s", exception.getMessage()));
         }
 
         // if secret key is not retrieved from blindnet api
-        PublicKeyPair recipientPublicKeyPair = blindnetClient.fetchPublicKeys(jwt, recipientId);
-        SecretKey generatedSecretKey = KeyFactory.generateSecretKey(AES_ALGORITHM, AES_KEY_SIZE);
+        PublicKeyPair recipientPublicKeyPair = blindnetClient.fetchPublicKeys(recipientId);
+        SecretKey generatedSecretKey = keyFactory.generateSecretKey(AES_ALGORITHM, AES_KEY_SIZE);
 
         PrivateKey senderEncryptionPrivateKey = keyStorage.readEncryptionPrivateKey();
-        PublicKey senderEncryptionPublicKey = KeyFactory.extractPublicKey(senderEncryptionPrivateKey,
+        PublicKey senderEncryptionPublicKey = keyFactory.extractPublicKey(senderEncryptionPrivateKey,
                 RSA_ALGORITHM,
                 BC_PROVIDER);
         PrivateKey senderSigningPrivateKey = keyStorage.readSigningPrivateKey();
@@ -132,7 +137,7 @@ public class MessageServiceImpl implements MessageService {
                 senderId
         );
 
-        blindnetClient.sendSecretKey(jwt, sendersKeyEnvelope, recipientKeyEnvelope);
+        blindnetClient.sendSecretKey(sendersKeyEnvelope, recipientKeyEnvelope);
 
         return generatedSecretKey;
     }

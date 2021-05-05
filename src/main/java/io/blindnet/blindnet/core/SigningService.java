@@ -3,40 +3,43 @@ package io.blindnet.blindnet.core;
 import io.blindnet.blindnet.exception.SignatureException;
 import org.json.JSONObject;
 
-import java.security.*;
+import java.security.GeneralSecurityException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.Signature;
 import java.util.Base64;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * todo javadoc
- * todo package view not public
+ * Provides API for cryptographic signing and verification of the cryptographic signature.
  *
  * @author stefanveselinovic
+ * @since 0.0.1
  */
-public class SigningService {
+class SigningService {
 
     private static final Logger LOGGER = Logger.getLogger(EncryptionService.class.getName());
 
     /**
      * Signs data using provided private key.
      *
-     * @param data             data to be signed.
-     * @param privateKey       Private key used for signing.
-     * @param signingAlgorithm Algorithm to be used for signing.
-     * @return Base64 signed JWT.
+     * @param data             a data to be signed.
+     * @param privateKey       a private key used for signing.
+     * @param signingAlgorithm an algorithm to be used for signing.
+     * @return a base64 encoded signed data.
      */
     public String sign(String data, PrivateKey privateKey, String signingAlgorithm) {
         return sign(data.getBytes(), privateKey, signingAlgorithm);
     }
 
     /**
-     * todo javadoc
+     * Signs object using provided private key.
      *
-     * @param object
-     * @param privateKey
-     * @param signingAlgorithm
-     * @return
+     * @param object           an object to be signed.
+     * @param privateKey       a private key used for signing.
+     * @param signingAlgorithm an algorithm used for signing.
+     * @return a base64 encoded signed object.
      */
     public String sign(Object object, PrivateKey privateKey, String signingAlgorithm) {
         JSONObject jsonObject = new JSONObject(object);
@@ -44,15 +47,13 @@ public class SigningService {
     }
 
     /**
-     * todo javadoc
+     * Verifies signature.
      *
-     * @param signedObject
-     * @param base64Signature
-     * @param publicKey
-     * @param signingAlgorithm
-     * @return
-     * @throws InvalidKeyException
-     * @throws SignatureException
+     * @param signedObject     a signed object.
+     * @param base64Signature  a base 64 encoded signature value.
+     * @param publicKey        a public key used for verification.
+     * @param signingAlgorithm an algorithm used for signing.
+     * @return indication if signature is valid.
      */
     public boolean verify(Object signedObject,
                           String base64Signature,
@@ -74,12 +75,12 @@ public class SigningService {
     }
 
     /**
-     * todo javadoc
+     * Signs data using provided private key.
      *
-     * @param data
-     * @param privateKey
-     * @param signingAlgorithm
-     * @return
+     * @param data             a data to be signed.
+     * @param privateKey       a private key used for signing.
+     * @param signingAlgorithm an algorithm used for signing.
+     * @return a base64 encoded signed data.
      */
     private String sign(byte[] data, PrivateKey privateKey, String signingAlgorithm) {
 

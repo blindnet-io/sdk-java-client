@@ -12,34 +12,33 @@ import java.util.UUID;
 import static io.blindnet.blindnet.domain.EncryptionConstants.SHA_256_ECDSA_ALGORITHM;
 
 /**
- * Provides methods for operations on Key Envelope Object.
+ * Provides API for operations related to Key Envelope Object.
  *
  * @author stefanveselinovic
+ * @since 0.0.1
  */
-// todo make package access
-public class KeyEnvelopeService {
+class KeyEnvelopeService {
 
     private static final String ENVELOPE_VERSION = "1.0";
 
-    private EncryptionService encryptionService;
-    private SigningService signingService;
+    private final EncryptionService encryptionService;
+    private final SigningService signingService;
 
     public KeyEnvelopeService() {
-        // todo check
-        encryptionService = new EncryptionService();
+        encryptionService = new EncryptionService(new KeyFactory());
         signingService = new SigningService();
     }
 
     /**
      * Creates Envelope wrapper object for secret key.
      *
-     * @param secretKey           Secret Key to be wrapped.
-     * @param encryptionPublicKey Public key used for wrapping of secret key.
-     * @param signingPrivateKey   Private key used for signing of envelope.
-     * @param ownerId             Owner ID.
-     * @param recipientId         Recipient ID.
-     * @param senderId            Sender ID.
-     * @return Key Envelope object.
+     * @param secretKey           a secret key to be wrapped.
+     * @param encryptionPublicKey a public key used for wrapping of secret key.
+     * @param signingPrivateKey   a private key used for signing of envelope.
+     * @param ownerId             an id of the owner.
+     * @param recipientId         an id of the recipient.
+     * @param senderId            an id of the sender.
+     * @return a key envelope object.
      */
     public KeyEnvelope create(SecretKey secretKey,
                               PublicKey encryptionPublicKey,
@@ -65,10 +64,10 @@ public class KeyEnvelopeService {
     /**
      * Verifies key envelope signature,
      *
-     * @param keyEnvelope a Key Envelope which signature is being verified.
-     * @param signature   a Signature of the Key Envelope.
-     * @param publicKey   a Public Key used for signature verification.
-     * @return
+     * @param keyEnvelope a key envelope which signature is being verified.
+     * @param signature   a signature of the Key Envelope.
+     * @param publicKey   a public key used for signature verification.
+     * @return a indication if signature is valid.
      */
     public boolean verify(KeyEnvelope keyEnvelope, String signature, PublicKey publicKey) {
         return signingService.verify(keyEnvelope,
@@ -80,9 +79,9 @@ public class KeyEnvelopeService {
     /**
      * Signs key envelope using provided private key and ECDSA algorithm.
      *
-     * @param keyEnvelope Key Envelope object to be signed.
-     * @param privateKey  Private Key used for signing.
-     * @return Signed Object.
+     * @param keyEnvelope a key envelope object to be signed.
+     * @param privateKey  a private Key used for signing.
+     * @return a signed object as a string.
      */
     private String sign(KeyEnvelope keyEnvelope, PrivateKey privateKey) {
         return signingService.sign(keyEnvelope, privateKey, SHA_256_ECDSA_ALGORITHM);

@@ -2,16 +2,35 @@ package io.blindnet.blindnet.core;
 
 import io.blindnet.blindnet.UserService;
 
-public class UserServiceProvider {
+/**
+ * Provides API for creation of User Service.
+ *
+ * @author stefanveselinovic
+ * @since 0.0.1
+ */
+public final class UserServiceProvider {
 
-    private UserServiceProvider() {}
+    private UserServiceProvider() {
+    }
 
+    /**
+     * Creates an instance of the User Service.
+     *
+     * @return a user service instance.
+     */
     public static UserService getInstance() {
-        BlindnetClient blindnetClient = new BlindnetClient();
-        KeyStorage keyStorage = new KeyStorage();
-        JwtService signingService = new JwtService();
+        KeyStorage keyStorage = KeyStorage.getInstance();
+        KeyFactory keyFactory = new KeyFactory();
 
-        return new UserServiceImpl(keyStorage, signingService, blindnetClient);
+        BlindnetClient blindnetClient = new BlindnetClient(KeyStorage.getInstance(),
+                keyFactory,
+                new EncryptionService(keyFactory),
+                HttpClient.getInstance(),
+                new KeyEnvelopeService()
+        );
+        SigningService signingService = new SigningService();
+
+        return new UserServiceImpl(keyStorage, keyFactory, signingService, blindnetClient);
     }
 
 }

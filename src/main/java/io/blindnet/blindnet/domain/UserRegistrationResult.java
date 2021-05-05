@@ -1,21 +1,20 @@
 package io.blindnet.blindnet.domain;
 
-import java.util.Objects;
-
 /**
- * todo javadoc
+ * Returns result of a registration of a user process.
  *
  * @author stefanveselinovic
+ * @since 0.0.1
  */
-public class UserRegistrationResult {
+public final class UserRegistrationResult {
 
     /**
-     * Indicates whether the user registration is successful;
+     * Indicates whether the user registration is successful.
      */
     private final boolean isSuccessful;
 
     /**
-     * Represents the
+     * A message representing the response message of Blindnet API.
      */
     private final String message;
 

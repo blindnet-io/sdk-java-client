@@ -14,12 +14,11 @@ public class HttpClientTest {
 
     @Before
     public void setUp() {
-        httpClient = new HttpClient();
+        httpClient = HttpClient.getInstance();
     }
 
     @Test
-    public void testPost() throws IOException {
-
+    public void testPost() {
         String jsonInputString = "{\n" +
                 "   \"signedJwt\": \"signedjwt\",\n" +
                 "   \"encryptedPrivateEncryptionKey\": \"encdedkey\",\n" +

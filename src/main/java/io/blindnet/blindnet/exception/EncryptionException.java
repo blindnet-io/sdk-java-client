@@ -1,9 +1,10 @@
 package io.blindnet.blindnet.exception;
 
 /**
- * todo javadoc
+ * Exception indicating that encryption failed.
  *
  * @author stefanveselinovic
+ * @since 0.0.1
  */
 public class EncryptionException extends RuntimeException {
 

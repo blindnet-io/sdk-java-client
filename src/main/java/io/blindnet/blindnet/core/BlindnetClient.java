@@ -15,15 +15,13 @@ import java.util.logging.Logger;
 import static io.blindnet.blindnet.domain.EncryptionConstants.*;
 import static java.util.Objects.requireNonNull;
 
-// todo Check if this should be singleton
-// todo make class package view
-
 /**
  * Provides API for communication with Blindnet API.
  *
  * @author stefanveselinovic
+ * @since 0.0.1
  */
-public class BlindnetClient {
+class BlindnetClient {
 
     private static final Logger LOGGER = Logger.getLogger(BlindnetClient.class.getName());
 
@@ -37,32 +35,36 @@ public class BlindnetClient {
     private static final String PRIVATE_KEYS_ENDPOINT_PATH = "/api/v1/old/pk";
     private static final String FETCH_PUBLIC_KEYS_ENDPOINT_PATH = "/api/v1/old/keys/";
 
-    private final HttpClient httpClient;
-    private final JwtService jwtService;
     private final KeyStorage keyStorage;
-    private final KeyEnvelopeService keyEnvelopeService;
+    private final KeyFactory keyFactory;
     private final EncryptionService encryptionService;
+    private final HttpClient httpClient;
+    private final KeyEnvelopeService keyEnvelopeService;
+    private final JwtConfig jwtConfig;
 
-    public BlindnetClient() {
-        // todo check
-        httpClient = new HttpClient();
-        jwtService = new JwtService();
-        keyStorage = new KeyStorage();
-        keyEnvelopeService = new KeyEnvelopeService();
-        encryptionService = new EncryptionService();
+    public BlindnetClient(KeyStorage keyStorage,
+                          KeyFactory keyFactory,
+                          EncryptionService encryptionService,
+                          HttpClient httpClient,
+                          KeyEnvelopeService keyEnvelopeService) {
+
+        this.keyStorage = keyStorage;
+        this.keyFactory = keyFactory;
+        this.encryptionService = encryptionService;
+        this.httpClient = httpClient;
+        this.keyEnvelopeService = keyEnvelopeService;
+        this.jwtConfig = JwtConfig.INSTANCE;
     }
 
     /**
      * Registers user on Blindnet API.
      *
-     * @param jwt                 a Jwt object used to authenticate against Blindnet API.
-     * @param publicEncryptionKey user's Public Key used for encryption.
-     * @param publicSigningKey    user's Public Key used for signing.
+     * @param publicEncryptionKey user's public key used for encryption.
+     * @param publicSigningKey    user's public key used for signing.
      * @param signedJwt           signed Jwt object,
-     * @return User Registration Result object,
+     * @return a user registration result object.
      */
-    public UserRegistrationResult register(String jwt, PublicKey publicEncryptionKey, PublicKey publicSigningKey, String signedJwt) {
-        requireNonNull(jwt, "JWT cannot be null.");
+    public UserRegistrationResult register(PublicKey publicEncryptionKey, PublicKey publicSigningKey, String signedJwt) {
         requireNonNull(publicEncryptionKey, "Public Encryption Key cannot be null.");
         requireNonNull(publicSigningKey, "Public Signing Key cannot be null.");
         requireNonNull(signedJwt, "Signed JWT cannot be null.");
@@ -73,7 +75,7 @@ public class BlindnetClient {
         requestBody.append("signedJwt", signedJwt);
 
         HttpResponse httpResponse = httpClient.post(BLINDNET_SERVER_URL + USER_ENDPOINT_PATH,
-                jwt,
+                requireNonNull(jwtConfig.getJwt(), "JWT not configured properly."),
                 requestBody.toString().getBytes(StandardCharsets.UTF_8));
 
         return new UserRegistrationResult(httpResponse.getStatus() == HttpURLConnection.HTTP_OK, httpResponse.getMessage());
@@ -81,24 +83,19 @@ public class BlindnetClient {
 
     /**
      * Unregisters a user from Blindnet API.
-     *
-     * @param jwt a Jwt object used to authenticate against Blindnet API.
      */
-    public void unregister(String jwt) {
-        requireNonNull(jwt, "JWT cannot be null.");
-
-        httpClient.delete(BLINDNET_SERVER_URL + USER_ENDPOINT_PATH, jwt);
+    public void unregister() {
+        httpClient.delete(BLINDNET_SERVER_URL + USER_ENDPOINT_PATH,
+                requireNonNull(jwtConfig.getJwt(), "JWT not configured properly."));
     }
 
     /**
      * Sends a Secret Key of a user doubly encrypted and wrapped into an Envelop object,
      *
-     * @param jwt                  a Jwt object used to authenticate against Blindnet API.
-     * @param senderKeyEnvelope    an Envelop object which contains a user's Secret Key encrypted using sender's key.
-     * @param recipientKeyEnvelope an Envelop object which contains a user's Secret Key encrypted using recipient's key.
+     * @param senderKeyEnvelope    an envelop object which contains a user's secret key encrypted using sender's key.
+     * @param recipientKeyEnvelope an envelop object which contains a user's secret key encrypted using recipient's key.
      */
-    public void sendSecretKey(String jwt, KeyEnvelope senderKeyEnvelope, KeyEnvelope recipientKeyEnvelope) {
-        requireNonNull(jwt, "JWT cannot be null.");
+    public void sendSecretKey(KeyEnvelope senderKeyEnvelope, KeyEnvelope recipientKeyEnvelope) {
         requireNonNull(senderKeyEnvelope, "Sender Key Envelope cannot be null");
         requireNonNull(recipientKeyEnvelope, "Recipient Key Envelope cannot be null");
 
@@ -107,24 +104,23 @@ public class BlindnetClient {
         requestBody.put("recipientEnvelope", new JSONObject(recipientKeyEnvelope));
 
         httpClient.post(BLINDNET_SERVER_URL + SEND_SYMMETRIC_KEY_ENDPOINT_PATH,
-                jwt,
+                requireNonNull(jwtConfig.getJwt(), "JWT not configured properly."),
                 requestBody.toString().getBytes(StandardCharsets.UTF_8));
     }
 
     /**
      * Fetches a Secret Key of a user from Blindnet API and validates a signature of an Envelope.
      *
-     * @param jwt         a Jwt object used to authenticate against Blindnet API.
-     * @param senderId    a sender ID.
-     * @param recipientId a recipient ID.
-     * @return a Secret Key Object.
+     * @param senderId    an id of the sender.
+     * @param recipientId an id of the recipient.
+     * @return a secret key object.
      */
-    public SecretKey fetchSecretKey(String jwt, String senderId, String recipientId) {
-        requireNonNull(jwt, "JWT cannot be null.");
+    public SecretKey fetchSecretKey(String senderId, String recipientId) {
         requireNonNull(senderId, "Sender ID cannot be null.");
         requireNonNull(recipientId, "Recipient ID cannot be null.");
 
-        HttpResponse httpResponse = httpClient.get(BLINDNET_SERVER_URL + FETCH_SYMMETRIC_KEY_ENDPOINT_PATH, jwt);
+        HttpResponse httpResponse = httpClient.get(BLINDNET_SERVER_URL + FETCH_SYMMETRIC_KEY_ENDPOINT_PATH,
+                requireNonNull(jwtConfig.getJwt(), "JWT not configured properly."));
 
         JSONObject responseBody = new JSONObject(new String(httpResponse.getBody()));
         KeyEnvelope keyEnvelope = new KeyEnvelope.Builder(responseBody.getString("envelopeID"))
@@ -137,9 +133,9 @@ public class BlindnetClient {
                 .build();
 
         // use local signing public key if the current user is not recipient otherwise pull it from blindnet api
-        PublicKey signingKey = jwtService.extractUserId(jwt).equals(recipientId) ?
-                fetchPublicKeys(jwt, senderId).getSigningKey() :
-                KeyFactory.extractPublicKey(keyStorage.readSigningPrivateKey(),
+        PublicKey signingKey = JwtUtil.extractUserId(jwtConfig.getJwt()).equals(recipientId) ?
+                fetchPublicKeys(senderId).getSigningKey() :
+                keyFactory.extractPublicKey(keyStorage.readSigningPrivateKey(),
                         ECDSA_ALGORITHM,
                         BC_PROVIDER,
                         SECRP_256_R_CURVE);
@@ -158,12 +154,10 @@ public class BlindnetClient {
     /**
      * Sends encrypted signing and encryption private keys of a user to the Blindnet API.
      *
-     * @param jwt                           a Jwt object used to authenticate against Blindnet API.
-     * @param encryptedPrivateEncryptionKey a Encrypted Private Key object used for encryption.
-     * @param encryptedPrivateSigningKey    a Encrypted Private Key object used for signing.
+     * @param encryptedPrivateEncryptionKey a encrypted private key object used for encryption.
+     * @param encryptedPrivateSigningKey    a encrypted private key object used for signing.
      */
-    public void sendPrivateKeys(String jwt, String encryptedPrivateEncryptionKey, String encryptedPrivateSigningKey) {
-        requireNonNull(jwt, "JWT cannot be null.");
+    public void sendPrivateKeys(String encryptedPrivateEncryptionKey, String encryptedPrivateSigningKey) {
         requireNonNull(encryptedPrivateEncryptionKey, "Encryption Private Key cannot be null.");
         requireNonNull(encryptedPrivateSigningKey, "Signing Private Key cannot be null.");
 
@@ -172,20 +166,18 @@ public class BlindnetClient {
         requestBody.put("encryptedPrivateSigningKey", new JSONObject(encryptedPrivateSigningKey));
 
         httpClient.post(BLINDNET_SERVER_URL + PRIVATE_KEYS_ENDPOINT_PATH,
-                jwt,
+                requireNonNull(jwtConfig.getJwt(), "JWT not configured properly."),
                 requestBody.toString().getBytes(StandardCharsets.UTF_8));
     }
 
     /**
      * Fetches encrypted signing and encryption private keys of a user from Blindnet API.
      *
-     * @param jwt a Jwt object used to authenticate against Blindnet API.
-     * @return a Private Key Pair object.
+     * @return a private key pair object.
      */
-    public PrivateKeyPair fetchPrivateKeys(String jwt) {
-        requireNonNull(jwt, "JWT cannot be null.");
-
-        HttpResponse httpResponse = httpClient.get(BLINDNET_SERVER_URL + PRIVATE_KEYS_ENDPOINT_PATH, jwt);
+    public PrivateKeyPair fetchPrivateKeys() {
+        HttpResponse httpResponse = httpClient.get(BLINDNET_SERVER_URL + PRIVATE_KEYS_ENDPOINT_PATH,
+                requireNonNull(jwtConfig.getJwt(), "JWT not configured properly."));
 
         JSONObject responseBody = new JSONObject(new String(httpResponse.getBody()));
         return new PrivateKeyPair(responseBody.getString("encryptedPrivateEncryptionKey"),
@@ -195,21 +187,20 @@ public class BlindnetClient {
     /**
      * Fetches encryption and signing public keys of a user from Blindnet API.
      *
-     * @param jwt         a Jwt object used to authenticate against Blindnet API.
-     * @param recipientId Id of a user whose keys are requested,
-     * @return a Public Key Pair Object.
+     * @param recipientId an id of a user whose keys are requested,
+     * @return a public key pair object.
      */
-    public PublicKeyPair fetchPublicKeys(String jwt, String recipientId) {
-        requireNonNull(jwt, "JWT cannot be null.");
+    public PublicKeyPair fetchPublicKeys(String recipientId) {
         requireNonNull(recipientId, "Recipient ID cannot be null.");
 
-        HttpResponse httpResponse = httpClient.get(BLINDNET_SERVER_URL + FETCH_PUBLIC_KEYS_ENDPOINT_PATH + recipientId, jwt);
+        HttpResponse httpResponse = httpClient.get(BLINDNET_SERVER_URL + FETCH_PUBLIC_KEYS_ENDPOINT_PATH + recipientId,
+                requireNonNull(jwtConfig.getJwt(), "JWT not configured properly."));
 
         JSONObject responseBody = new JSONObject(new String(httpResponse.getBody()));
-        PublicKey encryptionKey = KeyFactory.convertToPublicKey(
+        PublicKey encryptionKey = keyFactory.convertToPublicKey(
                 responseBody.getString("publicEncryptionKey"),
                 RSA_ALGORITHM);
-        PublicKey signingKey = KeyFactory.convertToPublicKey(
+        PublicKey signingKey = keyFactory.convertToPublicKey(
                 responseBody.getString("publicSigningKey"),
                 ECDSA_ALGORITHM);
 

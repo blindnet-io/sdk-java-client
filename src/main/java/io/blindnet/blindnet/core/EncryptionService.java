@@ -8,12 +8,17 @@ import org.bouncycastle.jcajce.io.CipherInputStream;
 import org.bouncycastle.jcajce.io.CipherOutputStream;
 
 import javax.crypto.Cipher;
-import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.nio.ByteBuffer;
-import java.security.*;
+import java.security.GeneralSecurityException;
+import java.security.Key;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -21,23 +26,31 @@ import static io.blindnet.blindnet.domain.EncryptionConstants.*;
 import static java.util.Objects.requireNonNull;
 
 /**
- * todo javadoc
- * todo package view not public
+ * Provides API for encryption/decryption related operations.
  *
  * @author stefanveselinovic
+ * @since 0.0.1
  */
-public class EncryptionService {
+class EncryptionService {
 
     private static final Logger LOGGER = Logger.getLogger(EncryptionService.class.getName());
 
+    private final KeyFactory keyFactory;
+
+    public EncryptionService(KeyFactory keyFactory) {
+        this.keyFactory = keyFactory;
+    }
+
     /**
-     * todo javadoc
+     * Encrypts message and message metadata represented as byte arrays.
      *
-     * @param secretKey
-     * @param messageWrapper
-     * @return
+     * @param secretKey      a secret key used for encryption.
+     * @param messageWrapper a message wrapper.
+     * @return encrypted message as byte array.
      */
     public byte[] encryptMessage(SecretKey secretKey, MessageArrayWrapper messageWrapper) {
+        requireNonNull(secretKey, "Secret key cannot be null.");
+        requireNonNull(messageWrapper, "Message wrapper cannot be null.");
 
         byte[] metadataLengthBA = ByteBuffer.allocate(4).putInt(messageWrapper.getMetadata().length).array();
 
@@ -58,7 +71,17 @@ public class EncryptionService {
         return encrypt(secretKey, data);
     }
 
+    /**
+     * Decrypts message and message metadata represented as byte arrays.
+     *
+     * @param secretKey a secret key used for decryption.
+     * @param data      an encrypted data.
+     * @return a decrypted message and message metadata as message wrapper object.
+     */
     public MessageArrayWrapper decryptMessage(SecretKey secretKey, byte[] data) {
+        requireNonNull(secretKey, "Secret key cannot be null.");
+        requireNonNull(data, "Input data cannot be null.");
+
         ByteBuffer decryptedDataWrapper = ByteBuffer.wrap(
                 requireNonNull(decrypt(secretKey, data)));
 
@@ -80,7 +103,17 @@ public class EncryptionService {
         return new MessageArrayWrapper(decryptedMetadata, decryptedData);
     }
 
+    /**
+     * Encrypts message and message metadata, where message is provided as an input stream.
+     *
+     * @param secretKey            a secret key used for encryption.
+     * @param messageStreamWrapper a message wrapper.
+     * @return a stream of encrypted data.
+     */
     public InputStream encryptMessage(SecretKey secretKey, MessageStreamWrapper messageStreamWrapper) {
+        requireNonNull(secretKey, "Secret key cannot be null.");
+        requireNonNull(messageStreamWrapper, "Message wrapper cannot be null.");
+
         byte[] metadataLengthBA = ByteBuffer.allocate(4).putInt(messageStreamWrapper.getMetadata().length).array();
 
         InputStream metadataInputStream = new ByteArrayInputStream(ByteBuffer
@@ -89,9 +122,8 @@ public class EncryptionService {
                 .put(messageStreamWrapper.getMetadata())
                 .array());
 
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
         try {
-            byte[] iv = KeyFactory.generateRandom(NONCE_IV_ALGORITHM, BC_PROVIDER, GCM_IV_LENGTH);
+            byte[] iv = keyFactory.generateRandom(NONCE_IV_ALGORITHM, BC_PROVIDER, GCM_IV_LENGTH);
             /*
              * 1. writes IV
              * 2. encrypts a length of message metadata and message metadata
@@ -128,7 +160,17 @@ public class EncryptionService {
         }
     }
 
+    /**
+     * Decrypts message and message data, where message is provided as an input stream.
+     *
+     * @param secretKey a secret key used for decryption.
+     * @param input     an input stream which provides encrypted message and message metadata.
+     * @return a decrypted message and message metadata as message wrapper object.
+     */
     public MessageStreamWrapper decryptMessage(SecretKey secretKey, InputStream input) {
+        requireNonNull(secretKey, "Secret key cannot be null.");
+        requireNonNull(input, "Input stream cannot be null.");
+
         byte[] iv = new byte[GCM_IV_LENGTH];
         byte[] metadataLengthBA = new byte[4];
 
@@ -170,15 +212,18 @@ public class EncryptionService {
     }
 
     /**
-     * todo javadoc and exception handling
+     * Encrypts data represented as byte array using AES/GCM encryption algorithm.
      *
-     * @param secretKey
-     * @param data
-     * @return
+     * @param secretKey a secret key used for encryption.
+     * @param data      a data to be encrypted.
+     * @return an encrypted data as byte array.
      */
     public byte[] encrypt(SecretKey secretKey, byte[] data) {
+        requireNonNull(secretKey, "Secret key cannot be null.");
+        requireNonNull(data, "Input data cannot be null.");
+
         try {
-            byte[] iv = KeyFactory.generateRandom(NONCE_IV_ALGORITHM, BC_PROVIDER, GCM_IV_LENGTH);
+            byte[] iv = keyFactory.generateRandom(NONCE_IV_ALGORITHM, BC_PROVIDER, GCM_IV_LENGTH);
             Cipher cipher = Cipher.getInstance(AES_GCM_NO_PADDING_ALGORITHM);
             cipher.init(Cipher.ENCRYPT_MODE, secretKey, new GCMParameterSpec(GCM_T_LENGTH, iv));
 
@@ -197,13 +242,15 @@ public class EncryptionService {
     }
 
     /**
-     * todo javadoc and exception handling
+     * Decrypts data represented as byte array using AES/GCM encryption algorithm.
      *
-     * @param secretKey
-     * @param data
-     * @return
+     * @param secretKey a secret key used for encryption.
+     * @param data      a data to be decrypted.
+     * @return a decrypted data as byte array.
      */
     public byte[] decrypt(SecretKey secretKey, byte[] data) {
+        requireNonNull(secretKey, "Secret key cannot be null.");
+        requireNonNull(data, "Input data cannot be null.");
 
         try {
             ByteBuffer encryptedDataWrapper = ByteBuffer.wrap(data);
@@ -226,13 +273,15 @@ public class EncryptionService {
     }
 
     /**
-     * todo javadoc
+     * Wraps secret key using public key.
      *
-     * @param secretKey
-     * @param publicKey
-     * @return
+     * @param secretKey a secret key to be wrapped.
+     * @param publicKey a public key used to wrap secret key.
+     * @return a wrapped secret key as byte array.
      */
     public byte[] wrap(SecretKey secretKey, PublicKey publicKey) {
+        requireNonNull(secretKey, "Secret key cannot be null.");
+        requireNonNull(publicKey, "Public key cannot be null.");
 
         // todo check padding, check oaep parameters specification
         try {
@@ -250,17 +299,16 @@ public class EncryptionService {
     }
 
     /**
-     * todo javadoc
+     * Unwraps secret key using private key.
      *
-     * @param wrappedKey
-     * @param privateKey
-     * @return
-     * @throws NoSuchPaddingException
-     * @throws NoSuchAlgorithmException
-     * @throws NoSuchProviderException
-     * @throws InvalidKeyException
+     * @param wrappedKey a wrapped secret key.
+     * @param privateKey a private key used for unwrapping.
+     * @return a key object.
      */
     public Key unwrap(byte[] wrappedKey, PrivateKey privateKey) {
+        requireNonNull(wrappedKey, "Wrapped key cannot be null.");
+        requireNonNull(privateKey, "Private key cannot be null.");
+
         // todo check algs
         try {
             Cipher c = Cipher.getInstance("RSA/NONE/OAEPPadding", BC_PROVIDER);
