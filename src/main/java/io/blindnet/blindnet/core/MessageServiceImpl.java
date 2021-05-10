@@ -6,6 +6,7 @@ import io.blindnet.blindnet.domain.MessageArrayWrapper;
 import io.blindnet.blindnet.domain.MessageStreamWrapper;
 import io.blindnet.blindnet.domain.PublicKeyPair;
 import io.blindnet.blindnet.exception.BlindnetApiException;
+import io.blindnet.blindnet.exception.SignatureException;
 
 import javax.crypto.SecretKey;
 import java.io.InputStream;
@@ -30,6 +31,7 @@ public class MessageServiceImpl implements MessageService {
     private final KeyStorage keyStorage;
     private final KeyFactory keyFactory;
     private final EncryptionService encryptionService;
+    private final SigningService signingService;
     private final KeyEnvelopeService keyEnvelopeService;
     private final BlindnetClient blindnetClient;
     private final JwtConfig jwtConfig;
@@ -37,12 +39,14 @@ public class MessageServiceImpl implements MessageService {
     public MessageServiceImpl(KeyStorage keyStorage,
                               KeyFactory keyFactory,
                               EncryptionService encryptionService,
+                              SigningService signingService,
                               KeyEnvelopeService keyEnvelopeService,
                               BlindnetClient blindnetClient) {
 
         this.keyStorage = keyStorage;
         this.keyFactory = keyFactory;
         this.encryptionService = encryptionService;
+        this.signingService = signingService;
         this.keyEnvelopeService = keyEnvelopeService;
         this.blindnetClient = blindnetClient;
         this.jwtConfig = JwtConfig.INSTANCE;
@@ -114,12 +118,22 @@ public class MessageServiceImpl implements MessageService {
 
         // if secret key is not retrieved from blindnet api
         PublicKeyPair recipientPublicKeyPair = blindnetClient.fetchPublicKeys(recipientId);
+
+        if (!signingService.verify(recipientPublicKeyPair.getEncryptionKey(),
+                recipientPublicKeyPair.getSignedPublicEncryptionKey(),
+                recipientPublicKeyPair.getSigningKey(),
+                Ed25519_ALGORITHM)) {
+
+            String msg = "Unable to verify public encryption key signature.";
+            LOGGER.log(Level.SEVERE, msg);
+            throw new SignatureException(msg);
+        }
+        keyStorage.storeRecipientSigningPublicKey(recipientPublicKeyPair.getSigningKey(), recipientId);
+
         SecretKey generatedSecretKey = keyFactory.generateSecretKey(AES_ALGORITHM, AES_KEY_SIZE);
 
         PrivateKey senderEncryptionPrivateKey = keyStorage.readEncryptionPrivateKey();
-        PublicKey senderEncryptionPublicKey = keyFactory.extractPublicKey(senderEncryptionPrivateKey,
-                RSA_ALGORITHM,
-                BC_PROVIDER);
+        PublicKey senderEncryptionPublicKey = keyFactory.extractRsaPublicKey(senderEncryptionPrivateKey);
         PrivateKey senderSigningPrivateKey = keyStorage.readSigningPrivateKey();
 
         KeyEnvelope sendersKeyEnvelope = keyEnvelopeService.create(generatedSecretKey,

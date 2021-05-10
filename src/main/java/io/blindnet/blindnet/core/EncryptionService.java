@@ -129,7 +129,6 @@ class EncryptionService {
              * 2. encrypts a length of message metadata and message metadata
              * 3. encrypts message stream data
              */
-
             Cipher cipher = Cipher.getInstance(AES_GCM_NO_PADDING_ALGORITHM);
             cipher.init(Cipher.ENCRYPT_MODE, secretKey, new GCMParameterSpec(GCM_T_LENGTH, iv));
 

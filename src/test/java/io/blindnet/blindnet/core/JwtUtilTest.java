@@ -1,19 +1,16 @@
 package io.blindnet.blindnet.core;
 
-import io.blindnet.blindnet.JwtGenerator;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class JwtUtilTest {
+public class JwtUtilTest extends AbstractTest {
 
     @Test
     @DisplayName("Test extraction of id from JWT.")
     public void testStoreEncryptionKey() {
-        String jwt = JwtGenerator.generateJwt();
-        String userId = JwtUtil.extractUserId(jwt);
+        String userId = JwtUtil.extractUserId(TEST_JWT);
         assertEquals(userId, "4567");
     }
 

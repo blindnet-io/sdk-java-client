@@ -26,6 +26,11 @@ public enum KeyStorageConfig {
     private String signingPrivateKeyPath;
 
     /**
+     * Represents a folder path where a public signing key of recipients witll be stored.
+     */
+    private String recipientSigningPublicKeyFolderPath;
+
+    /**
      * A constructor, which is private by default.
      */
     KeyStorageConfig() { }
@@ -45,18 +50,23 @@ public enum KeyStorageConfig {
      * @param encryptionPrivateKeyPath A file path where a private key used for encryption will be stored.
      * @param signingPrivateKeyPath A file path where a private key used for signing will be stored.
      */
-    public void setup(String encryptionPrivateKeyPath, String signingPrivateKeyPath) {
+    public void setup(String encryptionPrivateKeyPath,
+                      String signingPrivateKeyPath,
+                      String recipientSigningPublicKeyFolderPath) {
+
         requireNonNull(encryptionPrivateKeyPath, "Encryption key filepath cannot be null.");
         requireNonNull(signingPrivateKeyPath, "Signing key filepath cannot be null.");
+        requireNonNull(recipientSigningPublicKeyFolderPath, "Recipient signing key folder path cannot be null.");
 
         this.encryptionPrivateKeyPath = encryptionPrivateKeyPath;
         this.signingPrivateKeyPath = signingPrivateKeyPath;
+        this.recipientSigningPublicKeyFolderPath = recipientSigningPublicKeyFolderPath;
     }
 
     /**
      * Returns a file path where a private key used for encryption will be stored.
      *
-     * @return A file path as a String.
+     * @return a file path.
      */
     public String getEncryptionPrivateKeyPath() {
         return encryptionPrivateKeyPath;
@@ -65,10 +75,19 @@ public enum KeyStorageConfig {
     /**
      * Returns a file path where a private key used for signing will be stored.
      *
-     * @return A file path as a String.
+     * @return a file path.
      */
     public String getSigningPrivateKeyPath() {
         return signingPrivateKeyPath;
+    }
+
+    /**
+     * Returns a folder path where public signing keys of recipients will be stored.
+     *
+     * @return a folder path.
+     */
+    public String getRecipientSigningPublicKeyFolderPath() {
+        return recipientSigningPublicKeyFolderPath;
     }
 
 }

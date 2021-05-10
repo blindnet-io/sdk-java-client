@@ -18,9 +18,18 @@ public final class PublicKeyPair {
      */
     private final PublicKey signingKey;
 
-    public PublicKeyPair(PublicKey encryptionKey, PublicKey signingKey) {
+    /**
+     * A public encryption key signature.
+     */
+    private final String signedPublicEncryptionKey;
+
+    public PublicKeyPair(PublicKey encryptionKey,
+                         PublicKey signingKey,
+                         String signedPublicEncryptionKey) {
+
         this.encryptionKey = encryptionKey;
         this.signingKey = signingKey;
+        this.signedPublicEncryptionKey = signedPublicEncryptionKey;
     }
 
     public PublicKey getEncryptionKey() {
@@ -29,6 +38,10 @@ public final class PublicKeyPair {
 
     public PublicKey getSigningKey() {
         return signingKey;
+    }
+
+    public String getSignedPublicEncryptionKey() {
+        return signedPublicEncryptionKey;
     }
 
 }

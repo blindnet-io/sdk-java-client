@@ -2,6 +2,7 @@ package io.blindnet.blindnet.core;
 
 import io.blindnet.blindnet.domain.*;
 import io.blindnet.blindnet.exception.SignatureException;
+import org.bouncycastle.jcajce.interfaces.EdDSAPrivateKey;
 import org.json.JSONObject;
 
 import javax.crypto.SecretKey;
@@ -25,10 +26,8 @@ class BlindnetClient {
 
     private static final Logger LOGGER = Logger.getLogger(BlindnetClient.class.getName());
 
-    // todo check if the server url should be configured
-    private static final String BLINDNET_SERVER_URL = "https://9e8f8063-e45a-4046-a88d-c7a8a14a5cb2.mock.pstmn.io";
-    // private static final String BLINDNET_SERVER_URL = "https://4134cf66-97a3-418a-a189-3363113b99f1.mock.pstmn.io";
-    // private static final String BLINDNET_SERVER_URL = "https://38d53445-1473-4da0-9ab6-f34a24412c93.mock.pstmn.io";
+    // todo extract to config class
+    private static final String BLINDNET_SERVER_URL = "https://blindnet-api-xtevwj4sdq-ew.a.run.app";
     private static final String USER_ENDPOINT_PATH = "/api/v1/users";
     private static final String FETCH_SYMMETRIC_KEY_ENDPOINT_PATH = "/api/v1/old/users";
     private static final String SEND_SYMMETRIC_KEY_ENDPOINT_PATH = "/api/v1/old/users";
@@ -64,15 +63,20 @@ class BlindnetClient {
      * @param signedJwt           signed Jwt object,
      * @return a user registration result object.
      */
-    public UserRegistrationResult register(PublicKey publicEncryptionKey, PublicKey publicSigningKey, String signedJwt) {
+    public UserRegistrationResult register(PublicKey publicEncryptionKey,
+                                           String signedPublicEncryptionKey,
+                                           PublicKey publicSigningKey,
+                                           String signedJwt) {
         requireNonNull(publicEncryptionKey, "Public Encryption Key cannot be null.");
+        requireNonNull(signedPublicEncryptionKey, "Signed Public Encryption Key cannot be null.");
         requireNonNull(publicSigningKey, "Public Signing Key cannot be null.");
         requireNonNull(signedJwt, "Signed JWT cannot be null.");
 
         JSONObject requestBody = new JSONObject();
-        requestBody.append("publicEncryptionKey", Base64.getUrlEncoder().encodeToString(publicEncryptionKey.getEncoded()));
-        requestBody.append("publicSigningKey", Base64.getUrlEncoder().encodeToString(publicSigningKey.getEncoded()));
-        requestBody.append("signedJwt", signedJwt);
+        requestBody.put("publicEncryptionKey", Base64.getUrlEncoder().encodeToString(publicEncryptionKey.getEncoded()));
+        requestBody.put("publicSigningKey", Base64.getUrlEncoder().encodeToString(publicSigningKey.getEncoded()));
+        requestBody.put("signedPublicEncryptionKey", signedPublicEncryptionKey);
+        requestBody.put("signedJwt", signedJwt);
 
         HttpResponse httpResponse = httpClient.post(BLINDNET_SERVER_URL + USER_ENDPOINT_PATH,
                 requireNonNull(jwtConfig.getJwt(), "JWT not configured properly."),
@@ -135,10 +139,7 @@ class BlindnetClient {
         // use local signing public key if the current user is not recipient otherwise pull it from blindnet api
         PublicKey signingKey = JwtUtil.extractUserId(jwtConfig.getJwt()).equals(recipientId) ?
                 fetchPublicKeys(senderId).getSigningKey() :
-                keyFactory.extractPublicKey(keyStorage.readSigningPrivateKey(),
-                        ECDSA_ALGORITHM,
-                        BC_PROVIDER,
-                        SECRP_256_R_CURVE);
+                ((EdDSAPrivateKey) keyStorage.readSigningPrivateKey()).getPublicKey();
 
         String keyEnvelopeSignature = responseBody.getString("envelopeSignature");
         if (!keyEnvelopeService.verify(keyEnvelope, keyEnvelopeSignature, signingKey)) {
@@ -156,14 +157,18 @@ class BlindnetClient {
      *
      * @param encryptedPrivateEncryptionKey a encrypted private key object used for encryption.
      * @param encryptedPrivateSigningKey    a encrypted private key object used for signing.
+     * @param salt                          a key derivation salt used to generate secret encryption key.
      */
-    public void sendPrivateKeys(String encryptedPrivateEncryptionKey, String encryptedPrivateSigningKey) {
+    public void sendPrivateKeys(String encryptedPrivateEncryptionKey,
+                                String encryptedPrivateSigningKey,
+                                String salt) {
+
         requireNonNull(encryptedPrivateEncryptionKey, "Encryption Private Key cannot be null.");
         requireNonNull(encryptedPrivateSigningKey, "Signing Private Key cannot be null.");
 
-        JSONObject requestBody = new JSONObject();
-        requestBody.put("encryptedPrivateEncryptionKey", new JSONObject(encryptedPrivateEncryptionKey));
-        requestBody.put("encryptedPrivateSigningKey", new JSONObject(encryptedPrivateSigningKey));
+        JSONObject requestBody = new JSONObject().put("encryptedPrivateEncryptionKey", new JSONObject(encryptedPrivateEncryptionKey))
+                .put("encryptedPrivateSigningKey", new JSONObject(encryptedPrivateSigningKey))
+                .put("keyDerivationSalt", salt);
 
         httpClient.post(BLINDNET_SERVER_URL + PRIVATE_KEYS_ENDPOINT_PATH,
                 requireNonNull(jwtConfig.getJwt(), "JWT not configured properly."),
@@ -181,7 +186,8 @@ class BlindnetClient {
 
         JSONObject responseBody = new JSONObject(new String(httpResponse.getBody()));
         return new PrivateKeyPair(responseBody.getString("encryptedPrivateEncryptionKey"),
-                responseBody.getString("encryptedPrivateSigningKey"));
+                responseBody.getString("encryptedPrivateSigningKey"),
+                responseBody.getString("keyDerivationSalt"));
     }
 
     /**
@@ -202,9 +208,10 @@ class BlindnetClient {
                 RSA_ALGORITHM);
         PublicKey signingKey = keyFactory.convertToPublicKey(
                 responseBody.getString("publicSigningKey"),
-                ECDSA_ALGORITHM);
+                Ed25519_ALGORITHM);
+        String signedPublicEncryptionKey = responseBody.getString("signedPublicEncryptionKey");
 
-        return new PublicKeyPair(encryptionKey, signingKey);
+        return new PublicKeyPair(encryptionKey, signingKey, signedPublicEncryptionKey);
     }
 
 }

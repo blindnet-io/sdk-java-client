@@ -51,15 +51,22 @@ class UserServiceImpl implements UserService {
         PrivateKey encryptionPrivateKey = encryptionKeyPair.getPrivate();
         keyStorage.storeEncryptionKey(encryptionPrivateKey);
 
-        KeyPair signingKeyPair = keyFactory.generateKeyPair(ECDSA_ALGORITHM, BC_PROVIDER, SECRP_256_R_CURVE);
+        KeyPair signingKeyPair = keyFactory.generateKeyPair(Ed25519_ALGORITHM, BC_PROVIDER, -1);
         PrivateKey signingPrivateKey = signingKeyPair.getPrivate();
         keyStorage.storeSigningKey(signingPrivateKey);
 
         String signedJwt = signingService.sign(requireNonNull(jwtConfig.getJwt(), "JWT not configured properly."),
                 signingPrivateKey,
-                SHA_256_ECDSA_ALGORITHM);
+                Ed25519_ALGORITHM);
 
-        return blindnetClient.register(encryptionKeyPair.getPublic(), signingKeyPair.getPublic(), signedJwt);
+        String signedEncryptionPublicKey = signingService.sign(encryptionKeyPair.getPublic(),
+                signingPrivateKey,
+                Ed25519_ALGORITHM);
+
+        return blindnetClient.register(encryptionKeyPair.getPublic(),
+                signedEncryptionPublicKey,
+                signingKeyPair.getPublic(),
+                signedJwt);
     }
 
     /**
@@ -78,6 +85,7 @@ class UserServiceImpl implements UserService {
             LOGGER.log(Level.SEVERE, msg);
             throw new KeyStorageException(msg);
         }
+        // todo delete recipient public keys
     }
 
 }

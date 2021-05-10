@@ -1,20 +1,29 @@
 package io.blindnet.blindnet.core;
 
 import io.blindnet.blindnet.exception.KeyStorageException;
+import org.bouncycastle.asn1.ASN1BitString;
+import org.bouncycastle.asn1.ASN1Encodable;
+import org.bouncycastle.asn1.ASN1OctetString;
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters;
+import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
+import org.bouncycastle.jcajce.provider.asymmetric.edec.BCEdDSAPrivateKey;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 
 import java.io.*;
+import java.security.Key;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static java.util.Objects.requireNonNull;
 
 /**
- * Provides API for private key storage.
+ * Provides API for key storage.
  *
  * @author stefanveselinovic
  * @since 0.0.1
@@ -59,7 +68,7 @@ class KeyStorage {
     /**
      * Returns a private key used for encryption.
      *
-     * @return a private Key object.
+     * @return a private key object.
      */
     public PrivateKey readEncryptionPrivateKey() {
         return read(KeyStorageConfig.INSTANCE.getEncryptionPrivateKeyPath());
@@ -105,16 +114,30 @@ class KeyStorage {
     }
 
     /**
+     * Stores a public key of a recipient.
+     *
+     * @param publicKey a public key to be stored.
+     * @param recipientId an id of the recipient.
+     */
+    public void storeRecipientSigningPublicKey(PublicKey publicKey, String recipientId) {
+        requireNonNull(KeyStorageConfig.INSTANCE.getRecipientSigningPublicKeyFolderPath(), "Key storage not configured properly.");
+        requireNonNull(publicKey, "Recipient signing public key cannot be null.");
+        requireNonNull(recipientId, "Recipient Id key cannot be null.");
+
+        store(publicKey, KeyStorageConfig.INSTANCE.getRecipientSigningPublicKeyFolderPath() + recipientId + ".key");
+    }
+
+    /**
      * Writes private key to a file.
      *
-     * @param privateKey a private key to be stored.
+     * @param key a key to be stored.
      * @param filepath a path of a file where the private key will be stored.
      */
-    private void store(PrivateKey privateKey, String filepath) {
+    private void store(Key key, String filepath) {
         JcaPEMWriter writer = null;
         try {
             writer = new JcaPEMWriter(new OutputStreamWriter(new FileOutputStream(filepath)));
-            writer.writeObject(privateKey);
+            writer.writeObject(key);
             writer.flush();
         } catch (IOException exception) {
             String msg = "IO Error writing a private key to a file. " + exception.getMessage();
@@ -134,8 +157,14 @@ class KeyStorage {
     private PrivateKey read(String filepath) {
         try {
             PEMParser parser = new PEMParser(new InputStreamReader(new FileInputStream(filepath)));
-            PEMKeyPair pemKeyPair = (PEMKeyPair)parser.readObject();
-            return new JcaPEMKeyConverter().getPrivateKey(pemKeyPair.getPrivateKeyInfo());
+            Object keyPair = parser.readObject();
+            PrivateKeyInfo keyInfo;
+            if (keyPair instanceof PEMKeyPair) {
+                keyInfo = ((PEMKeyPair) keyPair).getPrivateKeyInfo();
+            } else {
+                keyInfo = ((PrivateKeyInfo) keyPair);
+            }
+            return new JcaPEMKeyConverter().getPrivateKey(keyInfo);
         } catch (FileNotFoundException exception) {
             String msg = "Invalid file path while reading a private key. " + exception.getMessage();
             LOGGER.log(Level.SEVERE, msg);

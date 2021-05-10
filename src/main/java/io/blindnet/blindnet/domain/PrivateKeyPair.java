@@ -18,9 +18,15 @@ public final class PrivateKeyPair {
      */
     private final String signingKey;
 
-    public PrivateKeyPair(String encryptionKey, String signingKey) {
+    /**
+     * A key derivation salt used to create secret encryption key.
+     */
+    private final String keyDerivationSalt;
+
+    public PrivateKeyPair(String encryptionKey, String signingKey, String keyDerivationSalt) {
         this.encryptionKey = encryptionKey;
         this.signingKey = signingKey;
+        this.keyDerivationSalt = keyDerivationSalt;
     }
 
     public String getEncryptionKey() {
@@ -29,6 +35,10 @@ public final class PrivateKeyPair {
 
     public String getSigningKey() {
         return signingKey;
+    }
+
+    public String getKeyDerivationSalt() {
+        return keyDerivationSalt;
     }
 
 }

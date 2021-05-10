@@ -32,7 +32,7 @@ public class KeyEnvelopeServiceTest extends AbstractTest {
 
         // todo change
         // signing private key
-        KeyPair signingKeyPair = keyFactory.generateKeyPair(ECDSA_ALGORITHM, BC_PROVIDER, SECRP_256_R_CURVE);
+        KeyPair signingKeyPair = keyFactory.generateKeyPair(Ed25519_ALGORITHM, BC_PROVIDER, -1);
         PrivateKey signingPrivateKey = signingKeyPair.getPrivate();
         System.out.println("Signing public key: ");
         System.out.println(Base64.getUrlEncoder().encodeToString(signingKeyPair.getPublic().getEncoded()));

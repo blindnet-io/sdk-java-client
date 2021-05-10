@@ -60,7 +60,7 @@ class HttpClient {
      */
     public HttpResponse post(String url, String jwt, byte[] requestBody) {
         Objects.requireNonNull(url, "Url cannot be null.");
-        Objects.requireNonNull(requestBody, "Message body cannot be null.");
+        Objects.requireNonNull(requestBody, "Request body cannot be null.");
 
         HttpURLConnection con = init(url, POST_METHOD);
         con.setRequestProperty("Authorization", "Bearer " + jwt);

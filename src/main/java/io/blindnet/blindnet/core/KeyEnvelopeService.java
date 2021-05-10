@@ -1,6 +1,7 @@
 package io.blindnet.blindnet.core;
 
 import io.blindnet.blindnet.domain.KeyEnvelope;
+import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
 
 import javax.crypto.SecretKey;
 import java.security.PrivateKey;
@@ -9,7 +10,7 @@ import java.time.Instant;
 import java.util.Base64;
 import java.util.UUID;
 
-import static io.blindnet.blindnet.domain.EncryptionConstants.SHA_256_ECDSA_ALGORITHM;
+import static io.blindnet.blindnet.domain.EncryptionConstants.Ed25519_ALGORITHM;
 
 /**
  * Provides API for operations related to Key Envelope Object.
@@ -56,7 +57,7 @@ class KeyEnvelopeService {
                 .timestamp(Instant.now().toEpochMilli())
                 .build();
 
-        keyEnvelope.setKeyEnvelopeSignature(sign(keyEnvelope, signingPrivateKey));
+        keyEnvelope.setKeyEnvelopeSignature(sign(keyEnvelope, signingPrivateKey, Ed25519_ALGORITHM));
 
         return keyEnvelope;
     }
@@ -73,7 +74,7 @@ class KeyEnvelopeService {
         return signingService.verify(keyEnvelope,
                 signature,
                 publicKey,
-                SHA_256_ECDSA_ALGORITHM);
+                Ed25519_ALGORITHM);
     }
 
     /**
@@ -83,8 +84,8 @@ class KeyEnvelopeService {
      * @param privateKey  a private Key used for signing.
      * @return a signed object as a string.
      */
-    private String sign(KeyEnvelope keyEnvelope, PrivateKey privateKey) {
-        return signingService.sign(keyEnvelope, privateKey, SHA_256_ECDSA_ALGORITHM);
+    private String sign(KeyEnvelope keyEnvelope, PrivateKey privateKey, String algorithm) {
+        return signingService.sign(keyEnvelope, privateKey, algorithm);
     }
 
 }

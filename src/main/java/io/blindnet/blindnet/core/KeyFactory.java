@@ -2,11 +2,6 @@ package io.blindnet.blindnet.core;
 
 import io.blindnet.blindnet.exception.KeyConstructionException;
 import io.blindnet.blindnet.exception.KeyGenerationException;
-import org.bouncycastle.jce.ECNamedCurveTable;
-import org.bouncycastle.jce.interfaces.ECPrivateKey;
-import org.bouncycastle.jce.spec.ECNamedCurveParameterSpec;
-import org.bouncycastle.jce.spec.ECPublicKeySpec;
-import org.bouncycastle.math.ec.ECPoint;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
@@ -15,7 +10,10 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.*;
 import java.security.interfaces.RSAPrivateCrtKey;
-import java.security.spec.*;
+import java.security.spec.KeySpec;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.RSAPublicKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -24,7 +22,7 @@ import static io.blindnet.blindnet.domain.EncryptionConstants.*;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Provides API for operations on asymmetric key pairs and symmetric keys.
+ * Provides API for operations with asymmetric key pairs and symmetric keys.
  *
  * @author stefanveselinovic
  * @since 0.0.1
@@ -32,34 +30,6 @@ import static java.util.Objects.requireNonNull;
 class KeyFactory {
 
     private static final Logger LOGGER = Logger.getLogger(KeyFactory.class.getName());
-
-    /**
-     * Generates symmetric (secret) key.
-     *
-     * @param algorithm an encryption algorithm.
-     * @param keySize   a key size.
-     * @return a secret key object.
-     */
-    public SecretKey generateSecretKey(String algorithm, int keySize) {
-        requireNonNull(algorithm, "Algorithm name cannot be null.");
-
-        KeyGenerator keyGenerator = initialiseGenerator(algorithm);
-        keyGenerator.init(keySize);
-        return keyGenerator.generateKey();
-    }
-
-    /**
-     * Generates symmetric (secret) key spec.
-     *
-     * @param algorithm an encryption algorithm.
-     * @param keySize   a key size.
-     * @return a secret key spec object.
-     */
-    public SecretKeySpec generateSecretKeySpec(String algorithm, int keySize) {
-        requireNonNull(algorithm, "Algorithm name cannot be null.");
-
-        return new SecretKeySpec(generateSecretKey(algorithm, keySize).getEncoded(), algorithm);
-    }
 
     /**
      * Generates secure random byte array.
@@ -85,6 +55,21 @@ class KeyFactory {
     }
 
     /**
+     * Generates symmetric (secret) key.
+     *
+     * @param algorithm an encryption algorithm.
+     * @param keySize   a key size.
+     * @return a secret key object.
+     */
+    public SecretKey generateSecretKey(String algorithm, int keySize) {
+        requireNonNull(algorithm, "Algorithm name cannot be null.");
+
+        KeyGenerator keyGenerator = initialiseGenerator(algorithm);
+        keyGenerator.init(keySize);
+        return keyGenerator.generateKey();
+    }
+
+    /**
      * Generates asymmetric key pair.
      *
      * @param algorithm an encryption algorithm.
@@ -96,45 +81,21 @@ class KeyFactory {
         requireNonNull(algorithm, "Algorithm name cannot be null.");
         requireNonNull(provider, "Provider name cannot be null.");
 
-        KeyPairGenerator keyPair = initialiseGenerator(algorithm, provider);
-        keyPair.initialize(keySize);
-        return keyPair.generateKeyPair();
+        KeyPairGenerator keyPairGenerator = initialiseGenerator(algorithm, provider);
+        if (keySize > 0) keyPairGenerator.initialize(keySize);
+        return keyPairGenerator.generateKeyPair();
     }
 
     /**
-     * Generates asymmetric key pair.
+     * Generates AES secret key based on provided password.
      *
-     * @param algorithm    Encryption algorithm.
-     * @param provider     Security provider.
-     * @param secgNotation Secg notation of elliptic curve.
-     * @return a key pair object
-     */
-    public KeyPair generateKeyPair(String algorithm, String provider, String secgNotation) {
-        requireNonNull(algorithm, "Algorithm name cannot be null.");
-        requireNonNull(provider, "Provider name cannot be null.");
-        requireNonNull(secgNotation, "Secg notation parameter cannot be null.");
-
-        try {
-            KeyPairGenerator keyGen = initialiseGenerator(algorithm, provider);
-            keyGen.initialize(new ECGenParameterSpec(secgNotation));
-            return keyGen.generateKeyPair();
-        } catch (InvalidAlgorithmParameterException exception) {
-            String msg = "Invalid algorithm parameter. " + exception.getMessage();
-            LOGGER.log(Level.SEVERE, msg);
-            throw new KeyGenerationException(msg, exception);
-        }
-    }
-
-    /**
-     * Generates AES key based on provided password.
-     *
-     * @param password a password phrase used to generate key.
+     * @param password a password phrase used to generate the key.
      * @param salt     a salt.
      * @return a secret key object.
      */
-    public SecretKey getAESKeyFromPassword(char[] password,
-                                           byte[] salt,
-                                           String keyFactoryAlgorithm) {
+    public SecretKey extractAesKeyFromPassword(char[] password,
+                                               byte[] salt,
+                                               String keyFactoryAlgorithm) {
         requireNonNull(password, "Password phrase cannot be null.");
         requireNonNull(salt, "Salt cannot be null.");
         requireNonNull(keyFactoryAlgorithm, "Key factory algorithm cannot be null.");
@@ -150,62 +111,20 @@ class KeyFactory {
         }
     }
 
-
     /**
-     * Extracts a public key from private key.
-     *
-     * @param privateKey   a private key from which the public key is extracted.
-     * @param algorithm    an algorithm used to extract the public key.
-     * @param provider     a security provider.
-     * @param secgNotation Secg notation of elliptic curve.
-     * @return a public key object.
-     */
-    public PublicKey extractPublicKey(PrivateKey privateKey,
-                                      String algorithm,
-                                      String provider,
-                                      String secgNotation) {
-
-        requireNonNull(privateKey, "Private key cannot be null.");
-        requireNonNull(algorithm, "Algorithm cannot be null.");
-        requireNonNull(provider, "Provider cannot be null.");
-        requireNonNull(secgNotation, "Secg notation parameter cannot be null.");
-
-        try {
-            ECPrivateKey ecPrivateKey = (ECPrivateKey) privateKey;
-            java.security.KeyFactory keyFactory = java.security.KeyFactory.getInstance(algorithm, provider);
-            ECNamedCurveParameterSpec ecSpec = ECNamedCurveTable.getParameterSpec(secgNotation);
-
-            ECPoint Q = ecSpec.getG().multiply(ecPrivateKey.getD());
-            byte[] publicDerBytes = Q.getEncoded(false);
-
-            ECPoint point = ecSpec.getCurve().decodePoint(publicDerBytes);
-            ECPublicKeySpec pubSpec = new ECPublicKeySpec(point, ecSpec);
-            return keyFactory.generatePublic(pubSpec);
-        } catch (GeneralSecurityException exception) {
-            String msg = "Error during extraction of public key from a private key. " + exception.getMessage();
-            LOGGER.log(Level.SEVERE, msg);
-            throw new KeyGenerationException(msg, exception);
-        }
-    }
-
-    /**
-     * Extract a public key from private key.
+     * Extracts a RSA public key from private key.
      *
      * @param privateKey a private key from which the public key is extracted.
-     * @param algorithm  an algorithm used to extract the public key.
-     * @param provider   a security provider.
      * @return a public key object.
      */
-    public PublicKey extractPublicKey(PrivateKey privateKey,
-                                      String algorithm,
-                                      String provider) {
+    public PublicKey extractRsaPublicKey(PrivateKey privateKey) {
 
         RSAPrivateCrtKey rsaPrivateCrtKey = (RSAPrivateCrtKey) privateKey;
         RSAPublicKeySpec publicKeySpec = new RSAPublicKeySpec(rsaPrivateCrtKey.getModulus(),
                 rsaPrivateCrtKey.getPublicExponent());
 
         try {
-            java.security.KeyFactory keyFactory = java.security.KeyFactory.getInstance(algorithm, provider);
+            java.security.KeyFactory keyFactory = java.security.KeyFactory.getInstance(RSA_ALGORITHM, BC_PROVIDER);
             return keyFactory.generatePublic(publicKeySpec);
 
         } catch (GeneralSecurityException exception) {
@@ -230,7 +149,7 @@ class KeyFactory {
             java.security.KeyFactory keyFactory = java.security.KeyFactory.getInstance(algorithm);
             return keyFactory.generatePublic(X509publicKey);
         } catch (GeneralSecurityException exception) {
-            String msg = "Error while converting Public Key. " + exception.getMessage();
+            String msg = "Error while converting public key. " + exception.getMessage();
             LOGGER.log(Level.SEVERE, msg);
             throw new KeyConstructionException(msg, exception);
         }
@@ -239,7 +158,7 @@ class KeyFactory {
     /**
      * Converts private key represented as byte array to a private key object.
      *
-     * @param pkBytes a byte array private key representation.
+     * @param pkBytes   a byte array private key representation.
      * @param algorithm an algorithm used to create the private key.
      * @return a private key object.
      */
@@ -249,7 +168,7 @@ class KeyFactory {
             java.security.KeyFactory kf = java.security.KeyFactory.getInstance(algorithm);
             return kf.generatePrivate(new PKCS8EncodedKeySpec(pkBytes));
         } catch (GeneralSecurityException exception) {
-            String msg = "Error while converting Public Key. " + exception.getMessage();
+            String msg = "Error while converting private key. " + exception.getMessage();
             LOGGER.log(Level.SEVERE, msg);
             throw new KeyConstructionException(msg, exception);
         }

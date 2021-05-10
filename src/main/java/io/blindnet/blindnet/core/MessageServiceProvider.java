@@ -26,6 +26,7 @@ public final class MessageServiceProvider {
         return new MessageServiceImpl(KeyStorage.getInstance(),
                 keyFactory,
                 encryptionService,
+                new SigningService(),
                 keyEnvelopeService,
                 new BlindnetClient(KeyStorage.getInstance(),
                         keyFactory,

@@ -1,6 +1,9 @@
 package io.blindnet.blindnet.core;
 
 import io.blindnet.blindnet.exception.SignatureException;
+import org.bouncycastle.crypto.Signer;
+import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
+import org.bouncycastle.crypto.signers.Ed25519Signer;
 import org.json.JSONObject;
 
 import java.security.GeneralSecurityException;
@@ -17,7 +20,8 @@ import java.util.logging.Logger;
  * @author stefanveselinovic
  * @since 0.0.1
  */
-class SigningService {
+// todo remove public access
+public class SigningService {
 
     private static final Logger LOGGER = Logger.getLogger(EncryptionService.class.getName());
 
@@ -46,33 +50,6 @@ class SigningService {
         return sign(jsonObject.toString().getBytes(), privateKey, signingAlgorithm);
     }
 
-    /**
-     * Verifies signature.
-     *
-     * @param signedObject     a signed object.
-     * @param base64Signature  a base 64 encoded signature value.
-     * @param publicKey        a public key used for verification.
-     * @param signingAlgorithm an algorithm used for signing.
-     * @return indication if signature is valid.
-     */
-    public boolean verify(Object signedObject,
-                          String base64Signature,
-                          PublicKey publicKey,
-                          String signingAlgorithm) {
-
-        try {
-            Signature signature = Signature.getInstance(signingAlgorithm);
-            signature.initVerify(publicKey);
-
-            JSONObject jsonObject = new JSONObject(signedObject);
-            signature.update(jsonObject.toString().getBytes());
-            return signature.verify(Base64.getUrlDecoder().decode(base64Signature));
-        } catch (GeneralSecurityException exception) {
-            String msg = "Error during signature validation. " + exception.getMessage();
-            LOGGER.log(Level.SEVERE, msg, exception);
-            throw new SignatureException(msg, exception);
-        }
-    }
 
     /**
      * Signs data using provided private key.
@@ -82,7 +59,7 @@ class SigningService {
      * @param signingAlgorithm an algorithm used for signing.
      * @return a base64 encoded signed data.
      */
-    private String sign(byte[] data, PrivateKey privateKey, String signingAlgorithm) {
+    public String sign(byte[] data, PrivateKey privateKey, String signingAlgorithm) {
 
         try {
             Signature signature = Signature.getInstance(signingAlgorithm);
@@ -93,6 +70,36 @@ class SigningService {
             return Base64.getUrlEncoder().encodeToString(signatureValue);
         } catch (GeneralSecurityException exception) {
             String msg = "Error during signature creation. " + exception.getMessage();
+            LOGGER.log(Level.SEVERE, msg, exception);
+            throw new SignatureException(msg, exception);
+        }
+    }
+
+    /**
+     * Verifies signature.
+     *
+     * @param signedObject     a signed object.
+     * @param base64Signature  a base 64 encoded signature value.
+     * @param publicKey        a public key used for verification.
+     * param signingAlgorithm an algorithm used for signing.
+     * @return indication if signature is valid.
+     */
+    public boolean verify(Object signedObject,
+                          String base64Signature,
+                          PublicKey publicKey,
+                          String signingAlgorithm) {
+//        Signer verifier = new Ed25519Signer();
+//        verifier.init(false, publicKeyParameters);
+//        byte[] data = new JSONObject(signedObject).toString().getBytes();
+//        verifier.update(data, 0, data.length);
+//        return verifier.verifySignature(base64Signature.getBytes());
+        try {
+            Signature signature = Signature.getInstance(signingAlgorithm);
+            signature.initVerify(publicKey);
+            signature.update(new JSONObject(signedObject).toString().getBytes());
+            return signature.verify(Base64.getUrlDecoder().decode(base64Signature));
+        } catch (GeneralSecurityException exception) {
+            String msg = "Error during signature validation. " + exception.getMessage();
             LOGGER.log(Level.SEVERE, msg, exception);
             throw new SignatureException(msg, exception);
         }

@@ -9,6 +9,6 @@ public interface UserService {
 
     UserRegistrationResult register();
 
-    public void unregister();
+    void unregister();
 
 }

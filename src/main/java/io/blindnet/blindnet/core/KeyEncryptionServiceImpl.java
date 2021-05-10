@@ -43,7 +43,7 @@ public class KeyEncryptionServiceImpl implements KeyEncryptionService {
     public void encrypt(String password) {
         byte[] salt = keyFactory.generateRandom(NONCE_IV_ALGORITHM, BC_PROVIDER, SALT_LENGTH);
 
-        SecretKey secretKey = keyFactory.getAESKeyFromPassword(password.toCharArray(),
+        SecretKey secretKey = keyFactory.extractAesKeyFromPassword(password.toCharArray(),
                 salt,
                 PBKDF_SHA256);
 
@@ -51,22 +51,11 @@ public class KeyEncryptionServiceImpl implements KeyEncryptionService {
         PrivateKey signingPrivateKey = keyStorage.readSigningPrivateKey();
 
         byte[] encryptedEPK = encryptionService.encrypt(secretKey, encryptionPrivateKey.getEncoded());
-        String encryptedEKPBase64 = Base64.getUrlEncoder()
-                .encodeToString(ByteBuffer
-                        .allocate(salt.length + encryptedEPK.length)
-                        .put(salt)
-                        .put(encryptedEPK)
-                        .array());
-
         byte[] encryptedSPK = encryptionService.encrypt(secretKey, signingPrivateKey.getEncoded());
-        String encryptedSKPBase64 = Base64.getUrlEncoder()
-                .encodeToString(ByteBuffer
-                        .allocate(salt.length + encryptedSPK.length)
-                        .put(salt)
-                        .put(encryptedSPK)
-                        .array());
 
-        blindnetClient.sendPrivateKeys(encryptedEKPBase64, encryptedSKPBase64);
+        blindnetClient.sendPrivateKeys(Base64.getUrlEncoder().encodeToString(encryptedEPK),
+                Base64.getUrlEncoder().encodeToString(encryptedSPK),
+                Base64.getUrlEncoder().encodeToString(salt));
     }
 
     /**
@@ -76,26 +65,13 @@ public class KeyEncryptionServiceImpl implements KeyEncryptionService {
      */
     @Override
     public void decrypt(String password) {
-
         PrivateKeyPair privateKeyPair = blindnetClient.fetchPrivateKeys();
 
-        ByteBuffer encryptedEPKWithSalt = ByteBuffer.wrap(Base64.getUrlDecoder()
-                .decode(privateKeyPair.getEncryptionKey()));
+        byte[] salt = Base64.getUrlDecoder().decode(privateKeyPair.getKeyDerivationSalt());
+        byte[] encryptedEPK = Base64.getUrlDecoder().decode(privateKeyPair.getEncryptionKey());
+        byte[] encryptedSPK = Base64.getUrlDecoder().decode(privateKeyPair.getEncryptionKey());
 
-        byte[] salt = new byte[SALT_LENGTH];
-        encryptedEPKWithSalt.get(salt);
-
-        byte[] encryptedEPK = new byte[encryptedEPKWithSalt.remaining()];
-        encryptedEPKWithSalt.get(encryptedEPK);
-
-        ByteBuffer encryptedSPKWithSalt = ByteBuffer.wrap(Base64.getUrlDecoder()
-                .decode(privateKeyPair.getSigningKey()));
-
-        int encryptedSPKLength = encryptedSPKWithSalt.array().length - SALT_LENGTH;
-        byte[] encryptedSPK = new byte[encryptedSPKLength];
-        encryptedSPKWithSalt.get(encryptedSPK, SALT_LENGTH, encryptedSPKLength);
-
-        SecretKey secretKey = keyFactory.getAESKeyFromPassword(password.toCharArray(),
+        SecretKey secretKey = keyFactory.extractAesKeyFromPassword(password.toCharArray(),
                 salt,
                 PBKDF_SHA256);
 
@@ -103,7 +79,7 @@ public class KeyEncryptionServiceImpl implements KeyEncryptionService {
         byte[] signingPK = encryptionService.decrypt(secretKey, encryptedSPK);
 
         keyStorage.storeEncryptionKey(keyFactory.convertToPrivateKey(encryptionPK, RSA_ALGORITHM));
-        keyStorage.storeSigningKey(keyFactory.convertToPrivateKey(signingPK, ECDSA_ALGORITHM));
+        keyStorage.storeSigningKey(keyFactory.convertToPrivateKey(signingPK, Ed25519_ALGORITHM));
     }
 
 }
