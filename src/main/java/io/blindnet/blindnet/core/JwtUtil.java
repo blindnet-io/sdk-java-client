@@ -12,7 +12,7 @@ import java.util.Base64;
  */
 class JwtUtil {
 
-    private static final String USER_ID_FIELD = "uid";
+    private static final String USER_ID_FIELD = "user_id";
 
     private JwtUtil() {
     }
@@ -26,7 +26,7 @@ class JwtUtil {
     public static String extractUserId(String jwt) {
         String[] data = jwt.split("\\.");
         JSONObject payload = new JSONObject(new String(Base64.getUrlDecoder().decode(data[1])));
-        return String.valueOf(payload.getInt(USER_ID_FIELD));
+        return payload.getString(USER_ID_FIELD);
     }
 
 }

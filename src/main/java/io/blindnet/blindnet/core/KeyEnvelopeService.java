@@ -1,7 +1,6 @@
 package io.blindnet.blindnet.core;
 
 import io.blindnet.blindnet.domain.KeyEnvelope;
-import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
 
 import javax.crypto.SecretKey;
 import java.security.PrivateKey;
@@ -50,7 +49,7 @@ class KeyEnvelopeService {
 
         KeyEnvelope keyEnvelope = new KeyEnvelope.Builder(UUID.randomUUID().toString())
                 .withVersion(ENVELOPE_VERSION)
-                .withKey(Base64.getUrlEncoder().encodeToString(encryptionService.wrap(secretKey, encryptionPublicKey)))
+                .withKey(Base64.getEncoder().encodeToString(encryptionService.wrap(secretKey, encryptionPublicKey)))
                 .withOwnerId(ownerId)
                 .withRecipientId(recipientId)
                 .withSenderId(senderId)
@@ -82,10 +81,10 @@ class KeyEnvelopeService {
      *
      * @param keyEnvelope a key envelope object to be signed.
      * @param privateKey  a private Key used for signing.
-     * @return a signed object as a string.
+     * @return a envelope signature.
      */
     private String sign(KeyEnvelope keyEnvelope, PrivateKey privateKey, String algorithm) {
-        return signingService.sign(keyEnvelope, privateKey, algorithm);
+        return Base64.getEncoder().encodeToString(signingService.sign(keyEnvelope, privateKey, algorithm));
     }
 
 }

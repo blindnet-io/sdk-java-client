@@ -4,7 +4,6 @@ import io.blindnet.blindnet.KeyEncryptionService;
 import io.blindnet.blindnet.domain.PrivateKeyPair;
 
 import javax.crypto.SecretKey;
-import java.nio.ByteBuffer;
 import java.security.PrivateKey;
 import java.util.Base64;
 
@@ -16,7 +15,7 @@ import static io.blindnet.blindnet.domain.EncryptionConstants.*;
  * @author stefanveselinovic
  * @since 0.0.1
  */
-public class KeyEncryptionServiceImpl implements KeyEncryptionService {
+class KeyEncryptionServiceImpl implements KeyEncryptionService {
 
     private final KeyStorage keyStorage;
     private final KeyFactory keyFactory;
@@ -53,9 +52,10 @@ public class KeyEncryptionServiceImpl implements KeyEncryptionService {
         byte[] encryptedEPK = encryptionService.encrypt(secretKey, encryptionPrivateKey.getEncoded());
         byte[] encryptedSPK = encryptionService.encrypt(secretKey, signingPrivateKey.getEncoded());
 
-        blindnetClient.sendPrivateKeys(Base64.getUrlEncoder().encodeToString(encryptedEPK),
-                Base64.getUrlEncoder().encodeToString(encryptedSPK),
-                Base64.getUrlEncoder().encodeToString(salt));
+        Base64.Encoder encoder = Base64.getEncoder();
+        blindnetClient.sendPrivateKeys(encoder.encodeToString(encryptedEPK),
+                encoder.encodeToString(encryptedSPK),
+                encoder.encodeToString(salt));
     }
 
     /**
@@ -67,9 +67,10 @@ public class KeyEncryptionServiceImpl implements KeyEncryptionService {
     public void decrypt(String password) {
         PrivateKeyPair privateKeyPair = blindnetClient.fetchPrivateKeys();
 
-        byte[] salt = Base64.getUrlDecoder().decode(privateKeyPair.getKeyDerivationSalt());
-        byte[] encryptedEPK = Base64.getUrlDecoder().decode(privateKeyPair.getEncryptionKey());
-        byte[] encryptedSPK = Base64.getUrlDecoder().decode(privateKeyPair.getEncryptionKey());
+        Base64.Decoder decoder = Base64.getDecoder();
+        byte[] salt = decoder.decode(privateKeyPair.getKeyDerivationSalt());
+        byte[] encryptedEPK = decoder.decode(privateKeyPair.getEncryptionKey());
+        byte[] encryptedSPK = decoder.decode(privateKeyPair.getEncryptionKey());
 
         SecretKey secretKey = keyFactory.extractAesKeyFromPassword(password.toCharArray(),
                 salt,

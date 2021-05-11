@@ -6,6 +6,8 @@ import io.blindnet.blindnet.exception.KeyStorageException;
 
 import java.security.KeyPair;
 import java.security.PrivateKey;
+import java.util.Arrays;
+import java.util.Base64;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -55,18 +57,22 @@ class UserServiceImpl implements UserService {
         PrivateKey signingPrivateKey = signingKeyPair.getPrivate();
         keyStorage.storeSigningKey(signingPrivateKey);
 
-        String signedJwt = signingService.sign(requireNonNull(jwtConfig.getJwt(), "JWT not configured properly."),
+        byte[] signedJwt = signingService.sign(requireNonNull(jwtConfig.getJwt(), "JWT not configured properly."),
                 signingPrivateKey,
                 Ed25519_ALGORITHM);
 
-        String signedEncryptionPublicKey = signingService.sign(encryptionKeyPair.getPublic(),
+        byte[] signedEncryptionPublicKey = signingService.sign(encryptionKeyPair.getPublic(),
                 signingPrivateKey,
                 Ed25519_ALGORITHM);
 
-        return blindnetClient.register(encryptionKeyPair.getPublic(),
-                signedEncryptionPublicKey,
-                signingKeyPair.getPublic(),
-                signedJwt);
+        byte[] publicSigningKeyEncodedWithoutPrefix = Arrays.copyOfRange(
+                signingKeyPair.getPublic().getEncoded(), 12, signingKeyPair.getPublic().getEncoded().length);
+
+        Base64.Encoder encoder = Base64.getEncoder();
+        return blindnetClient.register(encoder.encodeToString(encryptionKeyPair.getPublic().getEncoded()),
+                encoder.encodeToString(signedEncryptionPublicKey),
+                encoder.encodeToString(publicSigningKeyEncodedWithoutPrefix),
+                Base64.getUrlEncoder().encodeToString(signedJwt));
     }
 
     /**
@@ -85,7 +91,11 @@ class UserServiceImpl implements UserService {
             LOGGER.log(Level.SEVERE, msg);
             throw new KeyStorageException(msg);
         }
-        // todo delete recipient public keys
+        if (!keyStorage.deleteRecipientSigningPublicKeys()) {
+            String msg = "Unable to delete all public signing keys of recipients.";
+            LOGGER.log(Level.SEVERE, msg);
+            throw new KeyStorageException(msg);
+        }
     }
 
 }

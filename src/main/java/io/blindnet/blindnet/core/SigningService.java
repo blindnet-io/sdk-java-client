@@ -20,8 +20,7 @@ import java.util.logging.Logger;
  * @author stefanveselinovic
  * @since 0.0.1
  */
-// todo remove public access
-public class SigningService {
+class SigningService {
 
     private static final Logger LOGGER = Logger.getLogger(EncryptionService.class.getName());
 
@@ -33,7 +32,7 @@ public class SigningService {
      * @param signingAlgorithm an algorithm to be used for signing.
      * @return a base64 encoded signed data.
      */
-    public String sign(String data, PrivateKey privateKey, String signingAlgorithm) {
+    public byte[] sign(String data, PrivateKey privateKey, String signingAlgorithm) {
         return sign(data.getBytes(), privateKey, signingAlgorithm);
     }
 
@@ -45,7 +44,7 @@ public class SigningService {
      * @param signingAlgorithm an algorithm used for signing.
      * @return a base64 encoded signed object.
      */
-    public String sign(Object object, PrivateKey privateKey, String signingAlgorithm) {
+    public byte[] sign(Object object, PrivateKey privateKey, String signingAlgorithm) {
         JSONObject jsonObject = new JSONObject(object);
         return sign(jsonObject.toString().getBytes(), privateKey, signingAlgorithm);
     }
@@ -57,17 +56,15 @@ public class SigningService {
      * @param data             a data to be signed.
      * @param privateKey       a private key used for signing.
      * @param signingAlgorithm an algorithm used for signing.
-     * @return a base64 encoded signed data.
+     * @return a base64 encoded signature.
      */
-    public String sign(byte[] data, PrivateKey privateKey, String signingAlgorithm) {
+    public byte[] sign(byte[] data, PrivateKey privateKey, String signingAlgorithm) {
 
         try {
             Signature signature = Signature.getInstance(signingAlgorithm);
             signature.initSign(privateKey);
             signature.update(data);
-            byte[] signatureValue = signature.sign();
-
-            return Base64.getUrlEncoder().encodeToString(signatureValue);
+            return signature.sign();
         } catch (GeneralSecurityException exception) {
             String msg = "Error during signature creation. " + exception.getMessage();
             LOGGER.log(Level.SEVERE, msg, exception);
@@ -88,16 +85,12 @@ public class SigningService {
                           String base64Signature,
                           PublicKey publicKey,
                           String signingAlgorithm) {
-//        Signer verifier = new Ed25519Signer();
-//        verifier.init(false, publicKeyParameters);
-//        byte[] data = new JSONObject(signedObject).toString().getBytes();
-//        verifier.update(data, 0, data.length);
-//        return verifier.verifySignature(base64Signature.getBytes());
+
         try {
             Signature signature = Signature.getInstance(signingAlgorithm);
             signature.initVerify(publicKey);
             signature.update(new JSONObject(signedObject).toString().getBytes());
-            return signature.verify(Base64.getUrlDecoder().decode(base64Signature));
+            return signature.verify(Base64.getDecoder().decode(base64Signature));
         } catch (GeneralSecurityException exception) {
             String msg = "Error during signature validation. " + exception.getMessage();
             LOGGER.log(Level.SEVERE, msg, exception);

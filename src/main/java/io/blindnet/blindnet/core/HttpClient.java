@@ -10,6 +10,8 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static java.util.Objects.requireNonNull;
+
 
 /**
  * Provides API to for standard HTTP methods.
@@ -23,6 +25,7 @@ class HttpClient {
 
     private static final String GET_METHOD = "GET";
     private static final String POST_METHOD = "POST";
+    private static final String PUT_METHOD = "PUT";
     private static final String DELETE_METHOD = "DELETE";
 
     private static final int CONNECT_TIMEOUT = 5000;
@@ -59,17 +62,19 @@ class HttpClient {
      * @return a http response object.
      */
     public HttpResponse post(String url, String jwt, byte[] requestBody) {
-        Objects.requireNonNull(url, "Url cannot be null.");
-        Objects.requireNonNull(requestBody, "Request body cannot be null.");
+        return sendRequest(url, jwt, requestBody, POST_METHOD);
+    }
 
-        HttpURLConnection con = init(url, POST_METHOD);
-        con.setRequestProperty("Authorization", "Bearer " + jwt);
-        con.setRequestProperty("Content-Type", "application/json; utf-8");
-        con.setRequestProperty("Accept", "application/json");
-
-        sendRequestBody(con, requestBody);
-
-        return createResponse(con, url);
+    /**
+     * Sends HTTP Put request.
+     *
+     * @param url         an url of the request.
+     * @param jwt         a jwt used for authorization.
+     * @param requestBody a body of the request.
+     * @return a http response object.
+     */
+    public HttpResponse put(String url, String jwt, byte[] requestBody) {
+        return sendRequest(url, jwt, requestBody, PUT_METHOD);
     }
 
     /**
@@ -80,15 +85,14 @@ class HttpClient {
      * @return a http response object.
      */
     public HttpResponse get(String url, String jwt) {
-        Objects.requireNonNull(url, "Url cannot be null.");
-        Objects.requireNonNull(jwt, "JWT cannot be null.");
+        requireNonNull(url, "Url cannot be null.");
+        requireNonNull(jwt, "JWT cannot be null.");
 
         HttpURLConnection con = init(url, GET_METHOD);
 
         con.setRequestProperty("Authorization", "Bearer " + jwt);
         con.setRequestProperty("Accept", "application/json");
 
-        // todo; add url params if needed
         return createResponse(con, url);
     }
 
@@ -100,13 +104,36 @@ class HttpClient {
      * @return a http response object.
      */
     public HttpResponse delete(String url, String jwt) {
-        Objects.requireNonNull(url, "Url cannot be null.");
-        Objects.requireNonNull(jwt, "JWT cannot be null.");
+        requireNonNull(url, "Url cannot be null.");
+        requireNonNull(jwt, "JWT cannot be null.");
 
         HttpURLConnection con = init(url, DELETE_METHOD);
 
         con.setRequestProperty("Authorization", "Bearer " + jwt);
         con.setRequestProperty("Accept", "application/json");
+
+        return createResponse(con, url);
+    }
+
+    /**
+     * Sends a HTTP request.
+     *
+     * @param url         an url of the request.
+     * @param jwt         a jwt used for authorization.
+     * @param requestBody a body of the request.
+     * @param method      a HTTP method.
+     * @return a http response object.
+     */
+    private HttpResponse sendRequest(String url, String jwt, byte[] requestBody, String method) {
+        requireNonNull(url, "Url cannot be null.");
+        requireNonNull(requestBody, "Request body cannot be null.");
+
+        HttpURLConnection con = init(url, method);
+        con.setRequestProperty("Authorization", "Bearer " + jwt);
+        con.setRequestProperty("Content-Type", "application/json; utf-8");
+        con.setRequestProperty("Accept", "application/json");
+
+        sendRequestBody(con, requestBody);
 
         return createResponse(con, url);
     }
@@ -142,10 +169,11 @@ class HttpClient {
             int responseCode = con.getResponseCode();
 
             if (responseCode != HttpURLConnection.HTTP_OK && responseCode != HttpURLConnection.HTTP_CREATED) {
-                String msg = String.format("Blindnet API response is %d %s  for url: %s.",
+                String msg = String.format("Blindnet API response is %d %s for url: %s. Message: %s",
                         responseCode,
                         con.getResponseMessage(),
-                        url);
+                        url,
+                        con.getErrorStream() != null ? new String(parseResponse(con.getErrorStream())) : "");
                 LOGGER.log(Level.SEVERE, msg);
                 throw new BlindnetApiException(msg);
             }

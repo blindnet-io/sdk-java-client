@@ -2,12 +2,18 @@ package io.blindnet.blindnet.core;
 
 import io.blindnet.blindnet.exception.KeyConstructionException;
 import io.blindnet.blindnet.exception.KeyGenerationException;
+import org.bouncycastle.asn1.DEROctetString;
+import org.bouncycastle.asn1.edec.EdECObjectIdentifiers;
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
+import java.io.IOException;
 import java.security.*;
 import java.security.interfaces.RSAPrivateCrtKey;
 import java.security.spec.KeySpec;
@@ -141,14 +147,23 @@ class KeyFactory {
      * @return a public key object.
      */
     public PublicKey convertToPublicKey(String base64PK, String algorithm) {
+        X509EncodedKeySpec x509publicKey;
 
-        X509EncodedKeySpec X509publicKey = new X509EncodedKeySpec(
-                Base64.getUrlDecoder()
-                        .decode(base64PK.getBytes()));
         try {
+            if (algorithm.equals(Ed25519_ALGORITHM)) {
+                SubjectPublicKeyInfo pubKeyInfo = new SubjectPublicKeyInfo(new AlgorithmIdentifier(EdECObjectIdentifiers.id_Ed25519),
+                        Base64.getDecoder().decode(base64PK));
+                x509publicKey = new X509EncodedKeySpec(pubKeyInfo.getEncoded());
+            } else {
+                x509publicKey = new X509EncodedKeySpec(
+                        Base64.getDecoder()
+                                .decode(base64PK.getBytes()));
+            }
+
             java.security.KeyFactory keyFactory = java.security.KeyFactory.getInstance(algorithm);
-            return keyFactory.generatePublic(X509publicKey);
-        } catch (GeneralSecurityException exception) {
+            return keyFactory.generatePublic(x509publicKey);
+
+        } catch (GeneralSecurityException | IOException exception) {
             String msg = "Error while converting public key. " + exception.getMessage();
             LOGGER.log(Level.SEVERE, msg);
             throw new KeyConstructionException(msg, exception);
@@ -163,11 +178,19 @@ class KeyFactory {
      * @return a private key object.
      */
     public PrivateKey convertToPrivateKey(byte[] pkBytes, String algorithm) {
+        PKCS8EncodedKeySpec pkcs8KeySpec;
 
         try {
+            if (algorithm.equals(Ed25519_ALGORITHM)) {
+                PrivateKeyInfo privateKeyInfo = new PrivateKeyInfo(new AlgorithmIdentifier(EdECObjectIdentifiers.id_Ed25519),
+                        new DEROctetString(pkBytes));
+                pkcs8KeySpec = new PKCS8EncodedKeySpec(privateKeyInfo.getEncoded());
+            } else {
+                pkcs8KeySpec = new PKCS8EncodedKeySpec(pkBytes);
+            }
             java.security.KeyFactory kf = java.security.KeyFactory.getInstance(algorithm);
-            return kf.generatePrivate(new PKCS8EncodedKeySpec(pkBytes));
-        } catch (GeneralSecurityException exception) {
+            return kf.generatePrivate(pkcs8KeySpec);
+        } catch (GeneralSecurityException | IOException exception) {
             String msg = "Error while converting private key. " + exception.getMessage();
             LOGGER.log(Level.SEVERE, msg);
             throw new KeyConstructionException(msg, exception);

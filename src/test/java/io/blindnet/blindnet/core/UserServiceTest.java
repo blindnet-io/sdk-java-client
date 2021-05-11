@@ -8,6 +8,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.mockito.Mock;
 
 import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SignatureException;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -30,7 +33,7 @@ public class UserServiceTest extends AbstractTest {
 
     @Test
     @DisplayName("Test user registration with successful response from Blindnet API.")
-    public void testRegister_thenSuccess() throws IOException {
+    public void testRegister_thenSuccess() throws IOException, NoSuchAlgorithmException, SignatureException, InvalidKeyException {
 //        when(httpClient.post(anyString(), eq(TEST_JWT), any(byte[].class)))
 //                .thenReturn(new HttpResponse.Builder(HttpURLConnection.HTTP_OK)
 //                        .withMessage(anyString())

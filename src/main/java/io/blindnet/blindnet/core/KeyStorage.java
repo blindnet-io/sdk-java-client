@@ -128,6 +128,15 @@ class KeyStorage {
     }
 
     /**
+     * Deletes singing public keys of recipients.
+     */
+    public boolean deleteRecipientSigningPublicKeys() {
+        requireNonNull(KeyStorageConfig.INSTANCE.getRecipientSigningPublicKeyFolderPath(), "Key storage not configured properly.");
+
+        return deleteFolder(new File(KeyStorageConfig.INSTANCE.getRecipientSigningPublicKeyFolderPath()));
+    }
+
+    /**
      * Writes private key to a file.
      *
      * @param key a key to be stored.
@@ -191,6 +200,20 @@ class KeyStorage {
                 throw new KeyStorageException(msg, exception);
             }
         }
+    }
+
+    private boolean deleteFolder(File folder) {
+        File[] files = folder.listFiles();
+        if (files != null) {
+            for (File f : files) {
+                if (f.isDirectory()) {
+                    deleteFolder(f);
+                } else {
+                    if (!f.delete()) return false;
+                }
+            }
+        }
+        return folder.delete();
     }
 
 }

@@ -17,12 +17,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class KeyFactoryTest extends AbstractTest {
 
-    private static final String INVALID_NONCE_IV_ALGORITHM = "NceAndIV";
-    private static final String INVALID_SYMMETRIC_ALGORITHM = "ASE";
-    private static final String INVALID_PROVIDER = "CBC";
-    private static final String INVALID_ASYMMETRIC_ALGORITHM = "RAS";
-    private static final String INVALID_PBKDF_SHA256 = "PBKDFFF_SHA256";
-
     private KeyFactory keyFactory;
 
     @Before
@@ -111,20 +105,20 @@ public class KeyFactoryTest extends AbstractTest {
 
         assertNotNull(publicKey);
         assertEquals(publicKey.getAlgorithm(), RSA_ALGORITHM);
-        assertEquals(Base64.getUrlEncoder().encodeToString(publicKey.getEncoded()),
-                Base64.getUrlEncoder().encodeToString(rsaKeyPair.getPublic().getEncoded()));
+        assertEquals(Base64.getEncoder().encodeToString(publicKey.getEncoded()),
+                Base64.getEncoder().encodeToString(rsaKeyPair.getPublic().getEncoded()));
     }
 
     @Test
     @DisplayName("Test conversion to public key object from base64 encoded data.")
     public void testConvertToPublicKey() {
         KeyPair rsaKeyPair = keyFactory.generateKeyPair(RSA_ALGORITHM, BC_PROVIDER, RSA_KEY_SIZE_4096);
-        String base64EncodedPublicKey = Base64.getUrlEncoder().encodeToString(rsaKeyPair.getPublic().getEncoded());
+        String base64EncodedPublicKey = Base64.getEncoder().encodeToString(rsaKeyPair.getPublic().getEncoded());
         PublicKey publicKey = keyFactory.convertToPublicKey(base64EncodedPublicKey, RSA_ALGORITHM);
 
         assertNotNull(publicKey);
         assertEquals(publicKey.getAlgorithm(), RSA_ALGORITHM);
-        assertEquals(Base64.getUrlEncoder().encodeToString(publicKey.getEncoded()), base64EncodedPublicKey);
+        assertEquals(Base64.getEncoder().encodeToString(publicKey.getEncoded()), base64EncodedPublicKey);
 
         KeyConstructionException convertToPublicKeyKCException = assertThrows(KeyConstructionException.class,
                 () -> keyFactory.convertToPublicKey(base64EncodedPublicKey, INVALID_ASYMMETRIC_ALGORITHM));
@@ -139,24 +133,12 @@ public class KeyFactoryTest extends AbstractTest {
 
         assertNotNull(rsaPrivateKey);
         assertEquals(rsaPrivateKey.getAlgorithm(), RSA_ALGORITHM);
-        assertEquals(Base64.getUrlEncoder().encodeToString(rsaPrivateKey.getEncoded()),
-                Base64.getUrlEncoder().encodeToString(rsaKeyPair.getPrivate().getEncoded()));
+        assertEquals(Base64.getEncoder().encodeToString(rsaPrivateKey.getEncoded()),
+                Base64.getEncoder().encodeToString(rsaKeyPair.getPrivate().getEncoded()));
 
         KeyConstructionException convertToPrivateKeyKCException = assertThrows(KeyConstructionException.class,
                 () -> keyFactory.convertToPrivateKey(rsaKeyPair.getPrivate().getEncoded(), INVALID_ASYMMETRIC_ALGORITHM));
         assertTrue(convertToPrivateKeyKCException.getMessage().contains("Error while converting private key."));
-    }
-
-    @Test
-    @DisplayName("Test conversion to Ed25519 private key object from byte array data.")
-    public void testConvertToEd25519PrivateKey() {
-        KeyPair ed25519keyPair = keyFactory.generateKeyPair(Ed25519_ALGORITHM, BC_PROVIDER, -1);
-        PrivateKey ed25519PrivateKey = keyFactory.convertToPrivateKey(ed25519keyPair.getPrivate().getEncoded(), Ed25519_ALGORITHM);
-
-        assertNotNull(ed25519PrivateKey);
-        assertEquals(ed25519PrivateKey.getAlgorithm(), Ed25519_ALGORITHM);
-        assertEquals(Base64.getUrlEncoder().encodeToString(ed25519PrivateKey.getEncoded()),
-                Base64.getUrlEncoder().encodeToString(ed25519keyPair.getPrivate().getEncoded()));
     }
 
 }
