@@ -11,20 +11,15 @@ import java.io.*;
 import java.security.Key;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
+import static io.blindnet.blindnet.core.EncryptionConstants.ENCRYPTION_PRIVATE_KEY_FILENAME;
+import static io.blindnet.blindnet.core.EncryptionConstants.SIGNING_PRIVATE_KEY_FILENAME;
 import static java.util.Objects.requireNonNull;
 
 /**
  * Provides API for key storage.
- *
- * @author stefanveselinovic
- * @since 0.0.1
  */
 class KeyStorage {
-
-    private static final Logger LOGGER = Logger.getLogger(KeyFactory.class.getName());
 
     /**
      * Private constructor as class implements Singleton pattern.
@@ -54,10 +49,10 @@ class KeyStorage {
      * @param privateKey a private key to be stored.
      */
     public void storeEncryptionKey(PrivateKey privateKey) {
-        requireNonNull(KeyStorageConfig.INSTANCE.getEncryptionPrivateKeyPath(), "Key storage not configured properly.");
+        requireNonNull(KeyStorageConfig.INSTANCE.getKeyFolderPath(), "Key storage not configured properly.");
         requireNonNull(privateKey, "Encryption private key cannot be null.");
 
-        store(privateKey, KeyStorageConfig.INSTANCE.getEncryptionPrivateKeyPath());
+        store(privateKey, KeyStorageConfig.INSTANCE.getKeyFolderPath() + File.pathSeparator + ENCRYPTION_PRIVATE_KEY_FILENAME);
     }
 
     /**
@@ -66,16 +61,7 @@ class KeyStorage {
      * @return a private key object.
      */
     public PrivateKey readEncryptionPrivateKey() {
-        return read(KeyStorageConfig.INSTANCE.getEncryptionPrivateKeyPath());
-    }
-
-    /**
-     * Deletes private key used for encryption.
-     *
-     * @return indication if deletion was successful.
-     */
-    public boolean deleteEncryptionKey() {
-        return new File(KeyStorageConfig.INSTANCE.getEncryptionPrivateKeyPath()).delete();
+        return read(KeyStorageConfig.INSTANCE.getKeyFolderPath() + File.pathSeparator + ENCRYPTION_PRIVATE_KEY_FILENAME);
     }
 
     /**
@@ -84,10 +70,10 @@ class KeyStorage {
      * @param privateKey a private key to be stored.
      */
     public void storeSigningKey(PrivateKey privateKey) {
-        requireNonNull(KeyStorageConfig.INSTANCE.getSigningPrivateKeyPath(), "Key storage not configured properly.");
+        requireNonNull(KeyStorageConfig.INSTANCE.getKeyFolderPath(), "Key storage not configured properly.");
         requireNonNull(privateKey, "Signing private key cannot be null.");
 
-        store(privateKey, KeyStorageConfig.INSTANCE.getSigningPrivateKeyPath());
+        store(privateKey, KeyStorageConfig.INSTANCE.getKeyFolderPath() + File.pathSeparator + SIGNING_PRIVATE_KEY_FILENAME);
     }
 
     /**
@@ -96,16 +82,7 @@ class KeyStorage {
      * @return a private key object.
      */
     public PrivateKey readSigningPrivateKey() {
-        return read(KeyStorageConfig.INSTANCE.getSigningPrivateKeyPath());
-    }
-
-    /**
-     * Deletes private key used for signing.
-     *
-     * @return indication if deletion was successful.
-     */
-    public boolean deleteSigningKey() {
-        return new File(KeyStorageConfig.INSTANCE.getSigningPrivateKeyPath()).delete();
+        return read(KeyStorageConfig.INSTANCE.getKeyFolderPath() + File.pathSeparator + SIGNING_PRIVATE_KEY_FILENAME);
     }
 
     /**
@@ -115,20 +92,20 @@ class KeyStorage {
      * @param recipientId an id of the recipient.
      */
     public void storeRecipientSigningPublicKey(PublicKey publicKey, String recipientId) {
-        requireNonNull(KeyStorageConfig.INSTANCE.getRecipientSigningPublicKeyFolderPath(), "Key storage not configured properly.");
+        requireNonNull(KeyStorageConfig.INSTANCE.getKeyFolderPath(), "Key storage not configured properly.");
         requireNonNull(publicKey, "Recipient signing public key cannot be null.");
         requireNonNull(recipientId, "Recipient Id key cannot be null.");
 
-        store(publicKey, KeyStorageConfig.INSTANCE.getRecipientSigningPublicKeyFolderPath() + recipientId + ".key");
+        store(publicKey, KeyStorageConfig.INSTANCE.getKeyFolderPath() + recipientId + ".key");
     }
 
     /**
      * Deletes singing public keys of recipients.
      */
-    public boolean deleteRecipientSigningPublicKeys() {
-        requireNonNull(KeyStorageConfig.INSTANCE.getRecipientSigningPublicKeyFolderPath(), "Key storage not configured properly.");
+    public boolean deleteKeyFolder() {
+        requireNonNull(KeyStorageConfig.INSTANCE.getKeyFolderPath(), "Key storage not configured properly.");
 
-        return deleteFolder(new File(KeyStorageConfig.INSTANCE.getRecipientSigningPublicKeyFolderPath()));
+        return deleteFolder(new File(KeyStorageConfig.INSTANCE.getKeyFolderPath()));
     }
 
     /**
@@ -144,9 +121,8 @@ class KeyStorage {
             writer.writeObject(key);
             writer.flush();
         } catch (IOException exception) {
-            String msg = "IO Error writing a private key to a file. " + exception.getMessage();
-            LOGGER.log(Level.SEVERE, msg);
-            throw new KeyStorageException(msg, exception);
+            String msg = "IO Error writing a private key to a file.";
+            throw new KeyStorageException(msg);
         } finally {
             close(writer);
         }
@@ -170,13 +146,9 @@ class KeyStorage {
             }
             return new JcaPEMKeyConverter().getPrivateKey(keyInfo);
         } catch (FileNotFoundException exception) {
-            String msg = "Invalid file path while reading a private key. " + exception.getMessage();
-            LOGGER.log(Level.SEVERE, msg);
-            throw new KeyStorageException(msg, exception);
+            throw new KeyStorageException("Invalid file path while reading a private key.");
         } catch (IOException exception) {
-            String msg = "IO Error while reading a private key. " + exception.getMessage();
-            LOGGER.log(Level.SEVERE, msg);
-            throw new KeyStorageException(msg, exception);
+            throw new KeyStorageException("IO Error while reading a private key.");
         }
     }
 
@@ -190,9 +162,8 @@ class KeyStorage {
             try {
                 writer.close();
             } catch (IOException exception) {
-                String msg = "A PEM writer could not be closed. " + exception.getMessage();
-                LOGGER.log(Level.SEVERE, msg);
-                throw new KeyStorageException(msg, exception);
+                String msg = "A PEM writer could not be closed.";
+                throw new KeyStorageException(msg);
             }
         }
     }

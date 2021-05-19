@@ -4,11 +4,8 @@ import java.security.PublicKey;
 
 /**
  * A wrapper object for the encryption and signing public keys.
- *
- * @author stefanveselinovic
- * @since 0.0.1
  */
-public final class PublicKeyPair {
+public final class PublicKeys {
 
     /**
      * A public key used for encryption.
@@ -25,9 +22,9 @@ public final class PublicKeyPair {
      */
     private final String signedPublicEncryptionKey;
 
-    public PublicKeyPair(PublicKey encryptionKey,
-                         PublicKey signingKey,
-                         String signedPublicEncryptionKey) {
+    public PublicKeys(PublicKey encryptionKey,
+                      PublicKey signingKey,
+                      String signedPublicEncryptionKey) {
 
         this.encryptionKey = encryptionKey;
         this.signingKey = signingKey;

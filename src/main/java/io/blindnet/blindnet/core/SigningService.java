@@ -8,18 +8,11 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Signature;
 import java.util.Base64;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Provides API for cryptographic signing and verification of the cryptographic signature.
- *
- * @author stefanveselinovic
- * @since 0.0.1
  */
 class SigningService {
-
-    private static final Logger LOGGER = Logger.getLogger(EncryptionService.class.getName());
 
     /**
      * Signs data using provided private key.
@@ -63,9 +56,7 @@ class SigningService {
             signature.update(data);
             return signature.sign();
         } catch (GeneralSecurityException exception) {
-            String msg = "Error during signature creation. " + exception.getMessage();
-            LOGGER.log(Level.SEVERE, msg, exception);
-            throw new SignatureException(msg, exception);
+            throw new SignatureException("Error during signature creation.");
         }
     }
 
@@ -109,9 +100,7 @@ class SigningService {
             signature.update(signedData);
             return signature.verify(Base64.getDecoder().decode(base64Signature));
         } catch (GeneralSecurityException exception) {
-            String msg = "Error during signature validation. " + exception.getMessage();
-            LOGGER.log(Level.SEVERE, msg, exception);
-            throw new SignatureException(msg, exception);
+            throw new SignatureException("Error during signature validation.");
         }
     }
 

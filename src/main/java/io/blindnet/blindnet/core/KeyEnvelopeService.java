@@ -15,9 +15,6 @@ import static io.blindnet.blindnet.core.EncryptionConstants.Ed25519_ALGORITHM;
 
 /**
  * Provides API for operations related to Key Envelope Object.
- *
- * @author stefanveselinovic
- * @since 0.0.1
  */
 class KeyEnvelopeService {
 

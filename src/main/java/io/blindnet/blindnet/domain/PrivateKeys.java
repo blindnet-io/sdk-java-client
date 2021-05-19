@@ -2,11 +2,8 @@ package io.blindnet.blindnet.domain;
 
 /**
  * A wrapper object for the encryption and signing private keys.
- *
- * @author stefanveselinovic
- * @since 0.0.1
  */
-public final class PrivateKeyPair {
+public final class PrivateKeys {
 
     /**
      * A private key used for encryption.
@@ -23,7 +20,7 @@ public final class PrivateKeyPair {
      */
     private final String keyDerivationSalt;
 
-    public PrivateKeyPair(String encryptionKey, String signingKey, String keyDerivationSalt) {
+    public PrivateKeys(String encryptionKey, String signingKey, String keyDerivationSalt) {
         this.encryptionKey = encryptionKey;
         this.signingKey = signingKey;
         this.keyDerivationSalt = keyDerivationSalt;

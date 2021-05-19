@@ -4,9 +4,6 @@ import static java.util.Objects.requireNonNull;
 
 /**
  * Provides Singleton instance for jwt configuration.
- *
- * @author stefanveselinovic
- * @since 0.0.1
  */
 enum JwtConfig {
 
@@ -29,7 +26,7 @@ enum JwtConfig {
     /**
      * Returns Singleton Instance for Jwt Config.
      *
-     * @return a Jwt Singleton.
+     * @return a Jwt Config Singleton.
      */
     public JwtConfig getInstance() {
         return INSTANCE;

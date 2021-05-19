@@ -2,9 +2,6 @@ package io.blindnet.blindnet.exception;
 
 /**
  * Exception indicating that key construction failed.
- *
- * @author stefanveselinovic
- * @since 0.0.1
  */
 public class KeyConstructionException extends RuntimeException {
 

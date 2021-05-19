@@ -5,9 +5,6 @@ import java.util.Base64;
 
 /**
  * Represents symmetric key in jwk format.
- *
- * @author stefanveselinovic
- * @since 0.0.1
  */
 public final class SymmetricJwk {
 

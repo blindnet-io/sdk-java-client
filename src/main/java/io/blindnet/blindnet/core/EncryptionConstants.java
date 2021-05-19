@@ -2,14 +2,14 @@ package io.blindnet.blindnet.core;
 
 /**
  * Provides constants that are used in encryption/decryption operations.
- *
- * @author stefanveselinovic
- * @since 0.0.1
  */
 final class EncryptionConstants {
 
     private EncryptionConstants() {
     }
+
+    public static final String ENCRYPTION_PRIVATE_KEY_FILENAME = "enc.pem";
+    public static final String SIGNING_PRIVATE_KEY_FILENAME = "sign.pem";
 
     public static final String BC_PROVIDER = "BC";
 
@@ -24,7 +24,7 @@ final class EncryptionConstants {
     public static final String PBKDF_SHA256 = "PBKDF2WithHmacSHA256";
 
     public static final int AES_KEY_SIZE = 256;
-    public static final int AES_KEY_ITERATION_COUNT = 65536;
+    public static final int AES_KEY_ITERATION_COUNT = 100000;
 
     public static final int GCM_IV_LENGTH = 12;
     public static final int GCM_T_LENGTH = 128;

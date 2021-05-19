@@ -2,7 +2,6 @@ package io.blindnet.blindnet.core;
 
 import io.blindnet.blindnet.domain.UserRegistrationResult;
 import io.blindnet.blindnet.exception.KeyConstructionException;
-import io.blindnet.blindnet.exception.KeyStorageException;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
@@ -12,37 +11,30 @@ import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static io.blindnet.blindnet.core.EncryptionConstants.*;
 import static java.util.Objects.requireNonNull;
 
 /**
  * Default implementation of user service.
- *
- * @author stefanveselinovic
- * @since 0.0.1
  */
 class UserServiceImpl implements UserService {
-
-    private static final Logger LOGGER = Logger.getLogger(UserServiceImpl.class.getName());
 
     private final KeyStorage keyStorage;
     private final KeyFactory keyFactory;
     private final SigningService signingService;
-    private final BlindnetClient blindnetClient;
+    private final ApiClient apiClient;
     private final JwtConfig jwtConfig;
 
     UserServiceImpl(KeyStorage keyStorage,
                     KeyFactory keyFactory,
                     SigningService signingService,
-                    BlindnetClient blindnetClient) {
+                    ApiClient apiClient) {
 
         this.keyStorage = keyStorage;
         this.keyFactory = keyFactory;
         this.signingService = signingService;
-        this.blindnetClient = blindnetClient;
+        this.apiClient = apiClient;
         this.jwtConfig = JwtConfig.INSTANCE;
     }
 
@@ -76,14 +68,12 @@ class UserServiceImpl implements UserService {
                     signingPrivateKey,
                     Ed25519_ALGORITHM);
 
-            return blindnetClient.register(encoder.encodeToString(publicKeyInfo.getEncoded()),
+            return apiClient.register(encoder.encodeToString(publicKeyInfo.getEncoded()),
                     encoder.encodeToString(signedEncryptionPublicKey),
                     encoder.encodeToString(publicSigningKeyEncodedWithoutPrefix),
                     Base64.getUrlEncoder().encodeToString(signedJwt));
         } catch (IOException e) {
-            String msg = "Unable to convert public key to SPKI format.";
-            LOGGER.log(Level.SEVERE, msg);
-            throw new KeyConstructionException(msg);
+            throw new KeyConstructionException("Unable to convert public key to SPKI format.");
         }
     }
 
@@ -91,23 +81,8 @@ class UserServiceImpl implements UserService {
      * Unregisters a user using Blindnet API and deletes his local data.
      */
     public void unregister() {
-        blindnetClient.unregister();
-
-        if (!keyStorage.deleteSigningKey()) {
-            String msg = "Unable to delete local signing key.";
-            LOGGER.log(Level.SEVERE, msg);
-            throw new KeyStorageException(msg);
-        }
-        if (!keyStorage.deleteEncryptionKey()) {
-            String msg = "Unable to delete local encryption key.";
-            LOGGER.log(Level.SEVERE, msg);
-            throw new KeyStorageException(msg);
-        }
-        if (!keyStorage.deleteRecipientSigningPublicKeys()) {
-            String msg = "Unable to delete all public signing keys of recipients.";
-            LOGGER.log(Level.SEVERE, msg);
-            throw new KeyStorageException(msg);
-        }
+        apiClient.unregister();
+        keyStorage.deleteKeyFolder();
     }
 
 }

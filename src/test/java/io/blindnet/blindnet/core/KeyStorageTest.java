@@ -1,6 +1,5 @@
 package io.blindnet.blindnet.core;
 
-import io.blindnet.blindnet.exception.KeyStorageException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -16,17 +15,13 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class KeyStorageTest extends AbstractTest {
 
-    private static final String invalidFilePath = "test/fp.pem";
-
     private KeyStorage keyStorage;
     private KeyPair rsaKeyPair;
     private KeyPair ed25519keyPair;
 
     @Before
     public void setup() {
-        KeyStorageConfig.INSTANCE.setup(encryptionKeyFilePath,
-                signingKeyFilePath,
-                recipientSigningPublicKeyFolderPath);
+        KeyStorageConfig.INSTANCE.setup(keyFolderPath);
 
         keyStorage = KeyStorage.getInstance();
         KeyFactory keyFactory = new KeyFactory();
@@ -38,7 +33,8 @@ public class KeyStorageTest extends AbstractTest {
     @DisplayName("Test storing of private key used for encryption.")
     public void testStoreEncryptionKey() {
         keyStorage.storeEncryptionKey(rsaKeyPair.getPrivate());
-        File encryptionKeyFile = new File(KeyStorageConfig.INSTANCE.getEncryptionPrivateKeyPath());
+        File encryptionKeyFile = new File(
+                KeyStorageConfig.INSTANCE.getKeyFolderPath() + File.pathSeparator + ENCRYPTION_PRIVATE_KEY_FILENAME);
 
         assertNotNull(encryptionKeyFile);
         assertTrue(encryptionKeyFile.isFile());
@@ -57,19 +53,11 @@ public class KeyStorageTest extends AbstractTest {
     }
 
     @Test
-    @DisplayName("Test deletion of private key used for encryption.")
-    public void testDeleteEncryptionKey() {
-        keyStorage.storeEncryptionKey(rsaKeyPair.getPrivate());
-        boolean deleted = keyStorage.deleteEncryptionKey();
-
-        assertTrue(deleted);
-    }
-
-    @Test
     @DisplayName("Test storing of private key used for signing.")
     public void testStoreSigningKey() {
         keyStorage.storeSigningKey(ed25519keyPair.getPrivate());
-        File signingKeyFile = new File(KeyStorageConfig.INSTANCE.getSigningPrivateKeyPath());
+        File signingKeyFile = new File(
+                KeyStorageConfig.INSTANCE.getKeyFolderPath() + File.pathSeparator + SIGNING_PRIVATE_KEY_FILENAME);
 
         assertNotNull(signingKeyFile);
         assertTrue(signingKeyFile.isFile());
@@ -85,23 +73,6 @@ public class KeyStorageTest extends AbstractTest {
         assertEquals(privateKey.getAlgorithm(), Ed25519_ALGORITHM);
         assertEquals(Base64.getUrlEncoder().encodeToString(privateKey.getEncoded()),
                 Base64.getUrlEncoder().encodeToString(ed25519keyPair.getPrivate().getEncoded()));
-
-
-        KeyStorageConfig.INSTANCE.setup(encryptionKeyFilePath,
-                "invalidkeypath",
-                recipientSigningPublicKeyFolderPath);
-        KeyStorageException keyStorageException = assertThrows(KeyStorageException.class,
-                () -> keyStorage.readSigningPrivateKey());
-        assertTrue(keyStorageException.getMessage().contains("Invalid file path while reading a private key."));
-    }
-
-    @Test
-    @DisplayName("Test deletion of private key used for signing.")
-    public void testDeleteSigningKey() {
-        keyStorage.storeSigningKey(ed25519keyPair.getPrivate());
-        boolean deleted = keyStorage.deleteSigningKey();
-
-        assertTrue(deleted);
     }
 
     @Test
@@ -110,25 +81,10 @@ public class KeyStorageTest extends AbstractTest {
         String recipientId = UUID.randomUUID().toString();
         keyStorage.storeRecipientSigningPublicKey(ed25519keyPair.getPublic(), recipientId);
         File recipientSigningPublicKeyFile = new File(
-                KeyStorageConfig.INSTANCE.getRecipientSigningPublicKeyFolderPath() + recipientId + ".key");
+                KeyStorageConfig.INSTANCE.getKeyFolderPath() + recipientId + ".key");
 
         assertNotNull(recipientSigningPublicKeyFile);
         assertTrue(recipientSigningPublicKeyFile.isFile());
-    }
-
-    @Test
-    @DisplayName("Test configuring key storage with invalid filepath values.")
-    public void testInvalidFilepathValuesOfKeyStorageConfiguration() {
-        KeyStorageConfig.INSTANCE.setup(invalidFilePath, signingKeyFilePath, "random");
-
-        KeyStorageException invalidEncryptionPKeyFilepath = assertThrows(KeyStorageException.class,
-                () -> keyStorage.storeEncryptionKey(rsaKeyPair.getPrivate()));
-        assertTrue(invalidEncryptionPKeyFilepath.getMessage().contains("IO Error writing a private key to a file."));
-
-        KeyStorageConfig.INSTANCE.setup(encryptionKeyFilePath, invalidFilePath, "random");
-        KeyStorageException invalidSigningPKeyFilepath = assertThrows(KeyStorageException.class,
-                () -> keyStorage.storeSigningKey(rsaKeyPair.getPrivate()));
-        assertTrue(invalidSigningPKeyFilepath.getMessage().contains("IO Error writing a private key to a file."));
     }
 
 }

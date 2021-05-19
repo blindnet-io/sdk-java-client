@@ -22,22 +22,14 @@ import java.security.*;
 import java.security.interfaces.RSAPrivateCrtKey;
 import java.security.spec.*;
 import java.util.Base64;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static io.blindnet.blindnet.core.EncryptionConstants.*;
 import static java.util.Objects.requireNonNull;
 
 /**
  * Provides API for operations with asymmetric key pairs and symmetric keys.
- *
- * @author stefanveselinovic
- * @since 0.0.1
  */
-// todo remove public
-public class KeyFactory {
-
-    private static final Logger LOGGER = Logger.getLogger(KeyFactory.class.getName());
+class KeyFactory {
 
     /**
      * Generates secure random byte array.
@@ -56,9 +48,7 @@ public class KeyFactory {
             SecureRandom.getInstance(algorithm, provider).nextBytes(iv);
             return iv;
         } catch (GeneralSecurityException exception) {
-            String msg = "Error while generating secure random. " + exception.getMessage();
-            LOGGER.log(Level.SEVERE, msg);
-            throw new KeyGenerationException(msg, exception);
+            throw new KeyGenerationException("Error while generating secure random.");
         }
     }
 
@@ -113,9 +103,7 @@ public class KeyFactory {
             KeySpec spec = new PBEKeySpec(password, salt, AES_KEY_ITERATION_COUNT, AES_KEY_SIZE);
             return new SecretKeySpec(factory.generateSecret(spec).getEncoded(), AES_ALGORITHM);
         } catch (GeneralSecurityException exception) {
-            String msg = "Error while generating AES key from password. " + exception.getMessage();
-            LOGGER.log(Level.SEVERE, msg);
-            throw new KeyGenerationException(msg, exception);
+            throw new KeyGenerationException("Error while generating AES key from password.");
         }
     }
 
@@ -136,9 +124,7 @@ public class KeyFactory {
             return keyFactory.generatePublic(publicKeySpec);
 
         } catch (GeneralSecurityException exception) {
-            String msg = "Error during extraction of public key from a private key. " + exception.getMessage();
-            LOGGER.log(Level.SEVERE, msg);
-            throw new KeyGenerationException(msg, exception);
+            throw new KeyGenerationException("Error during extraction of public key from a private key.");
         }
     }
 
@@ -162,9 +148,7 @@ public class KeyFactory {
                 return keyFactory.generatePublic(new RSAPublicKeySpec(keyParameter.getModulus(), keyParameter.getExponent()));
             }
         } catch (GeneralSecurityException | IOException exception) {
-            String msg = "Error while converting public key. " + exception.getMessage();
-            LOGGER.log(Level.SEVERE, msg);
-            throw new KeyConstructionException(msg, exception);
+            throw new KeyConstructionException("Error while converting public key.");
         }
     }
 
@@ -183,9 +167,7 @@ public class KeyFactory {
             java.security.KeyFactory kf = initialiseKeyFactory(Ed25519_ALGORITHM);
             return kf.generatePrivate(pkcs8KeySpec);
         } catch (GeneralSecurityException | IOException exception) {
-            String msg = "Error while converting private key. " + exception.getMessage();
-            LOGGER.log(Level.SEVERE, msg);
-            throw new KeyConstructionException(msg, exception);
+            throw new KeyConstructionException("Error while converting private key.");
         }
     }
 
@@ -210,9 +192,7 @@ public class KeyFactory {
             java.security.KeyFactory kf = initialiseKeyFactory(RSA_ALGORITHM);
             return kf.generatePrivate(rsaPrivateCrtKeySpec);
         } catch (GeneralSecurityException exception) {
-            String msg = "Error while converting rsa private key. " + exception.getMessage();
-            LOGGER.log(Level.SEVERE, msg);
-            throw new KeyConstructionException(msg, exception);
+            throw new KeyConstructionException("Error while converting rsa private key.");
         }
     }
 
@@ -227,13 +207,9 @@ public class KeyFactory {
         try {
             return KeyPairGenerator.getInstance(algorithm, provider);
         } catch (NoSuchAlgorithmException exception) {
-            String msg = "Invalid algorithm. " + exception.getMessage();
-            LOGGER.log(Level.SEVERE, msg);
-            throw new KeyGenerationException(msg, exception);
+            throw new KeyGenerationException("Invalid algorithm.");
         } catch (NoSuchProviderException exception) {
-            String msg = "Invalid provider. " + exception.getMessage();
-            LOGGER.log(Level.SEVERE, msg);
-            throw new KeyGenerationException(msg, exception);
+            throw new KeyGenerationException("Invalid provider.");
         }
     }
 
@@ -247,9 +223,7 @@ public class KeyFactory {
         try {
             return KeyGenerator.getInstance(algorithm);
         } catch (NoSuchAlgorithmException exception) {
-            String msg = "Invalid algorithm. " + exception.getMessage();
-            LOGGER.log(Level.SEVERE, msg);
-            throw new KeyGenerationException(msg, exception);
+            throw new KeyGenerationException("Invalid algorithm.");
         }
     }
 
@@ -263,9 +237,7 @@ public class KeyFactory {
         try {
             return java.security.KeyFactory.getInstance(algorithm, BC_PROVIDER);
         } catch (GeneralSecurityException exception) {
-            String msg = "Error initialsing key factory. " + exception.getMessage();
-            LOGGER.log(Level.SEVERE, msg);
-            throw new KeyConstructionException(msg, exception);
+            throw new KeyConstructionException("Error initialising key factory.");
         }
     }
 

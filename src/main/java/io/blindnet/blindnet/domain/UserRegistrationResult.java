@@ -2,9 +2,6 @@ package io.blindnet.blindnet.domain;
 
 /**
  * Returns result of a registration of a user process.
- *
- * @author stefanveselinovic
- * @since 0.0.1
  */
 public final class UserRegistrationResult {
 

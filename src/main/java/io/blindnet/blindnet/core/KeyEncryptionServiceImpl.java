@@ -1,6 +1,6 @@
 package io.blindnet.blindnet.core;
 
-import io.blindnet.blindnet.domain.PrivateKeyPair;
+import io.blindnet.blindnet.domain.PrivateKeys;
 import io.blindnet.blindnet.domain.RsaJwk;
 import org.json.JSONObject;
 
@@ -12,26 +12,23 @@ import static io.blindnet.blindnet.core.EncryptionConstants.*;
 
 /**
  * Default implementation of key encryption service.
- *
- * @author stefanveselinovic
- * @since 0.0.1
  */
 class KeyEncryptionServiceImpl implements KeyEncryptionService {
 
     private final KeyStorage keyStorage;
     private final KeyFactory keyFactory;
     private final EncryptionService encryptionService;
-    private final BlindnetClient blindnetClient;
+    private final ApiClient apiClient;
 
     public KeyEncryptionServiceImpl(KeyStorage keyStorage,
                                     KeyFactory keyFactory,
                                     EncryptionService encryptionService,
-                                    BlindnetClient blindnetClient) {
+                                    ApiClient apiClient) {
 
         this.keyStorage = keyStorage;
         this.keyFactory = keyFactory;
         this.encryptionService = encryptionService;
-        this.blindnetClient = blindnetClient;
+        this.apiClient = apiClient;
     }
 
     /**
@@ -55,7 +52,7 @@ class KeyEncryptionServiceImpl implements KeyEncryptionService {
         byte[] encryptedSPK = encryptionService.encrypt(secretKey, signingPrivateKey.getEncoded());
 
         Base64.Encoder encoder = Base64.getEncoder();
-        blindnetClient.sendPrivateKeys(encoder.encodeToString(encryptedEPK),
+        apiClient.sendPrivateKeys(encoder.encodeToString(encryptedEPK),
                 encoder.encodeToString(encryptedSPK),
                 encoder.encodeToString(salt));
     }
@@ -67,12 +64,12 @@ class KeyEncryptionServiceImpl implements KeyEncryptionService {
      */
     @Override
     public void decrypt(String password) {
-        PrivateKeyPair privateKeyPair = blindnetClient.fetchPrivateKeys();
+        PrivateKeys privateKeys = apiClient.fetchPrivateKeys();
 
         Base64.Decoder decoder = Base64.getDecoder();
-        byte[] salt = decoder.decode(privateKeyPair.getKeyDerivationSalt());
-        byte[] encryptedEPK = decoder.decode(privateKeyPair.getEncryptionKey());
-        byte[] encryptedSPK = decoder.decode(privateKeyPair.getEncryptionKey());
+        byte[] salt = decoder.decode(privateKeys.getKeyDerivationSalt());
+        byte[] encryptedEPK = decoder.decode(privateKeys.getEncryptionKey());
+        byte[] encryptedSPK = decoder.decode(privateKeys.getEncryptionKey());
 
         SecretKey secretKey = keyFactory.extractAesKeyFromPassword(password.toCharArray(),
                 salt,

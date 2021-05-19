@@ -10,9 +10,6 @@ import java.security.SignatureException;
 
 /**
  * Provides API for user related operations.
- *
- * @author stefanveselinovic
- * @since 0.0.1
  */
 interface UserService {
 

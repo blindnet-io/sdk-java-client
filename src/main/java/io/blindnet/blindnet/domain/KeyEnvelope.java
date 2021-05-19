@@ -4,9 +4,6 @@ import java.io.Serializable;
 
 /**
  * A wrapper object for key envelope.
- *
- * @author stefanveselinovic
- * @since 0.0.1
  */
 public final class KeyEnvelope implements Serializable {
 

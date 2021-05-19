@@ -4,9 +4,6 @@ import java.io.InputStream;
 
 /**
  * A wrapper object of the message represented as input stream and message data.
- *
- * @author stefanveselinovic
- * @since 0.0.1
  */
 public final class MessageStreamWrapper {
 

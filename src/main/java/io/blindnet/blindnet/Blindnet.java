@@ -9,7 +9,7 @@ import java.io.InputStream;
 /**
  * Provides api for core operations in blindnet sdk.
  */
-public interface BlindnetSdkApi {
+public interface Blindnet {
 
     /**
      * Set jwt that will be used for authorsiation against blindnet api.
@@ -19,15 +19,11 @@ public interface BlindnetSdkApi {
     void setJwt(String jwt);
 
     /**
-     * Set key storage paths.
+     * Set url of a blindnet api.
      *
-     * @param encryptionPrivateKeyPath            a path to the file where encryption private key will be stored.
-     * @param signingPrivateKeyPath               a path to the file where signing private key will be stored.
-     * @param recipientSigningPublicKeyFolderPath a path to the folder where recipient signing keys will be stored.
+     * @param url a api url.
      */
-    void setupKeyStorage(String encryptionPrivateKeyPath,
-                         String signingPrivateKeyPath,
-                         String recipientSigningPublicKeyFolderPath);
+    void setApiUrl(String url);
 
     /**
      * Encrypts private keys and sends them to blindnet api.

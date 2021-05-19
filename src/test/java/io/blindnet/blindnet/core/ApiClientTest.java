@@ -19,9 +19,9 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 
-public class BlindnetClientTest extends AbstractTest {
+public class ApiClientTest extends AbstractTest {
 
-    private BlindnetClient blindnetClient;
+    private ApiClient apiClient;
     private KeyFactory keyFactory;
     private EncryptionService encryptionService;
     private KeyEnvelopeService keyEnvelopeService;
@@ -38,7 +38,7 @@ public class BlindnetClientTest extends AbstractTest {
         keyEnvelopeService = new KeyEnvelopeService();
         JwtConfig.INSTANCE.setup(TEST_JWT);
 
-        blindnetClient = new BlindnetClient(KeyStorage.getInstance(),
+        apiClient = new ApiClient(KeyStorage.getInstance(),
                 keyFactory,
                 encryptionService,
                 httpClient,
@@ -101,7 +101,7 @@ public class BlindnetClientTest extends AbstractTest {
                         .withBody(new byte[1])
                         .build());
 
-        assertDoesNotThrow(() -> blindnetClient.unregister());
+        assertDoesNotThrow(() -> apiClient.unregister());
     }
 
     @Test
@@ -124,7 +124,7 @@ public class BlindnetClientTest extends AbstractTest {
                 UUID.randomUUID().toString(),
                 UUID.randomUUID().toString());
 
-        assertDoesNotThrow(() -> blindnetClient.sendSecretKey(keyEnvelope, keyEnvelope));
+        assertDoesNotThrow(() -> apiClient.sendSecretKey(keyEnvelope, keyEnvelope));
     }
 
 }

@@ -12,22 +12,15 @@ import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
 import java.security.PublicKey;
 import java.util.Base64;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-import static io.blindnet.blindnet.core.BlindnetClientConstants.*;
+import static io.blindnet.blindnet.core.ApiClientConstants.*;
 import static io.blindnet.blindnet.core.EncryptionConstants.*;
 import static java.util.Objects.requireNonNull;
 
 /**
  * Provides API for communication with Blindnet API.
- *
- * @author stefanveselinovic
- * @since 0.0.1
  */
-class BlindnetClient {
-
-    private static final Logger LOGGER = Logger.getLogger(BlindnetClient.class.getName());
+class ApiClient {
 
     private final KeyStorage keyStorage;
     private final KeyFactory keyFactory;
@@ -36,11 +29,11 @@ class BlindnetClient {
     private final KeyEnvelopeService keyEnvelopeService;
     private final JwtConfig jwtConfig;
 
-    public BlindnetClient(KeyStorage keyStorage,
-                          KeyFactory keyFactory,
-                          EncryptionService encryptionService,
-                          HttpClient httpClient,
-                          KeyEnvelopeService keyEnvelopeService) {
+    public ApiClient(KeyStorage keyStorage,
+                     KeyFactory keyFactory,
+                     EncryptionService encryptionService,
+                     HttpClient httpClient,
+                     KeyEnvelopeService keyEnvelopeService) {
 
         this.keyStorage = keyStorage;
         this.keyFactory = keyFactory;
@@ -73,7 +66,7 @@ class BlindnetClient {
                 .put("signedPublicEncryptionKey", signedPublicEncryptionKey)
                 .put("signedJwt", signedJwt);
 
-        HttpResponse httpResponse = httpClient.post(BLINDNET_SERVER_URL + USER_ENDPOINT_PATH,
+        HttpResponse httpResponse = httpClient.post(ApiConfig.INSTANCE.getServerUrl() + USER_ENDPOINT_PATH,
                 requireNonNull(jwtConfig.getJwt(), "JWT not configured properly."),
                 requestBody.toString().getBytes(StandardCharsets.UTF_8));
 
@@ -84,7 +77,7 @@ class BlindnetClient {
      * Unregisters a user from Blindnet API.
      */
     public void unregister() {
-        httpClient.delete(BLINDNET_SERVER_URL + DELETE_USER_ENDPOINT_PATH,
+        httpClient.delete(ApiConfig.INSTANCE.getServerUrl() + DELETE_USER_ENDPOINT_PATH,
                 requireNonNull(jwtConfig.getJwt(), "JWT not configured properly."));
     }
 
@@ -101,7 +94,7 @@ class BlindnetClient {
         JSONArray requestBody = new JSONArray().put(new JSONObject(recipientKeyEnvelope))
                 .put(new JSONObject(senderKeyEnvelope));
 
-        httpClient.post(BLINDNET_SERVER_URL + SYMMETRIC_KEY_ENDPOINT_PATH,
+        httpClient.post(ApiConfig.INSTANCE.getServerUrl() + SYMMETRIC_KEY_ENDPOINT_PATH,
                 requireNonNull(jwtConfig.getJwt(), "JWT not configured properly."),
                 requestBody.toString().getBytes(StandardCharsets.UTF_8));
     }
@@ -117,7 +110,7 @@ class BlindnetClient {
         requireNonNull(senderId, "Sender ID cannot be null.");
         requireNonNull(recipientId, "Recipient ID cannot be null.");
 
-        HttpResponse httpResponse = httpClient.get(BLINDNET_SERVER_URL + SYMMETRIC_KEY_ENDPOINT_PATH,
+        HttpResponse httpResponse = httpClient.get(ApiConfig.INSTANCE.getServerUrl() + SYMMETRIC_KEY_ENDPOINT_PATH,
                 requireNonNull(jwtConfig.getJwt(), "JWT not configured properly."));
 
         JSONObject responseBody = new JSONObject(new String(httpResponse.getBody()));
@@ -137,9 +130,7 @@ class BlindnetClient {
 
         String keyEnvelopeSignature = responseBody.getString("envelopeSignature");
         if (!keyEnvelopeService.verify(keyEnvelope, keyEnvelopeSignature, signingKey)) {
-            String msg = "Unable to verify key envelope signature.";
-            LOGGER.log(Level.SEVERE, msg);
-            throw new SignatureException(msg);
+            throw new SignatureException("Unable to verify key envelope signature.");
         }
 
         byte[] keyData = (byte[]) new JSONObject(encryptionService.decrypt(keyStorage.readEncryptionPrivateKey(),
@@ -166,7 +157,7 @@ class BlindnetClient {
                 .put("encryptedPrivateSigningKey", encryptedPrivateSigningKey)
                 .put("keyDerivationSalt", salt);
 
-        httpClient.put(BLINDNET_SERVER_URL + PRIVATE_KEYS_ENDPOINT_PATH,
+        httpClient.put(ApiConfig.INSTANCE.getServerUrl() + PRIVATE_KEYS_ENDPOINT_PATH,
                 requireNonNull(jwtConfig.getJwt(), "JWT not configured properly."),
                 requestBody.toString().getBytes(StandardCharsets.UTF_8));
     }
@@ -176,12 +167,12 @@ class BlindnetClient {
      *
      * @return a private key pair object.
      */
-    public PrivateKeyPair fetchPrivateKeys() {
-        HttpResponse httpResponse = httpClient.get(BLINDNET_SERVER_URL + PRIVATE_KEYS_ENDPOINT_PATH,
+    public PrivateKeys fetchPrivateKeys() {
+        HttpResponse httpResponse = httpClient.get(ApiConfig.INSTANCE.getServerUrl() + PRIVATE_KEYS_ENDPOINT_PATH,
                 requireNonNull(jwtConfig.getJwt(), "JWT not configured properly."));
 
         JSONObject responseBody = new JSONObject(new String(httpResponse.getBody()));
-        return new PrivateKeyPair(responseBody.getString("encryptedPrivateEncryptionKey"),
+        return new PrivateKeys(responseBody.getString("encryptedPrivateEncryptionKey"),
                 responseBody.getString("encryptedPrivateSigningKey"),
                 responseBody.getString("keyDerivationSalt"));
     }
@@ -192,10 +183,10 @@ class BlindnetClient {
      * @param recipientId an id of a user whose keys are requested,
      * @return a public key pair object.
      */
-    public PublicKeyPair fetchPublicKeys(String recipientId) {
+    public PublicKeys fetchPublicKeys(String recipientId) {
         requireNonNull(recipientId, "Recipient ID cannot be null.");
 
-        HttpResponse httpResponse = httpClient.get(BLINDNET_SERVER_URL + FETCH_PUBLIC_KEYS_ENDPOINT_PATH + recipientId,
+        HttpResponse httpResponse = httpClient.get(ApiConfig.INSTANCE.getServerUrl() + FETCH_PUBLIC_KEYS_ENDPOINT_PATH + recipientId,
                 requireNonNull(jwtConfig.getJwt(), "JWT not configured properly."));
 
         JSONObject responseBody = new JSONObject(new String(httpResponse.getBody()));
@@ -207,7 +198,7 @@ class BlindnetClient {
                 Ed25519_ALGORITHM);
         String signedPublicEncryptionKey = responseBody.getString("signedPublicEncryptionKey");
 
-        return new PublicKeyPair(encryptionKey, signingKey, signedPublicEncryptionKey);
+        return new PublicKeys(encryptionKey, signingKey, signedPublicEncryptionKey);
     }
 
 }

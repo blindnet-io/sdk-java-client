@@ -1,6 +1,6 @@
 package io.blindnet.blindnet.core;
 
-import io.blindnet.blindnet.BlindnetSdkApi;
+import io.blindnet.blindnet.Blindnet;
 import io.blindnet.blindnet.domain.MessageArrayWrapper;
 import io.blindnet.blindnet.domain.MessageStreamWrapper;
 import io.blindnet.blindnet.domain.UserRegistrationResult;
@@ -9,11 +9,8 @@ import java.io.InputStream;
 
 /**
  * Provides implementation of Blindnet SDK Api.
- *
- * @author stefanveselinovic
- * @since 0.0.1
  */
-class BlindnetSdkApiImpl implements BlindnetSdkApi {
+class BlindnetImpl implements Blindnet {
 
     private final KeyStorageConfig keyStorageConfig = KeyStorageConfig.INSTANCE;
     private final JwtConfig jwtConfig = JwtConfig.INSTANCE;
@@ -21,14 +18,15 @@ class BlindnetSdkApiImpl implements BlindnetSdkApi {
     private final MessageService messageService;
     private final KeyEncryptionService keyEncryptionService;
 
-    public BlindnetSdkApiImpl() {
+    public BlindnetImpl(String keyFolderPath, String jwt) {
+        keyStorageConfig.setup(keyFolderPath);
         KeyStorage keyStorage = KeyStorage.getInstance();
         KeyFactory keyFactory = new KeyFactory();
         EncryptionService encryptionService = new EncryptionService(keyFactory);
         SigningService signingService = new SigningService();
         KeyEnvelopeService keyEnvelopeService = new KeyEnvelopeService();
 
-        BlindnetClient blindnetClient = new BlindnetClient(keyStorage,
+        ApiClient apiClient = new ApiClient(keyStorage,
                 keyFactory,
                 encryptionService,
                 HttpClient.getInstance(),
@@ -38,19 +36,19 @@ class BlindnetSdkApiImpl implements BlindnetSdkApi {
         userService = new UserServiceImpl(keyStorage,
                 keyFactory,
                 signingService,
-                blindnetClient);
+                apiClient);
 
         keyEncryptionService = new KeyEncryptionServiceImpl(keyStorage,
                 keyFactory,
                 encryptionService,
-                blindnetClient);
+                apiClient);
 
         messageService =  new MessageServiceImpl(keyStorage,
                 keyFactory,
                 encryptionService,
                 signingService,
                 keyEnvelopeService,
-                blindnetClient);
+                apiClient);
     }
 
     /**
@@ -64,18 +62,13 @@ class BlindnetSdkApiImpl implements BlindnetSdkApi {
     }
 
     /**
-     * Set key storage paths.
+     * Set url of a blindnet api.
      *
-     * @param encryptionPrivateKeyPath            a path to the file where encryption private key will be stored.
-     * @param signingPrivateKeyPath               a path to the file where signing private key will be stored.
-     * @param recipientSigningPublicKeyFolderPath a path to the folder where recipient signing keys will be stored.
+     * @param url a api url.
      */
     @Override
-    public void setupKeyStorage(String encryptionPrivateKeyPath,
-                                String signingPrivateKeyPath,
-                                String recipientSigningPublicKeyFolderPath) {
-
-        keyStorageConfig.setup(encryptionPrivateKeyPath, signingPrivateKeyPath, recipientSigningPublicKeyFolderPath);
+    public void setApiUrl(String url) {
+        ApiConfig.INSTANCE.setup(url);
     }
 
     /**

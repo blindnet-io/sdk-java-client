@@ -2,9 +2,6 @@ package io.blindnet.blindnet.domain;
 
 /**
  * A wrapper object for the http response.
- *
- * @author stefanveselinovic
- * @since 0.0.1
  */
 public final class HttpResponse {
 

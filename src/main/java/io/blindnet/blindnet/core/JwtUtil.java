@@ -6,9 +6,6 @@ import java.util.Base64;
 
 /**
  * Provides API for JWT related operations.
- *
- * @author stefanveselinovic
- * @since 0.0.1
  */
 class JwtUtil {
 

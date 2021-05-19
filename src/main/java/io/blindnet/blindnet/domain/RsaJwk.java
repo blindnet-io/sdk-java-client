@@ -5,18 +5,11 @@ import io.blindnet.blindnet.exception.KeyConstructionException;
 import java.security.PrivateKey;
 import java.security.interfaces.RSAPrivateCrtKey;
 import java.util.Base64;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Represents RSA private key in jwk format.
- *
- * @author stefanveselinovic
- * @since 0.0.1
  */
 public final class RsaJwk {
-
-    private static final Logger LOGGER = Logger.getLogger(RsaJwk.class.getName());
 
     /**
      * A key pair type.
@@ -68,9 +61,7 @@ public final class RsaJwk {
 
     public RsaJwk(PrivateKey privateKey) {
         if (!(privateKey instanceof RSAPrivateCrtKey)) {
-            String msg = "Error while converting private key to jwk format.";
-            LOGGER.log(Level.SEVERE, msg);
-            throw new KeyConstructionException(msg);
+            throw new KeyConstructionException("Error while converting private key to jwk format.");
         }
         RSAPrivateCrtKey rsaPrivateCrtKey = (RSAPrivateCrtKey) privateKey;
         Base64.Encoder encoder = Base64.getUrlEncoder();

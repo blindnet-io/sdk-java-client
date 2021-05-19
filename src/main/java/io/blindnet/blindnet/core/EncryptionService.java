@@ -18,21 +18,14 @@ import java.nio.ByteBuffer;
 import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static io.blindnet.blindnet.core.EncryptionConstants.*;
 import static java.util.Objects.requireNonNull;
 
 /**
  * Provides API for encryption/decryption related operations.
- *
- * @author stefanveselinovic
- * @since 0.0.1
  */
 class EncryptionService {
-
-    private static final Logger LOGGER = Logger.getLogger(EncryptionService.class.getName());
 
     private final KeyFactory keyFactory;
 
@@ -152,9 +145,8 @@ class EncryptionService {
                 return pipedInputStream;
             }
         } catch (Exception exception) {
-            String msg = "Error during encryption. " + exception.getMessage();
-            LOGGER.log(Level.SEVERE, msg);
-            throw new EncryptionException(msg, exception);
+            String msg = "Error during encryption.";
+            throw new EncryptionException(msg);
         }
     }
 
@@ -202,9 +194,7 @@ class EncryptionService {
                 return new MessageStreamWrapper(metadata, pipedInputStream);
             }
         } catch (Exception exception) {
-            String msg = "Error during decryption. " + exception.getMessage();
-            LOGGER.log(Level.SEVERE, msg);
-            throw new EncryptionException(msg, exception);
+            throw new EncryptionException("Error during message decryption.");
         }
 
     }
@@ -233,9 +223,7 @@ class EncryptionService {
                     .array();
 
         } catch (GeneralSecurityException exception) {
-            String msg = "Error during encryption. " + exception.getMessage();
-            LOGGER.log(Level.SEVERE, msg);
-            throw new EncryptionException(msg, exception);
+            throw new EncryptionException("Error during encryption.");
         }
     }
 
@@ -264,9 +252,7 @@ class EncryptionService {
             return cipher.doFinal(encryptedData);
 
         } catch (GeneralSecurityException exception) {
-            String msg = "Error during decryption. " + exception.getMessage();
-            LOGGER.log(Level.SEVERE, msg);
-            throw new EncryptionException(msg, exception);
+            throw new EncryptionException("Error during decryption.");
         }
     }
 
@@ -286,9 +272,7 @@ class EncryptionService {
             c.init(Cipher.ENCRYPT_MODE, publicKey);
             return c.doFinal(data);
         } catch (GeneralSecurityException exception) {
-            String msg = "Error while wrapping secret key. " + exception.getMessage();
-            LOGGER.log(Level.SEVERE, msg);
-            throw new KeyEncryptionException(msg, exception);
+            throw new KeyEncryptionException("Error while wrapping secret key.");
         }
     }
 
@@ -308,9 +292,7 @@ class EncryptionService {
             c.init(Cipher.DECRYPT_MODE, privateKey);
             return c.doFinal(data);
         } catch (GeneralSecurityException exception) {
-            String msg = "Error while unwrapping secret key. " + exception.getMessage();
-            LOGGER.log(Level.SEVERE, msg);
-            throw new KeyEncryptionException(msg, exception);
+            throw new KeyEncryptionException("Error while unwrapping secret key.");
         }
     }
 

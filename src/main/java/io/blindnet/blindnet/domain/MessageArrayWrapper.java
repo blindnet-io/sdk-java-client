@@ -2,9 +2,6 @@ package io.blindnet.blindnet.domain;
 
 /**
  * A wrapper object of the message represented as byte array and message data.
- *
- * @author stefanveselinovic
- * @since 0.0.1
  */
 public final class MessageArrayWrapper {
 

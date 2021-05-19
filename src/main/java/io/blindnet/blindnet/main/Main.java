@@ -1,8 +1,7 @@
 package io.blindnet.blindnet.main;
 
-import io.blindnet.blindnet.BlindnetSdkApi;
-import io.blindnet.blindnet.core.BlindnetSdkApiProvider;
-import io.blindnet.blindnet.domain.MessageArrayWrapper;
+import io.blindnet.blindnet.Blindnet;
+import io.blindnet.blindnet.core.BlindnetProvider;
 import io.blindnet.blindnet.domain.MessageStreamWrapper;
 
 import java.io.ByteArrayInputStream;
@@ -10,18 +9,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
-import java.util.Arrays;
 
 public class Main {
 
     public static void main(String[] args) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException, IOException, InvalidKeySpecException {
         Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
 
-        BlindnetSdkApi api = BlindnetSdkApiProvider.getInstance();
-        api.setJwt("eyJhbGciOiJFZERTQSIsInR5cCI6Imp3dCJ9.eyJhcHAiOiJjNjFmMTliYS04MDBjLTRjNTItOWZiNS0zZWU3NmNvMTg5MjYiLCJ1aWQiOiJzdGVmYW4tdGVzdC0zIiwiZ2lkIjoiZDEiLCJuYmYiOjE2MjEzNzYyMDIsImV4cCI6MTYyMTgwODIwMiwiaWF0IjoxNjIxMzc2MjAyfQ.NPR14oyyDKt1b0yCMC6Fs1rss9UIZo8K4Zxe8JGMq76jqHh1dTFOSNgE1yGRh0HRX2FOamIUOnKoo3YpOct_Dg");
-        api.setupKeyStorage("/Users/stefanveselinovic/Desktop/enc.key",
-                "/Users/stefanveselinovic/Desktop/sig.key",
-                "/Users/stefanveselinovic/Desktop/publickeys");
+        Blindnet api = BlindnetProvider.getInstance("/Users/stefanveselinovic/Desktop/blindnetkeys",
+                "eyJhbGciOiJFZERTQSIsInR5cCI6Imp3dCJ9.eyJhcHAiOiJjNjFmMTliYS04MDBjLTRjNTItOWZiNS0zZWU3NmNvMTg5MjYiLCJ1aWQiOiJzdGVmYW4tdGVzdC0zIiwiZ2lkIjoiZDEiLCJuYmYiOjE2MjEzNzYyMDIsImV4cCI6MTYyMTgwODIwMiwiaWF0IjoxNjIxMzc2MjAyfQ.NPR14oyyDKt1b0yCMC6Fs1rss9UIZo8K4Zxe8JGMq76jqHh1dTFOSNgE1yGRh0HRX2FOamIUOnKoo3YpOct_Dg");
 
         // api.register();
         // api.unregister();

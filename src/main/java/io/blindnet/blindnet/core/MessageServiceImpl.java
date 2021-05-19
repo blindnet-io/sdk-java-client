@@ -3,7 +3,7 @@ package io.blindnet.blindnet.core;
 import io.blindnet.blindnet.domain.KeyEnvelope;
 import io.blindnet.blindnet.domain.MessageArrayWrapper;
 import io.blindnet.blindnet.domain.MessageStreamWrapper;
-import io.blindnet.blindnet.domain.PublicKeyPair;
+import io.blindnet.blindnet.domain.PublicKeys;
 import io.blindnet.blindnet.exception.BlindnetApiException;
 import io.blindnet.blindnet.exception.KeyConstructionException;
 import io.blindnet.blindnet.exception.SignatureException;
@@ -16,28 +16,21 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static io.blindnet.blindnet.core.EncryptionConstants.*;
 import static java.util.Objects.requireNonNull;
 
 /**
  * Default implementation of message service.
- *
- * @author stefanveselinovic
- * @since 0.0.1
  */
 public class MessageServiceImpl implements MessageService {
-
-    private static final Logger LOGGER = Logger.getLogger(HttpClient.class.getName());
 
     private final KeyStorage keyStorage;
     private final KeyFactory keyFactory;
     private final EncryptionService encryptionService;
     private final SigningService signingService;
     private final KeyEnvelopeService keyEnvelopeService;
-    private final BlindnetClient blindnetClient;
+    private final ApiClient apiClient;
     private final JwtConfig jwtConfig;
 
     public MessageServiceImpl(KeyStorage keyStorage,
@@ -45,14 +38,14 @@ public class MessageServiceImpl implements MessageService {
                               EncryptionService encryptionService,
                               SigningService signingService,
                               KeyEnvelopeService keyEnvelopeService,
-                              BlindnetClient blindnetClient) {
+                              ApiClient apiClient) {
 
         this.keyStorage = keyStorage;
         this.keyFactory = keyFactory;
         this.encryptionService = encryptionService;
         this.signingService = signingService;
         this.keyEnvelopeService = keyEnvelopeService;
-        this.blindnetClient = blindnetClient;
+        this.apiClient = apiClient;
         this.jwtConfig = JwtConfig.INSTANCE;
     }
 
@@ -90,7 +83,7 @@ public class MessageServiceImpl implements MessageService {
      */
     @Override
     public MessageArrayWrapper decrypt(String senderId, String recipientId, byte[] data) {
-        return encryptionService.decryptMessage(blindnetClient.fetchSecretKey(senderId, recipientId), data);
+        return encryptionService.decryptMessage(apiClient.fetchSecretKey(senderId, recipientId), data);
     }
 
     /**
@@ -103,7 +96,7 @@ public class MessageServiceImpl implements MessageService {
      */
     @Override
     public MessageStreamWrapper decrypt(String senderId, String recipientId, InputStream inputData) {
-        return encryptionService.decryptMessage(blindnetClient.fetchSecretKey(senderId, recipientId), inputData);
+        return encryptionService.decryptMessage(apiClient.fetchSecretKey(senderId, recipientId), inputData);
     }
 
     /**
@@ -115,32 +108,28 @@ public class MessageServiceImpl implements MessageService {
     private SecretKey getEncryptionKey(String recipientId) {
         String senderId = JwtUtil.extractUserId(requireNonNull(jwtConfig.getJwt(), "JWT not configured properly."));
         try {
-            return blindnetClient.fetchSecretKey(senderId, recipientId);
+            return apiClient.fetchSecretKey(senderId, recipientId);
         } catch (BlindnetApiException exception) {
-            LOGGER.log(Level.INFO, String.format("Unable to fetch secret key from Blindnet API. %s", exception.getMessage()));
+            // if no fetch key is found generate and upload new one
         }
 
         // if secret key is not retrieved from blindnet api
-        PublicKeyPair recipientPublicKeyPair = blindnetClient.fetchPublicKeys(recipientId);
+        PublicKeys recipientPublicKeys = apiClient.fetchPublicKeys(recipientId);
 
         SubjectPublicKeyInfo publicKeyInfo = new SubjectPublicKeyInfo(new AlgorithmIdentifier(PKCSObjectIdentifiers.rsaEncryption),
-                recipientPublicKeyPair.getEncryptionKey().getEncoded());
+                recipientPublicKeys.getEncryptionKey().getEncoded());
         try {
             if (!signingService.verify(publicKeyInfo.getEncoded(),
-                    recipientPublicKeyPair.getSignedPublicEncryptionKey(),
-                    recipientPublicKeyPair.getSigningKey(),
+                    recipientPublicKeys.getSignedPublicEncryptionKey(),
+                    recipientPublicKeys.getSigningKey(),
                     Ed25519_ALGORITHM)) {
 
-                String msg = "Unable to verify public encryption key signature.";
-                LOGGER.log(Level.SEVERE, msg);
-                throw new SignatureException(msg);
+                throw new SignatureException("Unable to verify public encryption key signature.");
             }
         } catch (IOException exception) {
-            String msg = "Error while converting public key to SPKI format. " + exception.getMessage();
-            LOGGER.log(Level.SEVERE, msg);
-            throw new KeyConstructionException(msg, exception);
+            throw new KeyConstructionException("Error while converting public key to SPKI format.");
         }
-        keyStorage.storeRecipientSigningPublicKey(recipientPublicKeyPair.getSigningKey(), recipientId);
+        keyStorage.storeRecipientSigningPublicKey(recipientPublicKeys.getSigningKey(), recipientId);
 
         SecretKey generatedSecretKey = keyFactory.generateSecretKey(AES_ALGORITHM, AES_KEY_SIZE);
 
@@ -156,14 +145,14 @@ public class MessageServiceImpl implements MessageService {
                 senderId);
 
         KeyEnvelope recipientKeyEnvelope = keyEnvelopeService.create(generatedSecretKey,
-                recipientPublicKeyPair.getEncryptionKey(),
+                recipientPublicKeys.getEncryptionKey(),
                 senderSigningPrivateKey,
                 recipientId,
                 recipientId,
                 senderId
         );
 
-        blindnetClient.sendSecretKey(sendersKeyEnvelope, recipientKeyEnvelope);
+        apiClient.sendSecretKey(sendersKeyEnvelope, recipientKeyEnvelope);
 
         return generatedSecretKey;
     }

@@ -2,25 +2,19 @@ package io.blindnet.blindnet.core;
 
 import io.blindnet.blindnet.domain.HttpResponse;
 import io.blindnet.blindnet.exception.BlindnetApiException;
+import io.blindnet.blindnet.exception.InvalidJwtException;
 
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static java.util.Objects.requireNonNull;
 
 
 /**
  * Provides API to for standard HTTP methods.
- *
- * @author stefanveselinovic
- * @since 0.0.1
  */
 class HttpClient {
-
-    private static final Logger LOGGER = Logger.getLogger(HttpClient.class.getName());
 
     private static final String GET_METHOD = "GET";
     private static final String POST_METHOD = "POST";
@@ -150,9 +144,7 @@ class HttpClient {
                 os.write(requestBody, 0, requestBody.length);
             }
         } catch (IOException exception) {
-            String msg = "Error sending request to Blindnet API. " + exception.getMessage();
-            LOGGER.log(Level.SEVERE, msg);
-            throw new BlindnetApiException(msg, exception);
+            throw new BlindnetApiException("Error sending request to Blindnet API.");
         }
     }
 
@@ -173,7 +165,10 @@ class HttpClient {
                         con.getResponseMessage(),
                         url,
                         con.getErrorStream() != null ? new String(parseResponse(con.getErrorStream())) : "");
-                LOGGER.log(Level.SEVERE, msg);
+                if (responseCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
+                    throw new InvalidJwtException(msg);
+                }
+
                 throw new BlindnetApiException(msg);
             }
 
@@ -186,9 +181,7 @@ class HttpClient {
                     .withBody(response)
                     .build();
         } catch (IOException exception) {
-            String msg = "Error parsing response from Blindnet API. " + exception.getMessage();
-            LOGGER.log(Level.SEVERE, msg);
-            throw new BlindnetApiException(msg, exception);
+            throw new BlindnetApiException("Error parsing response from Blindnet API.");
         }
     }
 
@@ -227,9 +220,7 @@ class HttpClient {
 
             return con;
         } catch (IOException exception) {
-            String msg = "Error while opening a connection to the Blindnet API. " + exception.getMessage();
-            LOGGER.log(Level.SEVERE, msg);
-            throw new BlindnetApiException(msg, exception);
+            throw new BlindnetApiException("Error while opening a connection to the Blindnet API.");
         }
     }
 

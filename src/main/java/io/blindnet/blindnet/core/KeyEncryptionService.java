@@ -2,9 +2,6 @@ package io.blindnet.blindnet.core;
 
 /**
  * Provides API for encryption and decryption of user private keys.
- *
- * @author stefanveselinovic
- * @since 0.0.1
  */
 interface KeyEncryptionService {
 

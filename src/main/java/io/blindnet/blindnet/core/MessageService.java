@@ -7,9 +7,6 @@ import java.io.InputStream;
 
 /**
  * Provides API for encryption and decryption of messages.
- *
- * @author stefanveselinovic
- * @since 0.0.1
  */
 interface MessageService {
 

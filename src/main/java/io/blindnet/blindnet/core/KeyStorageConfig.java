@@ -4,9 +4,6 @@ import static java.util.Objects.requireNonNull;
 
 /**
  * Provides Singleton instance for the key storage configuration.
- *
- * @author stefanveselinovic
- * @since 0.0.1
  */
 enum KeyStorageConfig {
 
@@ -16,19 +13,9 @@ enum KeyStorageConfig {
     INSTANCE;
 
     /**
-     * Represents a file path where a private key used for encryption will be stored.
+     * Represents a folder path where a keys will be stored.
      */
-    private String encryptionPrivateKeyPath;
-
-    /**
-     * Represents a file path where a private key used for signing will be stored.
-     */
-    private String signingPrivateKeyPath;
-
-    /**
-     * Represents a folder path where a public signing key of recipients witll be stored.
-     */
-    private String recipientSigningPublicKeyFolderPath;
+    private String keyFolderPath;
 
     /**
      * A constructor, which is private by default.
@@ -48,47 +35,22 @@ enum KeyStorageConfig {
     /**
      * Setup for Key Storage configuration.
      *
-     * @param encryptionPrivateKeyPath A file path where a private key used for encryption will be stored.
-     * @param signingPrivateKeyPath    A file path where a private key used for signing will be stored.
+     * @param keyFolderPath a path to the folder where keys will be stored.
      */
-    public void setup(String encryptionPrivateKeyPath,
-                      String signingPrivateKeyPath,
-                      String recipientSigningPublicKeyFolderPath) {
+    public void setup(String keyFolderPath) {
 
-        requireNonNull(encryptionPrivateKeyPath, "Encryption key filepath cannot be null.");
-        requireNonNull(signingPrivateKeyPath, "Signing key filepath cannot be null.");
-        requireNonNull(recipientSigningPublicKeyFolderPath, "Recipient signing key folder path cannot be null.");
+        requireNonNull(keyFolderPath, "Key folder path cannot be null.");
 
-        this.encryptionPrivateKeyPath = encryptionPrivateKeyPath;
-        this.signingPrivateKeyPath = signingPrivateKeyPath;
-        this.recipientSigningPublicKeyFolderPath = recipientSigningPublicKeyFolderPath;
+        this.keyFolderPath = keyFolderPath;
     }
 
     /**
-     * Returns a file path where a private key used for encryption will be stored.
-     *
-     * @return a file path.
-     */
-    public String getEncryptionPrivateKeyPath() {
-        return encryptionPrivateKeyPath;
-    }
-
-    /**
-     * Returns a file path where a private key used for signing will be stored.
-     *
-     * @return a file path.
-     */
-    public String getSigningPrivateKeyPath() {
-        return signingPrivateKeyPath;
-    }
-
-    /**
-     * Returns a folder path where public signing keys of recipients will be stored.
+     * Returns a folder path where keys are stored.
      *
      * @return a folder path.
      */
-    public String getRecipientSigningPublicKeyFolderPath() {
-        return recipientSigningPublicKeyFolderPath;
+    public String getKeyFolderPath() {
+        return keyFolderPath;
     }
 
 }
