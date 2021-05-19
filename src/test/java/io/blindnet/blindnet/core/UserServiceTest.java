@@ -1,6 +1,5 @@
 package io.blindnet.blindnet.core;
 
-import io.blindnet.blindnet.UserService;
 import io.blindnet.blindnet.domain.UserRegistrationResult;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,7 +27,7 @@ public class UserServiceTest extends AbstractTest {
     @Before
     public void setup() {
         // MockitoAnnotations.openMocks(this);
-        userService = UserServiceProvider.getInstance();
+        // userService = UserServiceProvider.getInstance();
     }
 
     @Test

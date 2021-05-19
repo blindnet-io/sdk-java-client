@@ -8,7 +8,7 @@ import static java.util.Objects.requireNonNull;
  * @author stefanveselinovic
  * @since 0.0.1
  */
-public enum KeyStorageConfig {
+enum KeyStorageConfig {
 
     /**
      * Key Storage Config Instance.
@@ -33,7 +33,8 @@ public enum KeyStorageConfig {
     /**
      * A constructor, which is private by default.
      */
-    KeyStorageConfig() { }
+    KeyStorageConfig() {
+    }
 
     /**
      * Returns Singleton Instance for Key Storage Config.
@@ -48,7 +49,7 @@ public enum KeyStorageConfig {
      * Setup for Key Storage configuration.
      *
      * @param encryptionPrivateKeyPath A file path where a private key used for encryption will be stored.
-     * @param signingPrivateKeyPath A file path where a private key used for signing will be stored.
+     * @param signingPrivateKeyPath    A file path where a private key used for signing will be stored.
      */
     public void setup(String encryptionPrivateKeyPath,
                       String signingPrivateKeyPath,

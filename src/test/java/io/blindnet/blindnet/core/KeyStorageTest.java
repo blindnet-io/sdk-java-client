@@ -11,7 +11,7 @@ import java.security.PrivateKey;
 import java.util.Base64;
 import java.util.UUID;
 
-import static io.blindnet.blindnet.domain.EncryptionConstants.*;
+import static io.blindnet.blindnet.core.EncryptionConstants.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class KeyStorageTest extends AbstractTest {

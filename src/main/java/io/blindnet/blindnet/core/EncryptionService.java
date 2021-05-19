@@ -16,13 +16,12 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.nio.ByteBuffer;
 import java.security.GeneralSecurityException;
-import java.security.Key;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static io.blindnet.blindnet.domain.EncryptionConstants.*;
+import static io.blindnet.blindnet.core.EncryptionConstants.*;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -272,24 +271,20 @@ class EncryptionService {
     }
 
     /**
-     * Wraps secret key using public key.
+     * Encrypts data using RSA OAEP algorithm.
      *
-     * @param secretKey a secret key to be wrapped.
-     * @param publicKey a public key used to wrap secret key.
-     * @return a wrapped secret key as byte array.
+     * @param publicKey a public key used to encrypt data.
+     * @param data      a data to be encrypted.
+     * @return a encrypted data.
      */
-    public byte[] wrap(SecretKey secretKey, PublicKey publicKey) {
-        requireNonNull(secretKey, "Secret key cannot be null.");
+    public byte[] encrypt(PublicKey publicKey, byte[] data) {
         requireNonNull(publicKey, "Public key cannot be null.");
+        requireNonNull(data, "Data cannot be null.");
 
-        // todo check padding, check oaep parameters specification
         try {
             Cipher c = Cipher.getInstance("RSA/NONE/OAEPPadding", BC_PROVIDER);
-            c.init(Cipher.WRAP_MODE, publicKey);
-//        c.init(Cipher.WRAP_MODE, publicKey,
-//                new OAEPParameterSpec("SHA-384", "MGF1", new MGF1ParameterSpec("SHA-384"),
-//                        PSource.PSpecified.DEFAULT));
-            return c.wrap(secretKey);
+            c.init(Cipher.ENCRYPT_MODE, publicKey);
+            return c.doFinal(data);
         } catch (GeneralSecurityException exception) {
             String msg = "Error while wrapping secret key. " + exception.getMessage();
             LOGGER.log(Level.SEVERE, msg);
@@ -298,21 +293,20 @@ class EncryptionService {
     }
 
     /**
-     * Unwraps secret key using private key.
+     * Decrypts data using RSA OAEP algorithm.
      *
-     * @param wrappedKey a wrapped secret key.
-     * @param privateKey a private key used for unwrapping.
-     * @return a key object.
+     * @param privateKey a private key used for decryption.
+     * @param data       a data to be decrypted.
+     * @return a decrypted data.
      */
-    public Key unwrap(byte[] wrappedKey, PrivateKey privateKey) {
-        requireNonNull(wrappedKey, "Wrapped key cannot be null.");
+    public byte[] decrypt(PrivateKey privateKey, byte[] data) {
         requireNonNull(privateKey, "Private key cannot be null.");
+        requireNonNull(data, "Data key cannot be null.");
 
-        // todo check algs
         try {
             Cipher c = Cipher.getInstance("RSA/NONE/OAEPPadding", BC_PROVIDER);
-            c.init(Cipher.UNWRAP_MODE, privateKey);
-            return c.unwrap(wrappedKey, "AES", Cipher.SECRET_KEY);
+            c.init(Cipher.DECRYPT_MODE, privateKey);
+            return c.doFinal(data);
         } catch (GeneralSecurityException exception) {
             String msg = "Error while unwrapping secret key. " + exception.getMessage();
             LOGGER.log(Level.SEVERE, msg);

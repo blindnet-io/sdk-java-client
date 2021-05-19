@@ -12,7 +12,7 @@ import java.util.Base64;
  */
 class JwtUtil {
 
-    private static final String USER_ID_FIELD = "user_id";
+    private static final String USER_ID_FIELD = "uid";
 
     private JwtUtil() {
     }

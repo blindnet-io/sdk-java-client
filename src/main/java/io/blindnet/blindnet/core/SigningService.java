@@ -1,9 +1,6 @@
 package io.blindnet.blindnet.core;
 
 import io.blindnet.blindnet.exception.SignatureException;
-import org.bouncycastle.crypto.Signer;
-import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
-import org.bouncycastle.crypto.signers.Ed25519Signer;
 import org.json.JSONObject;
 
 import java.security.GeneralSecurityException;
@@ -78,7 +75,7 @@ class SigningService {
      * @param signedObject     a signed object.
      * @param base64Signature  a base 64 encoded signature value.
      * @param publicKey        a public key used for verification.
-     * param signingAlgorithm an algorithm used for signing.
+     * @param signingAlgorithm an algorithm used for signing.
      * @return indication if signature is valid.
      */
     public boolean verify(Object signedObject,
@@ -86,10 +83,30 @@ class SigningService {
                           PublicKey publicKey,
                           String signingAlgorithm) {
 
+        return verify(new JSONObject(signedObject).toString().getBytes(),
+                base64Signature,
+                publicKey,
+                signingAlgorithm);
+    }
+
+    /**
+     * Verifies signature.
+     *
+     * @param signedData       a signed data.
+     * @param base64Signature  a base 64 encoded signature value.
+     * @param publicKey        a public key used for verification.
+     * @param signingAlgorithm an algorithm used for signing.
+     * @return indication if signature is valid.
+     */
+    public boolean verify(byte[] signedData,
+                          String base64Signature,
+                          PublicKey publicKey,
+                          String signingAlgorithm) {
+
         try {
             Signature signature = Signature.getInstance(signingAlgorithm);
             signature.initVerify(publicKey);
-            signature.update(new JSONObject(signedObject).toString().getBytes());
+            signature.update(signedData);
             return signature.verify(Base64.getDecoder().decode(base64Signature));
         } catch (GeneralSecurityException exception) {
             String msg = "Error during signature validation. " + exception.getMessage();

@@ -10,8 +10,8 @@ import javax.crypto.SecretKey;
 
 import java.io.*;
 
-import static io.blindnet.blindnet.domain.EncryptionConstants.AES_ALGORITHM;
-import static io.blindnet.blindnet.domain.EncryptionConstants.AES_KEY_SIZE;
+import static io.blindnet.blindnet.core.EncryptionConstants.AES_ALGORITHM;
+import static io.blindnet.blindnet.core.EncryptionConstants.AES_KEY_SIZE;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class EncryptionServiceTest extends AbstractTest {

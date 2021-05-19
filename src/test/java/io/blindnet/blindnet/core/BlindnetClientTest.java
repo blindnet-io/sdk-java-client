@@ -2,8 +2,6 @@ package io.blindnet.blindnet.core;
 
 import io.blindnet.blindnet.domain.HttpResponse;
 import io.blindnet.blindnet.domain.KeyEnvelope;
-import io.blindnet.blindnet.domain.UserRegistrationResult;
-import io.blindnet.blindnet.exception.BlindnetApiException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -13,11 +11,10 @@ import org.mockito.MockitoAnnotations;
 import javax.crypto.SecretKey;
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.util.UUID;
 
-import static io.blindnet.blindnet.domain.EncryptionConstants.*;
+import static io.blindnet.blindnet.core.EncryptionConstants.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;

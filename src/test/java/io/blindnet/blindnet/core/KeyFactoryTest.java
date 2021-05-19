@@ -12,7 +12,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.Base64;
 
-import static io.blindnet.blindnet.domain.EncryptionConstants.*;
+import static io.blindnet.blindnet.core.EncryptionConstants.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class KeyFactoryTest extends AbstractTest {

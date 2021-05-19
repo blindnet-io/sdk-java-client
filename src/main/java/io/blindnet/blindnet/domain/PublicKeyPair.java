@@ -4,6 +4,8 @@ import java.security.PublicKey;
 
 /**
  * A wrapper object for the encryption and signing public keys.
+ *
+ * @author stefanveselinovic
  * @since 0.0.1
  */
 public final class PublicKeyPair {

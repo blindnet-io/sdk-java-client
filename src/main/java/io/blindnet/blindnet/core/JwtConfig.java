@@ -8,7 +8,7 @@ import static java.util.Objects.requireNonNull;
  * @author stefanveselinovic
  * @since 0.0.1
  */
-public enum JwtConfig {
+enum JwtConfig {
 
     /**
      * Jwt Config Instance.

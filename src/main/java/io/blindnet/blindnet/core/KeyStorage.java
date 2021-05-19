@@ -1,13 +1,7 @@
 package io.blindnet.blindnet.core;
 
 import io.blindnet.blindnet.exception.KeyStorageException;
-import org.bouncycastle.asn1.ASN1BitString;
-import org.bouncycastle.asn1.ASN1Encodable;
-import org.bouncycastle.asn1.ASN1OctetString;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
-import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters;
-import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
-import org.bouncycastle.jcajce.provider.asymmetric.edec.BCEdDSAPrivateKey;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
@@ -35,7 +29,8 @@ class KeyStorage {
     /**
      * Private constructor as class implements Singleton pattern.
      */
-    private KeyStorage() {}
+    private KeyStorage() {
+    }
 
     /**
      * Inner class which holds Singleton instance.
@@ -116,7 +111,7 @@ class KeyStorage {
     /**
      * Stores a public key of a recipient.
      *
-     * @param publicKey a public key to be stored.
+     * @param publicKey   a public key to be stored.
      * @param recipientId an id of the recipient.
      */
     public void storeRecipientSigningPublicKey(PublicKey publicKey, String recipientId) {
@@ -139,7 +134,7 @@ class KeyStorage {
     /**
      * Writes private key to a file.
      *
-     * @param key a key to be stored.
+     * @param key      a key to be stored.
      * @param filepath a path of a file where the private key will be stored.
      */
     private void store(Key key, String filepath) {
@@ -202,6 +197,12 @@ class KeyStorage {
         }
     }
 
+    /**
+     * Deletes folder and it's content.
+     *
+     * @param folder a folder to be deleted.
+     * @return indication if deletion was successful.
+     */
     private boolean deleteFolder(File folder) {
         File[] files = folder.listFiles();
         if (files != null) {

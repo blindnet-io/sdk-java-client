@@ -13,7 +13,7 @@ public final class KeyEnvelope implements Serializable {
     /**
      * An id of the envelope.
      */
-    private final String envelopeId;
+    private final String envelopeID;
 
     /**
      * A version of the envelope.
@@ -23,42 +23,42 @@ public final class KeyEnvelope implements Serializable {
     /**
      * A key which is enveloped.
      */
-    private final String key;
+    private final String encryptedSymmetricKey;
 
     /**
      * An id of the owner.
      */
-    private final String ownerId;
+    private final String keyOwnerID;
 
     /**
      * An id of the recipient.
      */
-    private final String recipientId;
+    private final String recipientID;
 
     /**
      * An id of the sender.
      */
-    private final String senderId;
+    private final String senderID;
 
     /**
      * A timestamp of the envelope.
      */
-    private final long timestamp;
+    private final String timestamp;
 
     /**
      * A cryptographic signature of the envelop.
      */
-    private String keyEnvelopeSignature;
+    private String envelopeSignature;
 
     private KeyEnvelope(Builder builder) {
-        envelopeId = builder.envelopeId;
+        envelopeID = builder.envelopeID;
         envelopeVersion = builder.envelopeVersion;
-        key = builder.key;
-        ownerId = builder.ownerId;
-        senderId = builder.senderId;
-        recipientId = builder.recipientId;
+        encryptedSymmetricKey = builder.encryptedSymmetricKey;
+        keyOwnerID = builder.keyOwnerID;
+        senderID = builder.senderID;
+        recipientID = builder.recipientID;
         timestamp = builder.timestamp;
-        keyEnvelopeSignature = builder.keyEnvelopeSignature;
+        envelopeSignature = builder.keyEnvelopeSignature;
     }
 
     /**
@@ -66,17 +66,17 @@ public final class KeyEnvelope implements Serializable {
      */
     public static class Builder {
 
-        private final String envelopeId;
+        private final String envelopeID;
         private String envelopeVersion;
-        private String key;
-        private String ownerId;
-        private String recipientId;
-        private String senderId;
-        private long timestamp;
+        private String encryptedSymmetricKey;
+        private String keyOwnerID;
+        private String recipientID;
+        private String senderID;
+        private String timestamp;
         private String keyEnvelopeSignature;
 
-        public Builder(String envelopeId) {
-            this.envelopeId = envelopeId;
+        public Builder(String envelopeID) {
+            this.envelopeID = envelopeID;
         }
 
         public Builder withVersion(String envelopeVersion) {
@@ -84,23 +84,23 @@ public final class KeyEnvelope implements Serializable {
             return this;
         }
 
-        public Builder withKey(String key) {
-            this.key = key;
+        public Builder withEncryptedSymmetricKey(String encryptedSymmetricKey) {
+            this.encryptedSymmetricKey = encryptedSymmetricKey;
             return this;
         }
 
-        public Builder withOwnerId(String ownerId) {
-            this.ownerId = ownerId;
+        public Builder withKeyOwnerID(String keyOwnerID) {
+            this.keyOwnerID = keyOwnerID;
             return this;
         }
 
-        public Builder withRecipientId(String recipientId) {
-            this.recipientId = recipientId;
+        public Builder withRecipientID(String recipientID) {
+            this.recipientID = recipientID;
             return this;
         }
 
-        public Builder withSenderId(String senderId) {
-            this.senderId = senderId;
+        public Builder withSenderID(String senderID) {
+            this.senderID = senderID;
             return this;
         }
 
@@ -109,7 +109,7 @@ public final class KeyEnvelope implements Serializable {
             return this;
         }
 
-        public Builder timestamp(long timestamp) {
+        public Builder timestamp(String timestamp) {
             this.timestamp = timestamp;
             return this;
         }
@@ -119,40 +119,40 @@ public final class KeyEnvelope implements Serializable {
         }
     }
 
-    public void setKeyEnvelopeSignature(String signature) {
-        this.keyEnvelopeSignature = signature;
+    public void setEnvelopeSignature(String signature) {
+        this.envelopeSignature = signature;
     }
 
-    public String getEnvelopeId() {
-        return envelopeId;
+    public String getEnvelopeID() {
+        return envelopeID;
     }
 
     public String getEnvelopeVersion() {
         return envelopeVersion;
     }
 
-    public String getKey() {
-        return key;
+    public String getEncryptedSymmetricKey() {
+        return encryptedSymmetricKey;
     }
 
-    public String getOwnerId() {
-        return ownerId;
+    public String getKeyOwnerID() {
+        return keyOwnerID;
     }
 
-    public String getRecipientId() {
-        return recipientId;
+    public String getRecipientID() {
+        return recipientID;
     }
 
-    public String getSenderId() {
-        return senderId;
+    public String getSenderID() {
+        return senderID;
     }
 
-    public long getTimestamp() {
+    public String getTimestamp() {
         return timestamp;
     }
 
-    public String getKeyEnvelopeSignature() {
-        return keyEnvelopeSignature;
+    public String getEnvelopeSignature() {
+        return envelopeSignature;
     }
 
 }

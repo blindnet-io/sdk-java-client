@@ -1,12 +1,12 @@
-package io.blindnet.blindnet.domain;
+package io.blindnet.blindnet.core;
 
 /**
- * Provides constant that are used in encryption/decryption operations.
+ * Provides constants that are used in encryption/decryption operations.
  *
  * @author stefanveselinovic
  * @since 0.0.1
  */
-public final class EncryptionConstants {
+final class EncryptionConstants {
 
     private EncryptionConstants() {
     }

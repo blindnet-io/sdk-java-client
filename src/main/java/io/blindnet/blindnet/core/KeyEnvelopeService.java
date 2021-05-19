@@ -1,15 +1,17 @@
 package io.blindnet.blindnet.core;
 
 import io.blindnet.blindnet.domain.KeyEnvelope;
+import io.blindnet.blindnet.domain.SymmetricJwk;
+import org.json.JSONObject;
 
 import javax.crypto.SecretKey;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.UUID;
 
-import static io.blindnet.blindnet.domain.EncryptionConstants.Ed25519_ALGORITHM;
+import static io.blindnet.blindnet.core.EncryptionConstants.Ed25519_ALGORITHM;
 
 /**
  * Provides API for operations related to Key Envelope Object.
@@ -49,14 +51,16 @@ class KeyEnvelopeService {
 
         KeyEnvelope keyEnvelope = new KeyEnvelope.Builder(UUID.randomUUID().toString())
                 .withVersion(ENVELOPE_VERSION)
-                .withKey(Base64.getEncoder().encodeToString(encryptionService.wrap(secretKey, encryptionPublicKey)))
-                .withOwnerId(ownerId)
-                .withRecipientId(recipientId)
-                .withSenderId(senderId)
-                .timestamp(Instant.now().toEpochMilli())
+                .withEncryptedSymmetricKey(Base64.getEncoder().encodeToString(
+                        encryptionService.encrypt(encryptionPublicKey,
+                                new JSONObject(new SymmetricJwk(secretKey)).toString().getBytes())))
+                .withKeyOwnerID(ownerId)
+                .withRecipientID(recipientId)
+                .withSenderID(senderId)
+                .timestamp(LocalDateTime.now().toString())
                 .build();
 
-        keyEnvelope.setKeyEnvelopeSignature(sign(keyEnvelope, signingPrivateKey, Ed25519_ALGORITHM));
+        keyEnvelope.setEnvelopeSignature(sign(keyEnvelope, signingPrivateKey, Ed25519_ALGORITHM));
 
         return keyEnvelope;
     }

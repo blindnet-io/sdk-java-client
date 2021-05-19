@@ -3,17 +3,20 @@ package io.blindnet.blindnet.core;
 import io.blindnet.blindnet.domain.*;
 import io.blindnet.blindnet.exception.SignatureException;
 import org.bouncycastle.jcajce.interfaces.EdDSAPrivateKey;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
 import java.security.PublicKey;
+import java.util.Base64;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static io.blindnet.blindnet.domain.EncryptionConstants.Ed25519_ALGORITHM;
-import static io.blindnet.blindnet.domain.EncryptionConstants.RSA_ALGORITHM;
+import static io.blindnet.blindnet.core.BlindnetClientConstants.*;
+import static io.blindnet.blindnet.core.EncryptionConstants.*;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -25,15 +28,6 @@ import static java.util.Objects.requireNonNull;
 class BlindnetClient {
 
     private static final Logger LOGGER = Logger.getLogger(BlindnetClient.class.getName());
-
-    // todo extract to config class
-    private static final String BLINDNET_SERVER_URL = "https://blindnet-api-xtevwj4sdq-ew.a.run.app";
-    private static final String USER_ENDPOINT_PATH = "/api/v1/users";
-    private static final String DELETE_USER_ENDPOINT_PATH = "/api/v1/users/me";
-    private static final String FETCH_SYMMETRIC_KEY_ENDPOINT_PATH = "/api/v1/old/users";
-    private static final String SEND_SYMMETRIC_KEY_ENDPOINT_PATH = "/api/v1/old/users";
-    private static final String PRIVATE_KEYS_ENDPOINT_PATH = "/api/v1/keys/me";
-    private static final String FETCH_PUBLIC_KEYS_ENDPOINT_PATH = "/api/v1/keys/";
 
     private final KeyStorage keyStorage;
     private final KeyFactory keyFactory;
@@ -104,10 +98,10 @@ class BlindnetClient {
         requireNonNull(senderKeyEnvelope, "Sender Key Envelope cannot be null");
         requireNonNull(recipientKeyEnvelope, "Recipient Key Envelope cannot be null");
 
-        JSONObject requestBody = new JSONObject().put("senderEnvelope", new JSONObject(senderKeyEnvelope))
-                .put("recipientEnvelope", new JSONObject(recipientKeyEnvelope));
+        JSONArray requestBody = new JSONArray().put(new JSONObject(recipientKeyEnvelope))
+                .put(new JSONObject(senderKeyEnvelope));
 
-        httpClient.post(BLINDNET_SERVER_URL + SEND_SYMMETRIC_KEY_ENDPOINT_PATH,
+        httpClient.post(BLINDNET_SERVER_URL + SYMMETRIC_KEY_ENDPOINT_PATH,
                 requireNonNull(jwtConfig.getJwt(), "JWT not configured properly."),
                 requestBody.toString().getBytes(StandardCharsets.UTF_8));
     }
@@ -123,17 +117,17 @@ class BlindnetClient {
         requireNonNull(senderId, "Sender ID cannot be null.");
         requireNonNull(recipientId, "Recipient ID cannot be null.");
 
-        HttpResponse httpResponse = httpClient.get(BLINDNET_SERVER_URL + FETCH_SYMMETRIC_KEY_ENDPOINT_PATH,
+        HttpResponse httpResponse = httpClient.get(BLINDNET_SERVER_URL + SYMMETRIC_KEY_ENDPOINT_PATH,
                 requireNonNull(jwtConfig.getJwt(), "JWT not configured properly."));
 
         JSONObject responseBody = new JSONObject(new String(httpResponse.getBody()));
         KeyEnvelope keyEnvelope = new KeyEnvelope.Builder(responseBody.getString("envelopeID"))
-                .withKey(responseBody.getString("key"))
-                .withOwnerId(responseBody.getString("ownerID"))
-                .withRecipientId(responseBody.getString("recipientID"))
-                .withSenderId(responseBody.getString("senderID"))
+                .withEncryptedSymmetricKey(responseBody.getString("key"))
+                .withKeyOwnerID(responseBody.getString("ownerID"))
+                .withRecipientID(responseBody.getString("recipientID"))
+                .withSenderID(responseBody.getString("senderID"))
                 .withVersion(responseBody.getString("envelopeVersion"))
-                .timestamp(responseBody.getLong("timestamp"))
+                .timestamp(responseBody.getString("timestamp"))
                 .build();
 
         // use local signing public key if the current user is not recipient otherwise pull it from blindnet api
@@ -148,8 +142,10 @@ class BlindnetClient {
             throw new SignatureException(msg);
         }
 
-        return (SecretKey) encryptionService.unwrap(keyEnvelope.getKey().getBytes(),
-                keyStorage.readEncryptionPrivateKey());
+        byte[] keyData = (byte[]) new JSONObject(encryptionService.decrypt(keyStorage.readEncryptionPrivateKey(),
+                Base64.getDecoder().decode(keyEnvelope.getEncryptedSymmetricKey()))).get("k");
+
+        return new SecretKeySpec(keyData, 0, keyData.length, AES_ALGORITHM);
     }
 
     /**

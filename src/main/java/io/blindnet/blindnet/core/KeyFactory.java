@@ -7,6 +7,9 @@ import org.bouncycastle.asn1.edec.EdECObjectIdentifiers;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.crypto.params.RSAKeyParameters;
+import org.bouncycastle.crypto.util.PublicKeyFactory;
+import org.json.JSONObject;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
@@ -14,17 +17,15 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.security.*;
 import java.security.interfaces.RSAPrivateCrtKey;
-import java.security.spec.KeySpec;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.RSAPublicKeySpec;
-import java.security.spec.X509EncodedKeySpec;
+import java.security.spec.*;
 import java.util.Base64;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static io.blindnet.blindnet.domain.EncryptionConstants.*;
+import static io.blindnet.blindnet.core.EncryptionConstants.*;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -33,7 +34,8 @@ import static java.util.Objects.requireNonNull;
  * @author stefanveselinovic
  * @since 0.0.1
  */
-class KeyFactory {
+// todo remove public
+public class KeyFactory {
 
     private static final Logger LOGGER = Logger.getLogger(KeyFactory.class.getName());
 
@@ -130,7 +132,7 @@ class KeyFactory {
                 rsaPrivateCrtKey.getPublicExponent());
 
         try {
-            java.security.KeyFactory keyFactory = java.security.KeyFactory.getInstance(RSA_ALGORITHM, BC_PROVIDER);
+            java.security.KeyFactory keyFactory = initialiseKeyFactory(RSA_ALGORITHM);
             return keyFactory.generatePublic(publicKeySpec);
 
         } catch (GeneralSecurityException exception) {
@@ -147,22 +149,18 @@ class KeyFactory {
      * @return a public key object.
      */
     public PublicKey convertToPublicKey(String base64PK, String algorithm) {
-        X509EncodedKeySpec x509publicKey;
-
         try {
+            java.security.KeyFactory keyFactory = initialiseKeyFactory(algorithm);
+
             if (algorithm.equals(Ed25519_ALGORITHM)) {
                 SubjectPublicKeyInfo pubKeyInfo = new SubjectPublicKeyInfo(new AlgorithmIdentifier(EdECObjectIdentifiers.id_Ed25519),
                         Base64.getDecoder().decode(base64PK));
-                x509publicKey = new X509EncodedKeySpec(pubKeyInfo.getEncoded());
+                return keyFactory.generatePublic(new X509EncodedKeySpec(pubKeyInfo.getEncoded()));
             } else {
-                x509publicKey = new X509EncodedKeySpec(
-                        Base64.getDecoder()
-                                .decode(base64PK.getBytes()));
+                SubjectPublicKeyInfo publicKeyInfo = SubjectPublicKeyInfo.getInstance(Base64.getDecoder().decode(base64PK.getBytes()));
+                RSAKeyParameters keyParameter = (RSAKeyParameters) PublicKeyFactory.createKey(publicKeyInfo.parsePublicKey().getEncoded());
+                return keyFactory.generatePublic(new RSAPublicKeySpec(keyParameter.getModulus(), keyParameter.getExponent()));
             }
-
-            java.security.KeyFactory keyFactory = java.security.KeyFactory.getInstance(algorithm);
-            return keyFactory.generatePublic(x509publicKey);
-
         } catch (GeneralSecurityException | IOException exception) {
             String msg = "Error while converting public key. " + exception.getMessage();
             LOGGER.log(Level.SEVERE, msg);
@@ -171,27 +169,48 @@ class KeyFactory {
     }
 
     /**
-     * Converts private key represented as byte array to a private key object.
+     * Converts private key represented as byte array to a Ed25519 private key object.
      *
-     * @param pkBytes   a byte array private key representation.
-     * @param algorithm an algorithm used to create the private key.
+     * @param pkBytes a byte array private key representation.
      * @return a private key object.
      */
-    public PrivateKey convertToPrivateKey(byte[] pkBytes, String algorithm) {
-        PKCS8EncodedKeySpec pkcs8KeySpec;
+    public PrivateKey convertToEd25519PrivateKey(byte[] pkBytes) {
 
         try {
-            if (algorithm.equals(Ed25519_ALGORITHM)) {
-                PrivateKeyInfo privateKeyInfo = new PrivateKeyInfo(new AlgorithmIdentifier(EdECObjectIdentifiers.id_Ed25519),
-                        new DEROctetString(pkBytes));
-                pkcs8KeySpec = new PKCS8EncodedKeySpec(privateKeyInfo.getEncoded());
-            } else {
-                pkcs8KeySpec = new PKCS8EncodedKeySpec(pkBytes);
-            }
-            java.security.KeyFactory kf = java.security.KeyFactory.getInstance(algorithm);
+            PrivateKeyInfo privateKeyInfo = new PrivateKeyInfo(new AlgorithmIdentifier(EdECObjectIdentifiers.id_Ed25519),
+                    new DEROctetString(pkBytes));
+            PKCS8EncodedKeySpec pkcs8KeySpec = new PKCS8EncodedKeySpec(privateKeyInfo.getEncoded());
+            java.security.KeyFactory kf = initialiseKeyFactory(Ed25519_ALGORITHM);
             return kf.generatePrivate(pkcs8KeySpec);
         } catch (GeneralSecurityException | IOException exception) {
             String msg = "Error while converting private key. " + exception.getMessage();
+            LOGGER.log(Level.SEVERE, msg);
+            throw new KeyConstructionException(msg, exception);
+        }
+    }
+
+    /**
+     * Converts RSA private key from jwk format to private key object.
+     *
+     * @param rsaJwk a rsa private key in jwk format.
+     * @return a private key object.
+     */
+    public PrivateKey convertToRsaPrivateKey(JSONObject rsaJwk) {
+        Base64.Decoder decoder = Base64.getUrlDecoder();
+        RSAPrivateCrtKeySpec rsaPrivateCrtKeySpec = new RSAPrivateCrtKeySpec(
+                new BigInteger(decoder.decode(rsaJwk.getString("n"))),
+                new BigInteger(decoder.decode(rsaJwk.getString("e"))),
+                new BigInteger(decoder.decode(rsaJwk.getString("d"))),
+                new BigInteger(decoder.decode(rsaJwk.getString("p"))),
+                new BigInteger(decoder.decode(rsaJwk.getString("q"))),
+                new BigInteger(decoder.decode(rsaJwk.getString("dp"))),
+                new BigInteger(decoder.decode(rsaJwk.getString("dq"))),
+                new BigInteger(decoder.decode(rsaJwk.getString("qi"))));
+        try {
+            java.security.KeyFactory kf = initialiseKeyFactory(RSA_ALGORITHM);
+            return kf.generatePrivate(rsaPrivateCrtKeySpec);
+        } catch (GeneralSecurityException exception) {
+            String msg = "Error while converting rsa private key. " + exception.getMessage();
             LOGGER.log(Level.SEVERE, msg);
             throw new KeyConstructionException(msg, exception);
         }
@@ -231,6 +250,22 @@ class KeyFactory {
             String msg = "Invalid algorithm. " + exception.getMessage();
             LOGGER.log(Level.SEVERE, msg);
             throw new KeyGenerationException(msg, exception);
+        }
+    }
+
+    /**
+     * Initialises key factory.
+     *
+     * @param algorithm an algorithm to be used for key factory.
+     * @return a key factory object.
+     */
+    private java.security.KeyFactory initialiseKeyFactory(String algorithm) {
+        try {
+            return java.security.KeyFactory.getInstance(algorithm, BC_PROVIDER);
+        } catch (GeneralSecurityException exception) {
+            String msg = "Error initialsing key factory. " + exception.getMessage();
+            LOGGER.log(Level.SEVERE, msg);
+            throw new KeyConstructionException(msg, exception);
         }
     }
 

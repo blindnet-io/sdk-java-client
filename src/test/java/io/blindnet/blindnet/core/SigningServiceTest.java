@@ -10,8 +10,8 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
-import static io.blindnet.blindnet.domain.EncryptionConstants.BC_PROVIDER;
-import static io.blindnet.blindnet.domain.EncryptionConstants.Ed25519_ALGORITHM;
+import static io.blindnet.blindnet.core.EncryptionConstants.BC_PROVIDER;
+import static io.blindnet.blindnet.core.EncryptionConstants.Ed25519_ALGORITHM;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class SigningServiceTest extends AbstractTest {

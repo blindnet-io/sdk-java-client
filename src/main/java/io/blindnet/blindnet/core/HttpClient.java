@@ -6,7 +6,6 @@ import io.blindnet.blindnet.exception.BlindnetApiException;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 

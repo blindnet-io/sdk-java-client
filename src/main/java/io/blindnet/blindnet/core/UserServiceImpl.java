@@ -1,9 +1,13 @@
 package io.blindnet.blindnet.core;
 
-import io.blindnet.blindnet.UserService;
 import io.blindnet.blindnet.domain.UserRegistrationResult;
+import io.blindnet.blindnet.exception.KeyConstructionException;
 import io.blindnet.blindnet.exception.KeyStorageException;
+import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 
+import java.io.IOException;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.util.Arrays;
@@ -11,11 +15,11 @@ import java.util.Base64;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static io.blindnet.blindnet.domain.EncryptionConstants.*;
+import static io.blindnet.blindnet.core.EncryptionConstants.*;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Provides API to handle User related operations.
+ * Default implementation of user service.
  *
  * @author stefanveselinovic
  * @since 0.0.1
@@ -61,18 +65,26 @@ class UserServiceImpl implements UserService {
                 signingPrivateKey,
                 Ed25519_ALGORITHM);
 
-        byte[] signedEncryptionPublicKey = signingService.sign(encryptionKeyPair.getPublic(),
-                signingPrivateKey,
-                Ed25519_ALGORITHM);
-
         byte[] publicSigningKeyEncodedWithoutPrefix = Arrays.copyOfRange(
                 signingKeyPair.getPublic().getEncoded(), 12, signingKeyPair.getPublic().getEncoded().length);
 
         Base64.Encoder encoder = Base64.getEncoder();
-        return blindnetClient.register(encoder.encodeToString(encryptionKeyPair.getPublic().getEncoded()),
-                encoder.encodeToString(signedEncryptionPublicKey),
-                encoder.encodeToString(publicSigningKeyEncodedWithoutPrefix),
-                Base64.getUrlEncoder().encodeToString(signedJwt));
+        try {
+            SubjectPublicKeyInfo publicKeyInfo = new SubjectPublicKeyInfo(new AlgorithmIdentifier(PKCSObjectIdentifiers.rsaEncryption),
+                    encryptionKeyPair.getPublic().getEncoded());
+            byte[] signedEncryptionPublicKey = signingService.sign(publicKeyInfo.getEncoded(),
+                    signingPrivateKey,
+                    Ed25519_ALGORITHM);
+
+            return blindnetClient.register(encoder.encodeToString(publicKeyInfo.getEncoded()),
+                    encoder.encodeToString(signedEncryptionPublicKey),
+                    encoder.encodeToString(publicSigningKeyEncodedWithoutPrefix),
+                    Base64.getUrlEncoder().encodeToString(signedJwt));
+        } catch (IOException e) {
+            String msg = "Unable to convert public key to SPKI format.";
+            LOGGER.log(Level.SEVERE, msg);
+            throw new KeyConstructionException(msg);
+        }
     }
 
     /**

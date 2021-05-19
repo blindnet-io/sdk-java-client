@@ -1,16 +1,17 @@
 package io.blindnet.blindnet.core;
 
-import io.blindnet.blindnet.KeyEncryptionService;
 import io.blindnet.blindnet.domain.PrivateKeyPair;
+import io.blindnet.blindnet.domain.RsaJwk;
+import org.json.JSONObject;
 
 import javax.crypto.SecretKey;
 import java.security.PrivateKey;
 import java.util.Base64;
 
-import static io.blindnet.blindnet.domain.EncryptionConstants.*;
+import static io.blindnet.blindnet.core.EncryptionConstants.*;
 
 /**
- * Provides API for encryption and decryption of user private keys.
+ * Default implementation of key encryption service.
  *
  * @author stefanveselinovic
  * @since 0.0.1
@@ -49,7 +50,8 @@ class KeyEncryptionServiceImpl implements KeyEncryptionService {
         PrivateKey encryptionPrivateKey = keyStorage.readEncryptionPrivateKey();
         PrivateKey signingPrivateKey = keyStorage.readSigningPrivateKey();
 
-        byte[] encryptedEPK = encryptionService.encrypt(secretKey, encryptionPrivateKey.getEncoded());
+        byte[] encryptedEPK = encryptionService.encrypt(secretKey,
+                new JSONObject(new RsaJwk(encryptionPrivateKey)).toString().getBytes());
         byte[] encryptedSPK = encryptionService.encrypt(secretKey, signingPrivateKey.getEncoded());
 
         Base64.Encoder encoder = Base64.getEncoder();
@@ -76,11 +78,10 @@ class KeyEncryptionServiceImpl implements KeyEncryptionService {
                 salt,
                 PBKDF_SHA256);
 
-        byte[] encryptionPK = encryptionService.decrypt(secretKey, encryptedEPK);
-        byte[] signingPK = encryptionService.decrypt(secretKey, encryptedSPK);
-
-        keyStorage.storeEncryptionKey(keyFactory.convertToPrivateKey(encryptionPK, RSA_ALGORITHM));
-        keyStorage.storeSigningKey(keyFactory.convertToPrivateKey(signingPK, Ed25519_ALGORITHM));
+        keyStorage.storeEncryptionKey(keyFactory.convertToRsaPrivateKey(
+                new JSONObject(new String(encryptionService.decrypt(secretKey, encryptedEPK)))));
+        keyStorage.storeSigningKey(keyFactory.convertToEd25519PrivateKey(
+                encryptionService.decrypt(secretKey, encryptedSPK)));
     }
 
 }
