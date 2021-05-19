@@ -2,11 +2,15 @@ package io.blindnet.blindnet.core;
 
 import io.blindnet.blindnet.exception.KeyConstructionException;
 import io.blindnet.blindnet.exception.KeyGenerationException;
+import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 
 import javax.crypto.SecretKey;
+import java.io.IOException;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -111,34 +115,15 @@ public class KeyFactoryTest extends AbstractTest {
 
     @Test
     @DisplayName("Test conversion to public key object from base64 encoded data.")
-    public void testConvertToPublicKey() {
+    public void testConvertToPublicKey() throws IOException {
         KeyPair rsaKeyPair = keyFactory.generateKeyPair(RSA_ALGORITHM, BC_PROVIDER, RSA_KEY_SIZE_4096);
-        String base64EncodedPublicKey = Base64.getEncoder().encodeToString(rsaKeyPair.getPublic().getEncoded());
+        String base64EncodedPublicKey = Base64.getEncoder().encodeToString(
+                new SubjectPublicKeyInfo(new AlgorithmIdentifier(PKCSObjectIdentifiers.rsaEncryption),
+                        rsaKeyPair.getPublic().getEncoded()).getEncoded());
         PublicKey publicKey = keyFactory.convertToPublicKey(base64EncodedPublicKey, RSA_ALGORITHM);
 
         assertNotNull(publicKey);
         assertEquals(publicKey.getAlgorithm(), RSA_ALGORITHM);
-        assertEquals(Base64.getEncoder().encodeToString(publicKey.getEncoded()), base64EncodedPublicKey);
-
-        KeyConstructionException convertToPublicKeyKCException = assertThrows(KeyConstructionException.class,
-                () -> keyFactory.convertToPublicKey(base64EncodedPublicKey, INVALID_ASYMMETRIC_ALGORITHM));
-        assertTrue(convertToPublicKeyKCException.getMessage().contains("Error while converting public key."));
-    }
-
-    @Test
-    @DisplayName("Test conversion to RSA private key object from byte array data.")
-    public void testConvertToRSAPrivateKey() {
-        KeyPair rsaKeyPair = keyFactory.generateKeyPair(RSA_ALGORITHM, BC_PROVIDER, RSA_KEY_SIZE_4096);
-        PrivateKey rsaPrivateKey = keyFactory.convertToPrivateKey(rsaKeyPair.getPrivate().getEncoded(), RSA_ALGORITHM);
-
-        assertNotNull(rsaPrivateKey);
-        assertEquals(rsaPrivateKey.getAlgorithm(), RSA_ALGORITHM);
-        assertEquals(Base64.getEncoder().encodeToString(rsaPrivateKey.getEncoded()),
-                Base64.getEncoder().encodeToString(rsaKeyPair.getPrivate().getEncoded()));
-
-        KeyConstructionException convertToPrivateKeyKCException = assertThrows(KeyConstructionException.class,
-                () -> keyFactory.convertToPrivateKey(rsaKeyPair.getPrivate().getEncoded(), INVALID_ASYMMETRIC_ALGORITHM));
-        assertTrue(convertToPrivateKeyKCException.getMessage().contains("Error while converting private key."));
     }
 
 }
