@@ -20,6 +20,7 @@ class BlindnetImpl implements Blindnet {
 
     public BlindnetImpl(String keyFolderPath, String jwt) {
         keyStorageConfig.setup(keyFolderPath);
+        jwtConfig.setup(jwt);
         KeyStorage keyStorage = KeyStorage.getInstance();
         KeyFactory keyFactory = new KeyFactory();
         EncryptionService encryptionService = new EncryptionService(keyFactory);

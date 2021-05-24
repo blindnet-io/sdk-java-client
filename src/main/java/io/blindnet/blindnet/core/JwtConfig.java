@@ -24,15 +24,6 @@ enum JwtConfig {
     }
 
     /**
-     * Returns Singleton Instance for Jwt Config.
-     *
-     * @return a Jwt Config Singleton.
-     */
-    public JwtConfig getInstance() {
-        return INSTANCE;
-    }
-
-    /**
      * Sets a value of jwt object.
      *
      * @param jwt a jwt object as a string.

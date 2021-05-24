@@ -9,8 +9,4 @@ public class KeyConstructionException extends RuntimeException {
         super(message);
     }
 
-    public KeyConstructionException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
 }

@@ -5,42 +5,57 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
 
 
 public class UserServiceTest extends AbstractTest {
 
-    // todo use junit 5
-
     private UserService userService;
 
-    // todo use mock when http client is defined as singleton
     @Mock
-    HttpClient httpClient;
+    private ApiClient apiClient;
 
     @Before
     public void setup() {
-        // MockitoAnnotations.openMocks(this);
-        // userService = UserServiceProvider.getInstance();
+        MockitoAnnotations.openMocks(this);
+        KeyStorage keyStorage = KeyStorage.getInstance();
+        KeyFactory keyFactory = new KeyFactory();
+        SigningService signingService = new SigningService();
+
+        userService = new UserServiceImpl(keyStorage,
+                keyFactory,
+                signingService,
+                apiClient);
     }
 
     @Test
-    @DisplayName("Test user registration with successful response from Blindnet API.")
-    public void testRegister_thenSuccess() throws IOException, NoSuchAlgorithmException, SignatureException, InvalidKeyException {
-//        when(httpClient.post(anyString(), eq(TEST_JWT), any(byte[].class)))
-//                .thenReturn(new HttpResponse.Builder(HttpURLConnection.HTTP_OK)
-//                        .withMessage(anyString())
-//                        .withBody(any(byte[].class))
-//                        .build());
+    @DisplayName("Test user registration.")
+    public void testRegister() {
+        when(apiClient.register(anyString(), anyString(), anyString(), anyString()))
+                .thenReturn(new UserRegistrationResult(true, "random_string"));
 
-//        UserRegistrationResult result = userService.register();
-//        assertTrue(result.isSuccessful());
+        UserRegistrationResult result = userService.register();
+
+        assertNotNull(result);
+        assertTrue(result.isSuccessful());
+    }
+
+    @Test
+    @DisplayName("Test unregister.")
+    public void testUnregister() {
+        doNothing().when(apiClient).unregister();
+
+        assertDoesNotThrow(() -> userService.unregister());
     }
 
 }

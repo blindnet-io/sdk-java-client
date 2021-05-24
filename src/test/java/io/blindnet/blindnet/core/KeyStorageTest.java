@@ -76,7 +76,7 @@ public class KeyStorageTest extends AbstractTest {
     }
 
     @Test
-    @DisplayName("Test recipient signing public key.")
+    @DisplayName("Test storing of recipient signing public key.")
     public void testRecipientSigningPublicKey() {
         String recipientId = UUID.randomUUID().toString();
         keyStorage.storeRecipientSigningPublicKey(ed25519keyPair.getPublic(), recipientId);
@@ -85,6 +85,12 @@ public class KeyStorageTest extends AbstractTest {
 
         assertNotNull(recipientSigningPublicKeyFile);
         assertTrue(recipientSigningPublicKeyFile.isFile());
+    }
+
+    @Test
+    @DisplayName("Test deleting folder.")
+    public void testDeleteFolder() {
+        assertDoesNotThrow(() -> keyStorage.deleteKeyFolder());
     }
 
 }

@@ -1,6 +1,5 @@
 package io.blindnet.blindnet.core;
 
-import io.blindnet.blindnet.exception.KeyConstructionException;
 import io.blindnet.blindnet.exception.KeyGenerationException;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;

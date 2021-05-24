@@ -110,13 +110,14 @@ class ApiClient {
         requireNonNull(senderId, "Sender ID cannot be null.");
         requireNonNull(recipientId, "Recipient ID cannot be null.");
 
-        HttpResponse httpResponse = httpClient.get(ApiConfig.INSTANCE.getServerUrl() + SYMMETRIC_KEY_ENDPOINT_PATH,
+        String url = ApiConfig.INSTANCE.getServerUrl() + SYMMETRIC_KEY_ENDPOINT_PATH + "?senderID=" + senderId + "&recipientID=" + recipientId;
+        HttpResponse httpResponse = httpClient.get(url,
                 requireNonNull(jwtConfig.getJwt(), "JWT not configured properly."));
 
         JSONObject responseBody = new JSONObject(new String(httpResponse.getBody()));
         KeyEnvelope keyEnvelope = new KeyEnvelope.Builder(responseBody.getString("envelopeID"))
-                .withEncryptedSymmetricKey(responseBody.getString("key"))
-                .withKeyOwnerID(responseBody.getString("ownerID"))
+                .withEncryptedSymmetricKey(responseBody.getString("encryptedSymmetricKey"))
+                .withKeyOwnerID(responseBody.getString("keyOwnerID"))
                 .withRecipientID(responseBody.getString("recipientID"))
                 .withSenderID(responseBody.getString("senderID"))
                 .withVersion(responseBody.getString("envelopeVersion"))
@@ -133,8 +134,8 @@ class ApiClient {
             throw new SignatureException("Unable to verify key envelope signature.");
         }
 
-        byte[] keyData = (byte[]) new JSONObject(encryptionService.decrypt(keyStorage.readEncryptionPrivateKey(),
-                Base64.getDecoder().decode(keyEnvelope.getEncryptedSymmetricKey()))).get("k");
+        byte[] keyData = Base64.getUrlDecoder().decode(new JSONObject(new String(encryptionService.decrypt(keyStorage.readEncryptionPrivateKey(),
+                Base64.getDecoder().decode(keyEnvelope.getEncryptedSymmetricKey())))).getString("k").getBytes());
 
         return new SecretKeySpec(keyData, 0, keyData.length, AES_ALGORITHM);
     }

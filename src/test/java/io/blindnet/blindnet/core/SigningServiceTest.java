@@ -9,6 +9,7 @@ import java.security.KeyPair;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import static io.blindnet.blindnet.core.EncryptionConstants.BC_PROVIDER;
 import static io.blindnet.blindnet.core.EncryptionConstants.Ed25519_ALGORITHM;
@@ -17,34 +18,45 @@ import static org.junit.jupiter.api.Assertions.*;
 public class SigningServiceTest extends AbstractTest {
 
     private SigningService signingService;
-    private KeyFactory keyFactory;
     private KeyPair signingKeyPair;
     private Map<String, String> object;
 
     @Before
     public void setup() {
         signingService = new SigningService();
-        keyFactory = new KeyFactory();
+        KeyFactory keyFactory = new KeyFactory();
         signingKeyPair = keyFactory.generateKeyPair(Ed25519_ALGORITHM, BC_PROVIDER, -1);
         object = new HashMap<>();
         object.put("user_id", "random_id");
     }
 
     @Test
-    @DisplayName("Test signing flow.")
-    public void testSigningFlow() {
+    @DisplayName("Test signing object flow.")
+    public void testSigningObjectFlow() {
         byte[] signature = signingService.sign(object,
                 signingKeyPair.getPrivate(),
                 Ed25519_ALGORITHM);
 
         assertNotNull(signature);
-
-        boolean verified = signingService.verify(object,
+        assertTrue(signingService.verify(object,
                 Base64.getEncoder().encodeToString(signature),
                 signingKeyPair.getPublic(),
+                Ed25519_ALGORITHM));
+    }
+
+    @Test
+    @DisplayName("Test signing string flow.")
+    public void testSigningStringFlow() {
+        String randomData = UUID.randomUUID().toString();
+        byte[] signature = signingService.sign(randomData,
+                signingKeyPair.getPrivate(),
                 Ed25519_ALGORITHM);
 
-        assertTrue(verified);
+        assertNotNull(signature);
+        assertTrue(signingService.verify(randomData.getBytes(),
+                Base64.getEncoder().encodeToString(signature),
+                signingKeyPair.getPublic(),
+                Ed25519_ALGORITHM));
     }
 
     @Test

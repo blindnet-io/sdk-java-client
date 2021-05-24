@@ -57,7 +57,7 @@ class KeyEnvelopeService {
                 .timestamp(LocalDateTime.now().toString())
                 .build();
 
-        keyEnvelope.setEnvelopeSignature(sign(keyEnvelope, signingPrivateKey, Ed25519_ALGORITHM));
+        keyEnvelope.setEnvelopeSignature(sign(keyEnvelope, signingPrivateKey));
 
         return keyEnvelope;
     }
@@ -84,8 +84,8 @@ class KeyEnvelopeService {
      * @param privateKey  a private Key used for signing.
      * @return a envelope signature.
      */
-    private String sign(KeyEnvelope keyEnvelope, PrivateKey privateKey, String algorithm) {
-        return Base64.getEncoder().encodeToString(signingService.sign(keyEnvelope, privateKey, algorithm));
+    private String sign(KeyEnvelope keyEnvelope, PrivateKey privateKey) {
+        return Base64.getEncoder().encodeToString(signingService.sign(keyEnvelope, privateKey, Ed25519_ALGORITHM));
     }
 
 }

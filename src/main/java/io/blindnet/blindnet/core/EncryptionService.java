@@ -145,8 +145,7 @@ class EncryptionService {
                 return pipedInputStream;
             }
         } catch (Exception exception) {
-            String msg = "Error during encryption.";
-            throw new EncryptionException(msg);
+            throw new EncryptionException("Error during encryption.");
         }
     }
 

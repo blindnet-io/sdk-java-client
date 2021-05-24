@@ -9,8 +9,4 @@ public class KeyStorageException extends RuntimeException {
         super(message);
     }
 
-    public KeyStorageException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
 }

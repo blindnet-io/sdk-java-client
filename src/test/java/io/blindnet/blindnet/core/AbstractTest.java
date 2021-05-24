@@ -11,7 +11,7 @@ import static io.blindnet.blindnet.core.EncryptionConstants.SIGNING_PRIVATE_KEY_
 
 public class AbstractTest {
 
-    protected static final String TEST_JWT = "eyJhbGciOiJFZERTQSIsInR5cCI6Imp3dCJ9.eyJhcHBfaWQiOiJjNjFmMTliYS04MDBjLTRjNTItOWZiNS0zZWU3NmNvMTg5MjYiLCJ1c2VyX2lkIjoiMTIzNCIsInVzZXJfaWRzIjoiYWJjIiwidXNlcl9ncm91cF9pZCI6IjU2NzgiLCJuYmYiOjE2MjA3MzU3NTUsImV4cCI6MTYyMTE2Nzc1NSwiaWF0IjoxNjIwNzM1NzU1fQ.fWwg7iaa1ab3DmH6bKEyqjDV9oUHP13v4oz3DX2NFhq1VcDrPIIhQaflBN6E9efAnxcfE7RISZQhjIv-o5t4Dg";
+    protected static final String TEST_JWT = "eyJhbGciOiJFZERTQSIsInR5cCI6Imp3dCJ9.eyJhcHAiOiJjNjFmMTliYS04MDBjLTRjNTItOWZiNS0zZWU3NmNvMTg5MjYiLCJ1aWQiOiJzdGVmYW4tMiIsImdpZCI6ImcxIiwibmJmIjoxNjIxNDM4MTY2LCJleHAiOjE2MjE4NzAxNjYsImlhdCI6MTYyMTQzODE2Nn0.2wakPucRkG1v_fWzRgB-rT3liK0yJT21I9Z4tULDuNGUsYpHPJ4fz6lbqcBQd2b1w3kwCaX8bLhi-8LDT_4aDg";
     protected static final String keyFolderPath = System.getProperty("java.io.tmpdir");
 
     protected static final String INVALID_NONCE_IV_ALGORITHM = "NceAndIV";
@@ -30,13 +30,6 @@ public class AbstractTest {
 
     @AfterClass
     public static void classCleanup() {
-        File encryptionKeyFile = new File(
-                KeyStorageConfig.INSTANCE.getKeyFolderPath() + File.separator + ENCRYPTION_PRIVATE_KEY_FILENAME);
-        encryptionKeyFile.delete();
-
-        File signingKeyFile = new File(
-                KeyStorageConfig.INSTANCE.getKeyFolderPath() + File.separator + SIGNING_PRIVATE_KEY_FILENAME);
-        signingKeyFile.delete();
 
         deleteFolder(new File(KeyStorageConfig.INSTANCE.getKeyFolderPath()));
     }
