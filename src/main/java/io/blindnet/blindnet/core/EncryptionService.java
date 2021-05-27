@@ -6,6 +6,7 @@ import io.blindnet.blindnet.exception.EncryptionException;
 import io.blindnet.blindnet.exception.KeyEncryptionException;
 import org.bouncycastle.jcajce.io.CipherInputStream;
 import org.bouncycastle.jcajce.io.CipherOutputStream;
+import org.json.JSONObject;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
@@ -44,7 +45,8 @@ class EncryptionService {
         requireNonNull(secretKey, "Secret key cannot be null.");
         requireNonNull(messageWrapper, "Message wrapper cannot be null.");
 
-        byte[] metadataLengthBA = ByteBuffer.allocate(4).putInt(messageWrapper.getMetadata().length).array();
+        byte[] metadataBA = new JSONObject(messageWrapper.getMetadata()).toString().getBytes();
+        byte[] metadataLengthBA = ByteBuffer.allocate(4).putInt(metadataBA.length).array();
 
         /*
          * Creates data array of:
@@ -53,10 +55,10 @@ class EncryptionService {
          * 3. a message data
          */
         byte[] data = ByteBuffer.allocate(metadataLengthBA.length +
-                messageWrapper.getMetadata().length +
+                metadataBA.length +
                 messageWrapper.getData().length)
                 .put(metadataLengthBA)
-                .put(messageWrapper.getMetadata())
+                .put(metadataBA)
                 .put(messageWrapper.getData())
                 .array();
 
@@ -92,7 +94,7 @@ class EncryptionService {
         byte[] decryptedData = new byte[decryptedDataWrapper.remaining()];
         decryptedDataWrapper.get(decryptedData);
 
-        return new MessageArrayWrapper(decryptedMetadata, decryptedData);
+        return new MessageArrayWrapper(new JSONObject(decryptedData).toMap(), decryptedData);
     }
 
     /**
@@ -106,12 +108,13 @@ class EncryptionService {
         requireNonNull(secretKey, "Secret key cannot be null.");
         requireNonNull(messageStreamWrapper, "Message wrapper cannot be null.");
 
-        byte[] metadataLengthBA = ByteBuffer.allocate(4).putInt(messageStreamWrapper.getMetadata().length).array();
+        byte[] metadataBA = new JSONObject(messageStreamWrapper.getMetadata()).toString().getBytes();
+        byte[] metadataLengthBA = ByteBuffer.allocate(4).putInt(metadataBA.length).array();
 
         InputStream metadataInputStream = new ByteArrayInputStream(ByteBuffer
-                .allocate(metadataLengthBA.length + messageStreamWrapper.getMetadata().length)
+                .allocate(metadataLengthBA.length + metadataBA.length)
                 .put(metadataLengthBA)
-                .put(messageStreamWrapper.getMetadata())
+                .put(metadataBA)
                 .array());
 
         try {
@@ -190,7 +193,7 @@ class EncryptionService {
                     pipedOutputStream.write(buf, 0, length);
                 }
                 pipedOutputStream.close();
-                return new MessageStreamWrapper(metadata, pipedInputStream);
+                return new MessageStreamWrapper(new JSONObject(metadata).toMap(), pipedInputStream);
             }
         } catch (Exception exception) {
             throw new EncryptionException("Error during message decryption.");

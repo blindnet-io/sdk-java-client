@@ -14,9 +14,15 @@ class BlindnetImpl implements Blindnet {
 
     private final KeyStorageConfig keyStorageConfig = KeyStorageConfig.INSTANCE;
     private final JwtConfig jwtConfig = JwtConfig.INSTANCE;
+    private final ApiConfig apiConfig = ApiConfig.INSTANCE;
     private final UserService userService;
     private final MessageService messageService;
     private final KeyEncryptionService keyEncryptionService;
+
+    public BlindnetImpl(String keyFolderPath, String jwt, String serverUrl) {
+        this(keyFolderPath, jwt);
+        apiConfig.setup(serverUrl);
+    }
 
     public BlindnetImpl(String keyFolderPath, String jwt) {
         keyStorageConfig.setup(keyFolderPath);

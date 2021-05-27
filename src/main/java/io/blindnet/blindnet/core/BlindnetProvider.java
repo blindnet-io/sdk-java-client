@@ -13,4 +13,8 @@ public class BlindnetProvider {
         return new BlindnetImpl(keyFolderPath, jwt);
     }
 
+    public static Blindnet getInstance(String keyFolderPath, String jwt, String serverUrl) {
+        return new BlindnetImpl(keyFolderPath, jwt, serverUrl);
+    }
+
 }

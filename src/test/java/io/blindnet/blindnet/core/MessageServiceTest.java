@@ -8,6 +8,7 @@ import io.blindnet.blindnet.exception.SignatureException;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -21,6 +22,8 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.security.KeyPair;
 import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import static io.blindnet.blindnet.core.EncryptionConstants.*;
@@ -39,7 +42,7 @@ public class MessageServiceTest extends AbstractTest {
     private KeyPair encryptionKeyPair;
     private KeyPair signingKeyPair;
     private PublicKeys publicKeys;
-    private final String metadata = "random-metadata";
+    private final Map<String, Object> metadata = new HashMap<>();
     private final String data = "random-data";
     private String senderId;
     private String recipientId;
@@ -51,6 +54,7 @@ public class MessageServiceTest extends AbstractTest {
     public void setUp() throws IOException {
         MockitoAnnotations.openMocks(this);
 
+        metadata.put("metadatakey", "metadatadata");
         KeyFactory keyFactory = new KeyFactory();
         encryptionService = new EncryptionService(keyFactory);
         SigningService signingService = new SigningService();
@@ -95,7 +99,7 @@ public class MessageServiceTest extends AbstractTest {
         doNothing().when(apiClient).sendSecretKey(any(), any());
 
         assertDoesNotThrow(() -> messageService.encrypt(UUID.randomUUID().toString(),
-                new MessageArrayWrapper(metadata.getBytes(), data.getBytes())));
+                new MessageArrayWrapper(metadata, data.getBytes())));
     }
 
     @Test
@@ -114,7 +118,7 @@ public class MessageServiceTest extends AbstractTest {
 
         SignatureException signatureException = assertThrows(SignatureException.class,
                 () -> messageService.encrypt(UUID.randomUUID().toString(),
-                        new MessageArrayWrapper(metadata.getBytes(), data.getBytes())));
+                        new MessageArrayWrapper(metadata, data.getBytes())));
         assertTrue(signatureException.getMessage().contains("Unable to verify public encryption key signature."));
     }
 
@@ -129,7 +133,7 @@ public class MessageServiceTest extends AbstractTest {
         doNothing().when(apiClient).sendSecretKey(any(), any());
 
         assertDoesNotThrow(() -> messageService.encrypt(UUID.randomUUID().toString(),
-                new MessageStreamWrapper(metadata.getBytes(), new ByteArrayInputStream(data.getBytes()))));
+                new MessageStreamWrapper(metadata, new ByteArrayInputStream(data.getBytes()))));
     }
 
     @Test
@@ -138,12 +142,13 @@ public class MessageServiceTest extends AbstractTest {
         when(apiClient.fetchSecretKey(senderId, recipientId))
                 .thenReturn(secretKey);
 
-        byte[] metadataLengthBA = ByteBuffer.allocate(4).putInt(metadata.getBytes().length).array();
+        byte[] metadataBA = new JSONObject(metadata).toString().getBytes();
+        byte[] metadataLengthBA = ByteBuffer.allocate(4).putInt(metadataBA.length).array();
         byte[] dataToEncrypt = ByteBuffer.allocate(metadataLengthBA.length +
-                metadata.getBytes().length +
+                metadataBA.length +
                 data.getBytes().length)
                 .put(metadataLengthBA)
-                .put(metadata.getBytes())
+                .put(metadataBA)
                 .put(data.getBytes())
                 .array();
 
@@ -153,7 +158,7 @@ public class MessageServiceTest extends AbstractTest {
         assertNotNull(messageArrayWrapper);
         assertNotNull(messageArrayWrapper.getMetadata());
         assertNotNull(messageArrayWrapper.getData());
-        assertEquals(new String(messageArrayWrapper.getMetadata()), metadata);
+        assertArrayEquals(messageArrayWrapper.getMetadata().values().toArray(), metadata.values().toArray());
         assertEquals(new String(messageArrayWrapper.getData()), data);
     }
 
@@ -164,14 +169,14 @@ public class MessageServiceTest extends AbstractTest {
                 .thenReturn(secretKey);
 
         InputStream encryptedInputStream = encryptionService.encryptMessage(secretKey,
-                new MessageStreamWrapper(metadata.getBytes(), new ByteArrayInputStream(data.getBytes())));
+                new MessageStreamWrapper(metadata, new ByteArrayInputStream(data.getBytes())));
 
         MessageStreamWrapper messageStreamWrapper = messageService.decrypt(senderId, recipientId, encryptedInputStream);
 
         assertNotNull(messageStreamWrapper);
         assertNotNull(messageStreamWrapper.getMetadata());
         assertNotNull(messageStreamWrapper.getData());
-        assertEquals(new String(messageStreamWrapper.getMetadata()), metadata);
+        assertArrayEquals(messageStreamWrapper.getMetadata().values().toArray(), metadata.values().toArray());
 
         byte[] decryptedData = new byte[11];
         messageStreamWrapper.getData().read(decryptedData);

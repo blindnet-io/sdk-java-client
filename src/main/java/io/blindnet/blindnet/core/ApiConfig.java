@@ -24,15 +24,6 @@ public enum ApiConfig {
     }
 
     /**
-     * Returns Singleton Instance for Api Config.
-     *
-     * @return a Jwt Singleton.
-     */
-    public ApiConfig getInstance() {
-        return INSTANCE;
-    }
-
-    /**
      * Sets a value of server url.
      *
      * @param serverUrl a server url.

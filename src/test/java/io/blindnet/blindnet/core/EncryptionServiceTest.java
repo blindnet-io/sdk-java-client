@@ -15,6 +15,7 @@ import javax.crypto.SecretKey;
 
 import java.io.*;
 import java.security.KeyPair;
+import java.util.Map;
 import java.util.UUID;
 
 import static io.blindnet.blindnet.core.EncryptionConstants.*;
@@ -26,7 +27,7 @@ public class EncryptionServiceTest extends AbstractTest {
     private KeyFactory keyFactory;
     private SecretKey secretKey;
     private KeyPair encryptionKeyPair;
-    private String metadata;
+    private Map<String, Object> metadata;
     private String data;
 
     @Before
@@ -35,14 +36,14 @@ public class EncryptionServiceTest extends AbstractTest {
         encryptionService = new EncryptionService(keyFactory);
         secretKey = keyFactory.generateSecretKey(AES_ALGORITHM, AES_KEY_SIZE);
         encryptionKeyPair = keyFactory.generateKeyPair(RSA_ALGORITHM, BC_PROVIDER, RSA_KEY_SIZE_4096);
-        metadata = "random metadata";
+        metadata.put("metadatakey", "metadatavalue");
         data = "random data";
     }
 
     @Test
     @DisplayName("Test Encryption of message using byte array to represent message data.")
     public void testEncryptMessageWithByteArrays() {
-        MessageArrayWrapper messageWrapper = new MessageArrayWrapper(metadata.getBytes(), data.getBytes());
+        MessageArrayWrapper messageWrapper = new MessageArrayWrapper(metadata, data.getBytes());
         byte[] encryptedData = encryptionService.encryptMessage(secretKey, messageWrapper);
 
         MessageArrayWrapper decryptedMessageWrapper = encryptionService.decryptMessage(secretKey, encryptedData);
@@ -50,7 +51,7 @@ public class EncryptionServiceTest extends AbstractTest {
         assertNotNull(decryptedMessageWrapper);
         assertNotNull(decryptedMessageWrapper.getMetadata());
         assertNotNull(decryptedMessageWrapper.getData());
-        assertArrayEquals(messageWrapper.getMetadata(), decryptedMessageWrapper.getMetadata());
+        assertArrayEquals(decryptedMessageWrapper.getMetadata().values().toArray(), metadata.values().toArray());
         assertArrayEquals(messageWrapper.getData(), decryptedMessageWrapper.getData());
     }
 
@@ -58,7 +59,7 @@ public class EncryptionServiceTest extends AbstractTest {
     @DisplayName("Test Encryption of message using input stream to represent message data.")
     public void testEncryptMessageWithStreams() throws IOException {
         ByteArrayInputStream input = new ByteArrayInputStream(data.getBytes());
-        InputStream inputStream = encryptionService.encryptMessage(secretKey, new MessageStreamWrapper(metadata.getBytes(), input));
+        InputStream inputStream = encryptionService.encryptMessage(secretKey, new MessageStreamWrapper(metadata, input));
         assertNotNull(inputStream);
 
         MessageStreamWrapper result = encryptionService.decryptMessage(secretKey, inputStream);
@@ -66,7 +67,7 @@ public class EncryptionServiceTest extends AbstractTest {
         assertNotNull(result);
         assertNotNull(result.getMetadata());
         assertNotNull(result.getData());
-        assertArrayEquals(result.getMetadata(), metadata.getBytes());
+        assertArrayEquals(result.getMetadata().values().toArray(), metadata.values().toArray());
         assertArrayEquals(data.getBytes(), result.getData().readAllBytes());
     }
 
