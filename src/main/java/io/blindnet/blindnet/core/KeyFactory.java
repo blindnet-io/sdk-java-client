@@ -159,11 +159,8 @@ class KeyFactory {
     public PrivateKey convertToEd25519PrivateKey(byte[] pkBytes) {
 
         try {
-            // todo check this
             PrivateKeyInfo privateKeyInfo = new PrivateKeyInfo(new AlgorithmIdentifier(EdECObjectIdentifiers.id_Ed25519),
                     new DEROctetString(pkBytes));
-            // return new JcaPEMKeyConverter().getPrivateKey(privateKeyInfo);
-            // DSAPrivateKeySpec privateKeySpec = new DSAPrivateKeySpec(privateKeyInfo.getPrivateKey())
             PKCS8EncodedKeySpec pkcs8KeySpec = new PKCS8EncodedKeySpec(privateKeyInfo.getEncoded());
             java.security.KeyFactory kf = initialiseKeyFactory(Ed25519_ALGORITHM);
             return kf.generatePrivate(pkcs8KeySpec);
