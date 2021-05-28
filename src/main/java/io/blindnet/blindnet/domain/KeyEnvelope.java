@@ -1,5 +1,7 @@
 package io.blindnet.blindnet.domain;
 
+import org.json.JSONObject;
+
 import java.io.Serializable;
 
 /**
@@ -114,6 +116,16 @@ public final class KeyEnvelope implements Serializable {
         public KeyEnvelope build() {
             return new KeyEnvelope(this);
         }
+    }
+
+    public JSONObject toJSON() {
+        return new JSONObject().put("envelopeID", envelopeID)
+                .put("envelopeVersion", envelopeVersion)
+                .put("encryptedSymmetricKey", encryptedSymmetricKey)
+                .put("keyOwnerID", keyOwnerID)
+                .put("recipientID", recipientID)
+                .put("senderID", senderID)
+                .put("timestamp", timestamp);
     }
 
     public void setEnvelopeSignature(String signature) {

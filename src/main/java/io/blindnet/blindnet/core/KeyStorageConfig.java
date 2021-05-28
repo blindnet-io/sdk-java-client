@@ -1,5 +1,7 @@
 package io.blindnet.blindnet.core;
 
+import java.io.File;
+
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -38,9 +40,11 @@ enum KeyStorageConfig {
      * @param keyFolderPath a path to the folder where keys will be stored.
      */
     public void setup(String keyFolderPath) {
-
         requireNonNull(keyFolderPath, "Key folder path cannot be null.");
 
+        if (!keyFolderPath.endsWith(File.separator)) {
+            keyFolderPath = keyFolderPath + File.separator;
+        }
         this.keyFolderPath = keyFolderPath;
     }
 

@@ -1,7 +1,6 @@
 package io.blindnet.blindnet.core;
 
 import io.blindnet.blindnet.exception.SignatureException;
-import org.json.JSONObject;
 
 import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
@@ -27,20 +26,6 @@ class SigningService {
     }
 
     /**
-     * Signs object using provided private key.
-     *
-     * @param object           an object to be signed.
-     * @param privateKey       a private key used for signing.
-     * @param signingAlgorithm an algorithm used for signing.
-     * @return a base64 encoded signed object.
-     */
-    public byte[] sign(Object object, PrivateKey privateKey, String signingAlgorithm) {
-        JSONObject jsonObject = new JSONObject(object);
-        return sign(jsonObject.toString().getBytes(), privateKey, signingAlgorithm);
-    }
-
-
-    /**
      * Signs data using provided private key.
      *
      * @param data             a data to be signed.
@@ -58,26 +43,6 @@ class SigningService {
         } catch (GeneralSecurityException exception) {
             throw new SignatureException("Error during signature creation.");
         }
-    }
-
-    /**
-     * Verifies signature.
-     *
-     * @param signedObject     a signed object.
-     * @param base64Signature  a base 64 encoded signature value.
-     * @param publicKey        a public key used for verification.
-     * @param signingAlgorithm an algorithm used for signing.
-     * @return indication if signature is valid.
-     */
-    public boolean verify(Object signedObject,
-                          String base64Signature,
-                          PublicKey publicKey,
-                          String signingAlgorithm) {
-
-        return verify(new JSONObject(signedObject).toString().getBytes(),
-                base64Signature,
-                publicKey,
-                signingAlgorithm);
     }
 
     /**

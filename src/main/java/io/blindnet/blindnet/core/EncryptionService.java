@@ -94,7 +94,7 @@ class EncryptionService {
         byte[] decryptedData = new byte[decryptedDataWrapper.remaining()];
         decryptedDataWrapper.get(decryptedData);
 
-        return new MessageArrayWrapper(new JSONObject(decryptedData).toMap(), decryptedData);
+        return new MessageArrayWrapper(new JSONObject(new String(decryptedMetadata)).toMap(), decryptedData);
     }
 
     /**
@@ -193,7 +193,7 @@ class EncryptionService {
                     pipedOutputStream.write(buf, 0, length);
                 }
                 pipedOutputStream.close();
-                return new MessageStreamWrapper(new JSONObject(metadata).toMap(), pipedInputStream);
+                return new MessageStreamWrapper(new JSONObject(new String(metadata)).toMap(), pipedInputStream);
             }
         } catch (Exception exception) {
             throw new EncryptionException("Error during message decryption.");

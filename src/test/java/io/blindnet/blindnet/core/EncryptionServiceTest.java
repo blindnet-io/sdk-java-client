@@ -15,6 +15,7 @@ import javax.crypto.SecretKey;
 
 import java.io.*;
 import java.security.KeyPair;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -27,7 +28,7 @@ public class EncryptionServiceTest extends AbstractTest {
     private KeyFactory keyFactory;
     private SecretKey secretKey;
     private KeyPair encryptionKeyPair;
-    private Map<String, Object> metadata;
+    private Map<String, Object> metadata = new HashMap<>();
     private String data;
 
     @Before

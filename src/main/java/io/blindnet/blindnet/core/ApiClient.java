@@ -11,7 +11,10 @@ import javax.crypto.spec.SecretKeySpec;
 import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
 import java.security.PublicKey;
+import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Base64;
+import java.util.UUID;
 
 import static io.blindnet.blindnet.core.ApiClientConstants.*;
 import static io.blindnet.blindnet.core.EncryptionConstants.*;
@@ -91,8 +94,10 @@ class ApiClient {
         requireNonNull(senderKeyEnvelope, "Sender Key Envelope cannot be null");
         requireNonNull(recipientKeyEnvelope, "Recipient Key Envelope cannot be null");
 
-        JSONArray requestBody = new JSONArray().put(new JSONObject(recipientKeyEnvelope))
-                .put(new JSONObject(senderKeyEnvelope));
+        JSONArray requestBody = new JSONArray().put(recipientKeyEnvelope.toJSON()
+                .put("envelopeSignature", recipientKeyEnvelope.getEnvelopeSignature()))
+                .put(senderKeyEnvelope.toJSON()
+                .put("envelopeSignature", senderKeyEnvelope.getEnvelopeSignature()));
 
         httpClient.post(ApiConfig.INSTANCE.getServerUrl() + SYMMETRIC_KEY_ENDPOINT_PATH,
                 requireNonNull(jwtConfig.getJwt(), "JWT not configured properly."),
@@ -115,12 +120,13 @@ class ApiClient {
                 requireNonNull(jwtConfig.getJwt(), "JWT not configured properly."));
 
         JSONObject responseBody = new JSONObject(new String(httpResponse.getBody()));
+
         KeyEnvelope keyEnvelope = new KeyEnvelope.Builder(responseBody.getString("envelopeID"))
+                .withVersion(responseBody.getString("envelopeVersion"))
                 .withEncryptedSymmetricKey(responseBody.getString("encryptedSymmetricKey"))
                 .withKeyOwnerID(responseBody.getString("keyOwnerID"))
                 .withRecipientID(responseBody.getString("recipientID"))
                 .withSenderID(responseBody.getString("senderID"))
-                .withVersion(responseBody.getString("envelopeVersion"))
                 .timestamp(responseBody.getString("timestamp"))
                 .build();
 

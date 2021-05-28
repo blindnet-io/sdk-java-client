@@ -1,6 +1,7 @@
 package io.blindnet.blindnet.core;
 
 import io.blindnet.blindnet.exception.SignatureException;
+import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -33,12 +34,12 @@ public class SigningServiceTest extends AbstractTest {
     @Test
     @DisplayName("Test signing object flow.")
     public void testSigningObjectFlow() {
-        byte[] signature = signingService.sign(object,
+        byte[] signature = signingService.sign(new JSONObject(object).toString().getBytes(),
                 signingKeyPair.getPrivate(),
                 Ed25519_ALGORITHM);
 
         assertNotNull(signature);
-        assertTrue(signingService.verify(object,
+        assertTrue(signingService.verify(new JSONObject(object).toString().getBytes(),
                 Base64.getEncoder().encodeToString(signature),
                 signingKeyPair.getPublic(),
                 Ed25519_ALGORITHM));
@@ -63,13 +64,13 @@ public class SigningServiceTest extends AbstractTest {
     @DisplayName("Test signing flow with invalid arguments.")
     public void testSigningFlowWithInvalidArgs() {
         SignatureException signSignatureException = assertThrows(SignatureException.class,
-                () -> signingService.sign(object,
+                () -> signingService.sign(new JSONObject(object).toString().getBytes(),
                         signingKeyPair.getPrivate(),
                         INVALID_EdDSA_ALGORITHM));
         assertTrue(signSignatureException.getMessage().contains("Error during signature creation."));
 
         SignatureException verifySignatureException = assertThrows(SignatureException.class,
-                () -> signingService.verify(object,
+                () -> signingService.verify(new JSONObject(object).toString().getBytes(),
                         "random_signature",
                         signingKeyPair.getPublic(),
                         INVALID_EdDSA_ALGORITHM));

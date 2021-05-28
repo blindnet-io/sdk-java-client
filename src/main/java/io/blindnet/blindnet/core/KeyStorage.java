@@ -52,7 +52,7 @@ class KeyStorage {
         requireNonNull(KeyStorageConfig.INSTANCE.getKeyFolderPath(), "Key storage not configured properly.");
         requireNonNull(privateKey, "Encryption private key cannot be null.");
 
-        store(privateKey, KeyStorageConfig.INSTANCE.getKeyFolderPath() + File.pathSeparator + ENCRYPTION_PRIVATE_KEY_FILENAME);
+        store(privateKey, KeyStorageConfig.INSTANCE.getKeyFolderPath() + ENCRYPTION_PRIVATE_KEY_FILENAME);
     }
 
     /**
@@ -61,7 +61,7 @@ class KeyStorage {
      * @return a private key object.
      */
     public PrivateKey readEncryptionPrivateKey() {
-        return read(KeyStorageConfig.INSTANCE.getKeyFolderPath() + File.pathSeparator + ENCRYPTION_PRIVATE_KEY_FILENAME);
+        return read(KeyStorageConfig.INSTANCE.getKeyFolderPath() + ENCRYPTION_PRIVATE_KEY_FILENAME);
     }
 
     /**
@@ -73,7 +73,7 @@ class KeyStorage {
         requireNonNull(KeyStorageConfig.INSTANCE.getKeyFolderPath(), "Key storage not configured properly.");
         requireNonNull(privateKey, "Signing private key cannot be null.");
 
-        store(privateKey, KeyStorageConfig.INSTANCE.getKeyFolderPath() + File.pathSeparator + SIGNING_PRIVATE_KEY_FILENAME);
+        store(privateKey, KeyStorageConfig.INSTANCE.getKeyFolderPath() + SIGNING_PRIVATE_KEY_FILENAME);
     }
 
     /**
@@ -82,7 +82,7 @@ class KeyStorage {
      * @return a private key object.
      */
     public PrivateKey readSigningPrivateKey() {
-        return read(KeyStorageConfig.INSTANCE.getKeyFolderPath() + File.pathSeparator + SIGNING_PRIVATE_KEY_FILENAME);
+        return read(KeyStorageConfig.INSTANCE.getKeyFolderPath() + SIGNING_PRIVATE_KEY_FILENAME);
     }
 
     /**

@@ -71,7 +71,7 @@ class KeyEnvelopeService {
      * @return a indication if signature is valid.
      */
     public boolean verify(KeyEnvelope keyEnvelope, String signature, PublicKey publicKey) {
-        return signingService.verify(keyEnvelope,
+        return signingService.verify(keyEnvelope.toJSON().toString().getBytes(),
                 signature,
                 publicKey,
                 Ed25519_ALGORITHM);
@@ -85,7 +85,9 @@ class KeyEnvelopeService {
      * @return a envelope signature.
      */
     private String sign(KeyEnvelope keyEnvelope, PrivateKey privateKey) {
-        return Base64.getEncoder().encodeToString(signingService.sign(keyEnvelope, privateKey, Ed25519_ALGORITHM));
+        return Base64.getEncoder().encodeToString(signingService.sign(keyEnvelope.toJSON().toString().getBytes(),
+                privateKey,
+                Ed25519_ALGORITHM));
     }
 
 }
