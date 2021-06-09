@@ -75,10 +75,6 @@ public class KeyFactoryTest extends AbstractTest {
         assertNotNull(ed25519KeyPair);
         assertNotNull(ed25519KeyPair.getPrivate());
         assertNotNull(ed25519KeyPair.getPublic());
-
-        KeyGenerationException generateKeyPairKGException = assertThrows(KeyGenerationException.class,
-                () -> keyFactory.generateKeyPair(Ed25519_ALGORITHM, INVALID_PROVIDER, -1));
-        assertTrue(generateKeyPairKGException.getMessage().contains("Invalid provider."));
     }
 
     @Test
@@ -123,6 +119,18 @@ public class KeyFactoryTest extends AbstractTest {
 
         assertNotNull(publicKey);
         assertEquals(publicKey.getAlgorithm(), RSA_ALGORITHM);
+    }
+
+    @Test
+    @DisplayName("Test conversion to Ed25519 private key.")
+    public void testConvertToEd25519PrivateKey() {
+        KeyPair signingKeyPair = keyFactory.generateKeyPair(Ed25519_ALGORITHM, BC_PROVIDER, -1);
+        PrivateKey privateKey = signingKeyPair.getPrivate();
+        PrivateKey convertedKey = keyFactory.convertToEd25519PrivateKey(privateKey.getEncoded());
+
+        assertNotNull(convertedKey);
+        assertNotNull(convertedKey.getEncoded());
+        assertArrayEquals(privateKey.getEncoded(), convertedKey.getEncoded());
     }
 
 }

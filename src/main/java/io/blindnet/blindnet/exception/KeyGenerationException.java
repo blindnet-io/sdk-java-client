@@ -9,4 +9,8 @@ public class KeyGenerationException extends RuntimeException {
         super(message);
     }
 
+    public KeyGenerationException(String s, Throwable throwable) {
+        super(s, throwable);
+    }
+
 }

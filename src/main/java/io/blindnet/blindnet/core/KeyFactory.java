@@ -2,9 +2,7 @@ package io.blindnet.blindnet.core;
 
 import io.blindnet.blindnet.exception.KeyConstructionException;
 import io.blindnet.blindnet.exception.KeyGenerationException;
-import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.edec.EdECObjectIdentifiers;
-import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.crypto.params.RSAKeyParameters;
@@ -79,7 +77,7 @@ class KeyFactory {
         requireNonNull(algorithm, "Algorithm name cannot be null.");
         requireNonNull(provider, "Provider name cannot be null.");
 
-        KeyPairGenerator keyPairGenerator = initialiseGenerator(algorithm, provider);
+        KeyPairGenerator keyPairGenerator = initialiseKeyPairGenerator(algorithm);
         if (keySize > 0) keyPairGenerator.initialize(keySize);
         return keyPairGenerator.generateKeyPair();
     }
@@ -159,12 +157,10 @@ class KeyFactory {
     public PrivateKey convertToEd25519PrivateKey(byte[] pkBytes) {
 
         try {
-            PrivateKeyInfo privateKeyInfo = new PrivateKeyInfo(new AlgorithmIdentifier(EdECObjectIdentifiers.id_Ed25519),
-                    new DEROctetString(pkBytes));
-            PKCS8EncodedKeySpec pkcs8KeySpec = new PKCS8EncodedKeySpec(privateKeyInfo.getEncoded());
+            PKCS8EncodedKeySpec pkcs8KeySpec = new PKCS8EncodedKeySpec(pkBytes);
             java.security.KeyFactory kf = initialiseKeyFactory(Ed25519_ALGORITHM);
             return kf.generatePrivate(pkcs8KeySpec);
-        } catch (GeneralSecurityException | IOException exception) {
+        } catch (GeneralSecurityException exception) {
             throw new KeyConstructionException("Error while converting private key.");
         }
     }
@@ -198,16 +194,13 @@ class KeyFactory {
      * Initialises key pair generator.
      *
      * @param algorithm an algorithm to be used.
-     * @param provider  a security provider.
      * @return a key pair generator object.
      */
-    private KeyPairGenerator initialiseGenerator(String algorithm, String provider) {
+    private KeyPairGenerator initialiseKeyPairGenerator(String algorithm) {
         try {
-            return KeyPairGenerator.getInstance(algorithm, provider);
+            return KeyPairGenerator.getInstance(algorithm);
         } catch (NoSuchAlgorithmException exception) {
-            throw new KeyGenerationException("Invalid algorithm.");
-        } catch (NoSuchProviderException exception) {
-            throw new KeyGenerationException("Invalid provider.");
+            throw new KeyGenerationException("Invalid algorithm. rr " + exception.getMessage(), exception);
         }
     }
 
@@ -221,7 +214,7 @@ class KeyFactory {
         try {
             return KeyGenerator.getInstance(algorithm);
         } catch (NoSuchAlgorithmException exception) {
-            throw new KeyGenerationException("Invalid algorithm.");
+            throw new KeyGenerationException("Invalid algorithm. rr2 " + exception.getMessage(), exception);
         }
     }
 
@@ -233,7 +226,7 @@ class KeyFactory {
      */
     private java.security.KeyFactory initialiseKeyFactory(String algorithm) {
         try {
-            return java.security.KeyFactory.getInstance(algorithm, BC_PROVIDER);
+            return java.security.KeyFactory.getInstance(algorithm);
         } catch (GeneralSecurityException exception) {
             throw new KeyConstructionException("Error initialising key factory.");
         }
