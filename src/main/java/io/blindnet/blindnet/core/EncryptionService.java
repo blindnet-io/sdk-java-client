@@ -4,6 +4,7 @@ import io.blindnet.blindnet.domain.MessageArrayWrapper;
 import io.blindnet.blindnet.domain.MessageStreamWrapper;
 import io.blindnet.blindnet.exception.EncryptionException;
 import io.blindnet.blindnet.exception.KeyEncryptionException;
+import io.blindnet.blindnet.internal.KeyFactory;
 import org.bouncycastle.jcajce.io.CipherInputStream;
 import org.bouncycastle.jcajce.io.CipherOutputStream;
 import org.json.JSONObject;
@@ -20,7 +21,7 @@ import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 
-import static io.blindnet.blindnet.core.EncryptionConstants.*;
+import static io.blindnet.blindnet.internal.EncryptionConstants.*;
 import static java.util.Objects.requireNonNull;
 
 /**

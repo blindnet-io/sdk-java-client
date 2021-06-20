@@ -1,6 +1,7 @@
 package io.blindnet.blindnet.core;
 
 import io.blindnet.blindnet.domain.KeyEnvelope;
+import io.blindnet.blindnet.internal.KeyFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -8,7 +9,7 @@ import org.junit.jupiter.api.DisplayName;
 import javax.crypto.SecretKey;
 import java.security.KeyPair;
 
-import static io.blindnet.blindnet.core.EncryptionConstants.*;
+import static io.blindnet.blindnet.internal.EncryptionConstants.*;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

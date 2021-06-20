@@ -5,6 +5,9 @@ import io.blindnet.blindnet.domain.MessageStreamWrapper;
 import io.blindnet.blindnet.domain.PublicKeys;
 import io.blindnet.blindnet.exception.BlindnetApiException;
 import io.blindnet.blindnet.exception.SignatureException;
+import io.blindnet.blindnet.internal.KeyFactory;
+import io.blindnet.blindnet.internal.KeyStorage;
+import io.blindnet.blindnet.internal.SigningService;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
@@ -26,7 +29,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static io.blindnet.blindnet.core.EncryptionConstants.*;
+import static io.blindnet.blindnet.internal.EncryptionConstants.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;

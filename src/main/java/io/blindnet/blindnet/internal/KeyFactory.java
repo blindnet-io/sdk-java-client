@@ -1,4 +1,4 @@
-package io.blindnet.blindnet.core;
+package io.blindnet.blindnet.internal;
 
 import io.blindnet.blindnet.exception.KeyConstructionException;
 import io.blindnet.blindnet.exception.KeyGenerationException;
@@ -19,15 +19,16 @@ import java.math.BigInteger;
 import java.security.*;
 import java.security.interfaces.RSAPrivateCrtKey;
 import java.security.spec.*;
+import java.util.Arrays;
 import java.util.Base64;
 
-import static io.blindnet.blindnet.core.EncryptionConstants.*;
+import static io.blindnet.blindnet.internal.EncryptionConstants.*;
 import static java.util.Objects.requireNonNull;
 
 /**
  * Provides API for operations with asymmetric key pairs and symmetric keys.
  */
-class KeyFactory {
+public class KeyFactory {
 
     /**
      * Generates secure random byte array.
@@ -65,6 +66,14 @@ class KeyFactory {
         return keyGenerator.generateKey();
     }
 
+    public KeyPair generateEd25519KeyPair() {
+        return generateKeyPair(Ed25519_ALGORITHM, BC_PROVIDER, -1);
+    }
+
+    public KeyPair generateRSAKeyPair() {
+        return generateKeyPair(RSA_ALGORITHM, BC_PROVIDER, RSA_KEY_SIZE_4096);
+    }
+
     /**
      * Generates asymmetric key pair.
      *
@@ -73,6 +82,7 @@ class KeyFactory {
      * @param keySize   a key size.
      * @return a key pair object.
      */
+    // todo convert this to private method
     public KeyPair generateKeyPair(String algorithm, String provider, int keySize) {
         requireNonNull(algorithm, "Algorithm name cannot be null.");
         requireNonNull(provider, "Provider name cannot be null.");
@@ -146,6 +156,10 @@ class KeyFactory {
         } catch (GeneralSecurityException | IOException exception) {
             throw new KeyConstructionException("Error while converting public key.");
         }
+    }
+
+    public byte[] encodeEd25519PublicKey(PublicKey publicKey) {
+        return Arrays.copyOfRange(publicKey.getEncoded(), 12, publicKey.getEncoded().length);
     }
 
     /**

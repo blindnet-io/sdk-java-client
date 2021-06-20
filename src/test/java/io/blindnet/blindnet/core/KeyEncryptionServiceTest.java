@@ -2,6 +2,13 @@ package io.blindnet.blindnet.core;
 
 import io.blindnet.blindnet.domain.HttpResponse;
 import io.blindnet.blindnet.domain.RsaJwk;
+import io.blindnet.blindnet.internal.HttpClient;
+import io.blindnet.blindnet.internal.KeyFactory;
+import io.blindnet.blindnet.internal.KeyStorage;
+import org.bouncycastle.asn1.DEROctetString;
+import org.bouncycastle.asn1.edec.EdECObjectIdentifiers;
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -10,12 +17,13 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import javax.crypto.SecretKey;
+import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.security.KeyPair;
 import java.util.Base64;
 import java.util.UUID;
 
-import static io.blindnet.blindnet.core.EncryptionConstants.*;
+import static io.blindnet.blindnet.internal.EncryptionConstants.*;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -73,15 +81,19 @@ public class KeyEncryptionServiceTest extends AbstractTest {
 
     @Test
     @DisplayName("Test decryption.")
-    public void testDecryption() {
+    public void testDecryption() throws IOException {
         String password = UUID.randomUUID().toString();
         byte[] salt = keyFactory.generateRandom(NONCE_IV_ALGORITHM, BC_PROVIDER, SALT_LENGTH);
         SecretKey secretKey = keyFactory.extractAesKeyFromPassword(password.toCharArray(),
                 salt,
                 PBKDF_SHA256);
+        PrivateKeyInfo privateKeyInfo = new PrivateKeyInfo(new AlgorithmIdentifier(EdECObjectIdentifiers.id_Ed25519),
+                new DEROctetString(signingKeyPair.getPrivate().getEncoded()));
+
         byte[] encryptedEPK = encryptionService.encrypt(secretKey,
                 new JSONObject(new RsaJwk(encryptionKeyPair.getPrivate())).toString().getBytes());
-        byte[] encryptedSPK = encryptionService.encrypt(secretKey, signingKeyPair.getPrivate().getEncoded());
+        byte[] encryptedSPK = encryptionService.encrypt(secretKey, privateKeyInfo.getEncoded());
+
 
         Base64.Encoder encoder = Base64.getEncoder();
         JSONObject jsonObject = new JSONObject().put("encryptedPrivateEncryptionKey", encoder.encodeToString(encryptedEPK))

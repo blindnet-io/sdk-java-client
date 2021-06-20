@@ -1,4 +1,4 @@
-package io.blindnet.blindnet.core;
+package io.blindnet.blindnet.internal;
 
 import io.blindnet.blindnet.exception.SignatureException;
 
@@ -11,7 +11,7 @@ import java.util.Base64;
 /**
  * Provides API for cryptographic signing and verification of the cryptographic signature.
  */
-class SigningService {
+public class SigningService {
 
     /**
      * Signs data using provided private key.

@@ -1,11 +1,11 @@
-package io.blindnet.blindnet.core;
+package io.blindnet.blindnet.internal;
 
 import static java.util.Objects.requireNonNull;
 
 /**
  * Provides Singleton instance for jwt configuration.
  */
-enum JwtConfig {
+public enum JwtConfig {
 
     /**
      * Jwt Config Instance.

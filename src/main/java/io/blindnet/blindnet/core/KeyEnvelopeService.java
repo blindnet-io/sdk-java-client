@@ -2,6 +2,8 @@ package io.blindnet.blindnet.core;
 
 import io.blindnet.blindnet.domain.KeyEnvelope;
 import io.blindnet.blindnet.domain.SymmetricJwk;
+import io.blindnet.blindnet.internal.KeyFactory;
+import io.blindnet.blindnet.internal.SigningService;
 import org.json.JSONObject;
 
 import javax.crypto.SecretKey;
@@ -11,7 +13,7 @@ import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.UUID;
 
-import static io.blindnet.blindnet.core.EncryptionConstants.Ed25519_ALGORITHM;
+import static io.blindnet.blindnet.internal.EncryptionConstants.Ed25519_ALGORITHM;
 
 /**
  * Provides API for operations related to Key Envelope Object.

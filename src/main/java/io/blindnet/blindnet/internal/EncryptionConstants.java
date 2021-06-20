@@ -1,9 +1,9 @@
-package io.blindnet.blindnet.core;
+package io.blindnet.blindnet.internal;
 
 /**
  * Provides constants that are used in encryption/decryption operations.
  */
-final class EncryptionConstants {
+public final class EncryptionConstants {
 
     private EncryptionConstants() {
     }

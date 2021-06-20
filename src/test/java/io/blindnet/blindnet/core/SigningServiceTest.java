@@ -1,6 +1,8 @@
 package io.blindnet.blindnet.core;
 
 import io.blindnet.blindnet.exception.SignatureException;
+import io.blindnet.blindnet.internal.KeyFactory;
+import io.blindnet.blindnet.internal.SigningService;
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -12,8 +14,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static io.blindnet.blindnet.core.EncryptionConstants.BC_PROVIDER;
-import static io.blindnet.blindnet.core.EncryptionConstants.Ed25519_ALGORITHM;
+import static io.blindnet.blindnet.internal.EncryptionConstants.BC_PROVIDER;
+import static io.blindnet.blindnet.internal.EncryptionConstants.Ed25519_ALGORITHM;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class SigningServiceTest extends AbstractTest {

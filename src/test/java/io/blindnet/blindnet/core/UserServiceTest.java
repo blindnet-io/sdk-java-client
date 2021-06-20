@@ -1,16 +1,14 @@
 package io.blindnet.blindnet.core;
 
 import io.blindnet.blindnet.domain.UserRegistrationResult;
+import io.blindnet.blindnet.internal.KeyFactory;
+import io.blindnet.blindnet.internal.KeyStorage;
+import io.blindnet.blindnet.internal.SigningService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
-import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SignatureException;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;

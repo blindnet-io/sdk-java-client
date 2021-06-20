@@ -1,6 +1,7 @@
 package io.blindnet.blindnet.core;
 
 import io.blindnet.blindnet.domain.*;
+import io.blindnet.blindnet.internal.*;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
@@ -21,9 +22,9 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.UUID;
 
-import static io.blindnet.blindnet.core.ApiClientConstants.PRIVATE_KEYS_ENDPOINT_PATH;
-import static io.blindnet.blindnet.core.ApiClientConstants.SYMMETRIC_KEY_ENDPOINT_PATH;
-import static io.blindnet.blindnet.core.EncryptionConstants.*;
+import static io.blindnet.blindnet.internal.ApiClientConstants.PRIVATE_KEYS_ENDPOINT_PATH;
+import static io.blindnet.blindnet.internal.ApiClientConstants.SYMMETRIC_KEY_ENDPOINT_PATH;
+import static io.blindnet.blindnet.internal.EncryptionConstants.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;

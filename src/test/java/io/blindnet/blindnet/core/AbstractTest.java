@@ -1,13 +1,12 @@
 package io.blindnet.blindnet.core;
 
+import io.blindnet.blindnet.internal.JwtConfig;
+import io.blindnet.blindnet.internal.KeyStorageConfig;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
 import java.io.File;
 import java.security.Security;
-
-import static io.blindnet.blindnet.core.EncryptionConstants.ENCRYPTION_PRIVATE_KEY_FILENAME;
-import static io.blindnet.blindnet.core.EncryptionConstants.SIGNING_PRIVATE_KEY_FILENAME;
 
 public class AbstractTest {
 

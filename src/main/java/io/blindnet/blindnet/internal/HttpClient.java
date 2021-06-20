@@ -1,4 +1,4 @@
-package io.blindnet.blindnet.core;
+package io.blindnet.blindnet.internal;
 
 import io.blindnet.blindnet.domain.HttpResponse;
 import io.blindnet.blindnet.exception.BlindnetApiException;
@@ -14,7 +14,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * Provides API to for standard HTTP methods.
  */
-class HttpClient {
+public class HttpClient {
 
     private static final String GET_METHOD = "GET";
     private static final String POST_METHOD = "POST";

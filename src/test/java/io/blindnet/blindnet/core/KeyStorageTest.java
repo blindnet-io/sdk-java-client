@@ -1,5 +1,8 @@
 package io.blindnet.blindnet.core;
 
+import io.blindnet.blindnet.internal.KeyFactory;
+import io.blindnet.blindnet.internal.KeyStorage;
+import io.blindnet.blindnet.internal.KeyStorageConfig;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -10,7 +13,7 @@ import java.security.PrivateKey;
 import java.util.Base64;
 import java.util.UUID;
 
-import static io.blindnet.blindnet.core.EncryptionConstants.*;
+import static io.blindnet.blindnet.internal.EncryptionConstants.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class KeyStorageTest extends AbstractTest {
@@ -34,7 +37,7 @@ public class KeyStorageTest extends AbstractTest {
     public void testStoreEncryptionKey() {
         keyStorage.storeEncryptionKey(rsaKeyPair.getPrivate());
         File encryptionKeyFile = new File(
-                KeyStorageConfig.INSTANCE.getKeyFolderPath() + File.pathSeparator + ENCRYPTION_PRIVATE_KEY_FILENAME);
+                KeyStorageConfig.INSTANCE.getKeyFolderPath() + ENCRYPTION_PRIVATE_KEY_FILENAME);
 
         assertNotNull(encryptionKeyFile);
         assertTrue(encryptionKeyFile.isFile());
@@ -57,7 +60,7 @@ public class KeyStorageTest extends AbstractTest {
     public void testStoreSigningKey() {
         keyStorage.storeSigningKey(ed25519keyPair.getPrivate());
         File signingKeyFile = new File(
-                KeyStorageConfig.INSTANCE.getKeyFolderPath() + File.pathSeparator + SIGNING_PRIVATE_KEY_FILENAME);
+                KeyStorageConfig.INSTANCE.getKeyFolderPath() + SIGNING_PRIVATE_KEY_FILENAME);
 
         assertNotNull(signingKeyFile);
         assertTrue(signingKeyFile.isFile());

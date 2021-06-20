@@ -5,7 +5,7 @@ import io.blindnet.blindnet.domain.MessageStreamWrapper;
 import io.blindnet.blindnet.domain.SymmetricJwk;
 import io.blindnet.blindnet.exception.EncryptionException;
 import io.blindnet.blindnet.exception.KeyEncryptionException;
-import io.blindnet.blindnet.exception.KeyGenerationException;
+import io.blindnet.blindnet.internal.KeyFactory;
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static io.blindnet.blindnet.core.EncryptionConstants.*;
+import static io.blindnet.blindnet.internal.EncryptionConstants.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class EncryptionServiceTest extends AbstractTest {

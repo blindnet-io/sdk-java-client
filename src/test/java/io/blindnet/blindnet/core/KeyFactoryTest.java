@@ -1,6 +1,7 @@
 package io.blindnet.blindnet.core;
 
 import io.blindnet.blindnet.exception.KeyGenerationException;
+import io.blindnet.blindnet.internal.KeyFactory;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
@@ -15,7 +16,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.Base64;
 
-import static io.blindnet.blindnet.core.EncryptionConstants.*;
+import static io.blindnet.blindnet.internal.EncryptionConstants.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class KeyFactoryTest extends AbstractTest {

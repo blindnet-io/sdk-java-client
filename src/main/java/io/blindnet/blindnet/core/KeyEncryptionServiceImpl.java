@@ -2,13 +2,15 @@ package io.blindnet.blindnet.core;
 
 import io.blindnet.blindnet.domain.PrivateKeys;
 import io.blindnet.blindnet.domain.RsaJwk;
+import io.blindnet.blindnet.internal.KeyFactory;
+import io.blindnet.blindnet.internal.KeyStorage;
 import org.json.JSONObject;
 
 import javax.crypto.SecretKey;
 import java.security.PrivateKey;
 import java.util.Base64;
 
-import static io.blindnet.blindnet.core.EncryptionConstants.*;
+import static io.blindnet.blindnet.internal.EncryptionConstants.*;
 
 /**
  * Default implementation of key encryption service.
@@ -69,7 +71,7 @@ class KeyEncryptionServiceImpl implements KeyEncryptionService {
         Base64.Decoder decoder = Base64.getDecoder();
         byte[] salt = decoder.decode(privateKeys.getKeyDerivationSalt());
         byte[] encryptedEPK = decoder.decode(privateKeys.getEncryptionKey());
-        byte[] encryptedSPK = decoder.decode(privateKeys.getEncryptionKey());
+        byte[] encryptedSPK = decoder.decode(privateKeys.getSigningKey());
 
         SecretKey secretKey = keyFactory.extractAesKeyFromPassword(password.toCharArray(),
                 salt,
