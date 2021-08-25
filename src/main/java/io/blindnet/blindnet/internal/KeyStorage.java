@@ -23,7 +23,6 @@ public class KeyStorage {
     /**
      * todo add readme
      */
-    public static final String DEVICE_ID_FILE_NAME = "device_id_file.txt";
     public static final String SIGNING_PRIVATE_KEY_ALIAS = "SIGNING_PRIVATE_KEY";
     public static final String ENCRYPTION_PRIVATE_KEY_ALIAS = "ENCRYPTION_PRIVATE_KEY";
 
@@ -54,21 +53,7 @@ public class KeyStorage {
         return InstanceHolder.instance;
     }
 
-    /**
-     * todo javadoc
-     * @param deviceId
-     */
-    public void storeDeviceID(String deviceId) {
-        try (PrintWriter out = new PrintWriter(KeyStorageConfig.INSTANCE.getKeyFolderPath() + DEVICE_ID_FILE_NAME)) {
-            out.println(deviceId);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-    }
 
-    public String readDeviceID() {
-        return "deviceid";
-    }
 
     /**
      * Stores a private used for encryption.
@@ -82,9 +67,8 @@ public class KeyStorage {
             storeKS(privateKey, ENCRYPTION_PRIVATE_KEY_ALIAS);
             return;
         }
-        Objects.requireNonNull(KeyStorageConfig.INSTANCE.getKeyFolderPath(), "Key storage not configured properly.");
+        requireNonNull(KeyStorageConfig.INSTANCE.getKeyFolderPath(), "Key storage not configured properly.");
         store(privateKey, KeyStorageConfig.INSTANCE.getKeyFolderPath() + ENCRYPTION_PRIVATE_KEY_FILENAME);
-
     }
 
     /**
@@ -126,7 +110,7 @@ public class KeyStorage {
     // todo javaddoc, android support
     public void storeEd25519PrivateKey(PrivateKey privateKey, String keyID) {
         requireNonNull(privateKey, "Private key cannot be null.");
-        requireNonNull(privateKey, "Id cannot be null.");
+        requireNonNull(keyID, "Id cannot be null.");
 
         store(privateKey, KeyStorageConfig.INSTANCE.getKeyFolderPath() + keyID + ".key");
     }
@@ -167,7 +151,7 @@ public class KeyStorage {
      * @param key      a key to be stored.
      * @param filepath a path of a file where the private key will be stored.
      */
-    private void store(Key key, String filepath) {
+    public void store(Key key, String filepath) {
         JcaPEMWriter writer = null;
         try {
             writer = new JcaPEMWriter(new OutputStreamWriter(new FileOutputStream(filepath)));

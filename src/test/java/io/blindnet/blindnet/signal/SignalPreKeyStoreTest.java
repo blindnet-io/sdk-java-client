@@ -1,4 +1,4 @@
 package io.blindnet.blindnet.signal;
 
-public class SignalKeyStorage {
+public class SignalPreKeyStoreTest {
 }

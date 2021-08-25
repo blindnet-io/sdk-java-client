@@ -7,16 +7,16 @@ public class BlindnetSignalProvider {
     private BlindnetSignalProvider() {
     }
 
-    public static BlindnetSignal getInstance(String keyFolderPath, String jwt) {
-        return new BlindnetSignalImpl(keyFolderPath, jwt);
+    public static BlindnetSignal getInstance(String dbPath, String jwt) {
+        return new BlindnetSignalImpl(dbPath, jwt);
     }
 
-    public static BlindnetSignal getInstance(String keyFolderPath, String jwt, String serverUrl) {
-        return new BlindnetSignalImpl(keyFolderPath, jwt, serverUrl);
+    public static BlindnetSignal getInstance(String dbPath, String jwt, String serverUrl) {
+        return new BlindnetSignalImpl(dbPath, jwt, serverUrl);
     }
 
     public static BlindnetSignal getAndroidInstance(String jwt) {
-        return new BlindnetSignalImpl(null, jwt);
+        return new BlindnetSignalImpl(null, null, jwt);
     }
 
     public static BlindnetSignal getAndroidInstance(String jwt, String serverUrl) {

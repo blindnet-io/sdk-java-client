@@ -17,5 +17,12 @@ public class ApiClientConstants {
     public static final String SIGNAL_USER_ENDPOINT_PATH = "/api/v1/signal/users";
     public static final String SIGNAL_DELETE_USER_ENDPOINT_PATH = "/api/v1/users/me";
     public static final String SIGNAL_FETCH_PUBLIC_KEYS_ENDPOINT_PATH = "/api/v1/signal/keys/";
+    public static final String SIGNAL_UPLOAD_PUBLIC_KEYS_ENDPOINT_PATH = "/api/v1/signal/keys/me";
+    public static final String SIGNAL_UPLOAD_BACKUP_ENDPOINT_PATH = "/api/v1/messages/backup";
+    public static final String SIGNAL_FETCH_BACKUP_MESSAGES_ENDPOINT_PATH = "/api/v1/messages/backup";
+    public static final String SIGNAL_FETCH_BACKUP_SALT_ENDPOINT_PATH = "/api/v1/messages/backup/salt";
+    public static final String SIGNAL_SEND_MESSAGE_ENDPOINT_PATH = "/api/v1/messages";
+    public static final String SIGNAL_FETCH_MESSAGE_IDS_ENDPOINT_PATH = "/api/v1/messages";
+    public static final String SIGNAL_FETCH_MESSAGES_ENDPOINT_PATH = "/api/v1/messages/content";
 
 }

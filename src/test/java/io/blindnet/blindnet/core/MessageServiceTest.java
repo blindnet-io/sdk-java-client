@@ -1,10 +1,12 @@
 package io.blindnet.blindnet.core;
 
 import io.blindnet.blindnet.domain.MessageArrayWrapper;
+import io.blindnet.blindnet.domain.MessageArrayWrapperTest;
 import io.blindnet.blindnet.domain.MessageStreamWrapper;
 import io.blindnet.blindnet.domain.PublicKeys;
 import io.blindnet.blindnet.exception.BlindnetApiException;
 import io.blindnet.blindnet.exception.SignatureException;
+import io.blindnet.blindnet.internal.EncryptionService;
 import io.blindnet.blindnet.internal.KeyFactory;
 import io.blindnet.blindnet.internal.KeyStorage;
 import io.blindnet.blindnet.internal.SigningService;

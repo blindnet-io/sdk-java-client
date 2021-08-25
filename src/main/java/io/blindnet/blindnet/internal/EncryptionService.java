@@ -1,4 +1,4 @@
-package io.blindnet.blindnet.core;
+package io.blindnet.blindnet.internal;
 
 import io.blindnet.blindnet.domain.MessageArrayWrapper;
 import io.blindnet.blindnet.domain.MessageStreamWrapper;
@@ -16,6 +16,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.net.HttpURLConnection;
 import java.nio.ByteBuffer;
 import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
@@ -27,7 +28,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * Provides API for encryption/decryption related operations.
  */
-class EncryptionService {
+public class EncryptionService {
 
     private final KeyFactory keyFactory;
 
@@ -45,25 +46,7 @@ class EncryptionService {
     public byte[] encryptMessage(SecretKey secretKey, MessageArrayWrapper messageWrapper) {
         requireNonNull(secretKey, "Secret key cannot be null.");
         requireNonNull(messageWrapper, "Message wrapper cannot be null.");
-
-        byte[] metadataBA = new JSONObject(messageWrapper.getMetadata()).toString().getBytes();
-        byte[] metadataLengthBA = ByteBuffer.allocate(4).putInt(metadataBA.length).array();
-
-        /*
-         * Creates data array of:
-         * 1. a length of message metadata
-         * 2. a message metadata
-         * 3. a message data
-         */
-        byte[] data = ByteBuffer.allocate(metadataLengthBA.length +
-                metadataBA.length +
-                messageWrapper.getData().length)
-                .put(metadataLengthBA)
-                .put(metadataBA)
-                .put(messageWrapper.getData())
-                .array();
-
-        return encrypt(secretKey, data);
+        return encrypt(secretKey, messageWrapper.prepare());
     }
 
     /**
@@ -77,25 +60,8 @@ class EncryptionService {
         requireNonNull(secretKey, "Secret key cannot be null.");
         requireNonNull(data, "Input data cannot be null.");
 
-        ByteBuffer decryptedDataWrapper = ByteBuffer.wrap(
-                requireNonNull(decrypt(secretKey, data)));
-
-        /*
-         * 1. reads a length of message metadata
-         * 2. based on step 1 reads message metadata
-         * 3. reads a message data which is what is left in the input
-         */
-        byte[] decryptedMetadataLengthBA = new byte[4];
-        decryptedDataWrapper.get(decryptedMetadataLengthBA);
-        int metadataLength = ByteBuffer.wrap(decryptedMetadataLengthBA).getInt();
-
-        byte[] decryptedMetadata = new byte[metadataLength];
-        decryptedDataWrapper.get(decryptedMetadata);
-
-        byte[] decryptedData = new byte[decryptedDataWrapper.remaining()];
-        decryptedDataWrapper.get(decryptedData);
-
-        return new MessageArrayWrapper(new JSONObject(new String(decryptedMetadata)).toMap(), decryptedData);
+        return MessageArrayWrapper.process(ByteBuffer.wrap(
+                requireNonNull(decrypt(secretKey, data))));
     }
 
     /**
@@ -199,7 +165,65 @@ class EncryptionService {
         } catch (Exception exception) {
             throw new EncryptionException("Error during message decryption.");
         }
+    }
 
+    public InputStream encrypt(SecretKey secretKey, InputStream input) {
+        requireNonNull(secretKey, "Secret key cannot be null.");
+        requireNonNull(input, "Input cannot be null.");
+
+        // todo duplicated parts
+        try {
+            byte[] iv = keyFactory.generateRandom(NONCE_IV_ALGORITHM, BC_PROVIDER, GCM_IV_LENGTH);
+
+            Cipher cipher = Cipher.getInstance(AES_GCM_NO_PADDING_ALGORITHM);
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey, new GCMParameterSpec(GCM_T_LENGTH, iv));
+
+            PipedOutputStream pipedOutputStream = new PipedOutputStream();
+            PipedInputStream pipedInputStream = new PipedInputStream(pipedOutputStream);
+            pipedOutputStream.write(iv);
+            try (CipherOutputStream cipherOut = new CipherOutputStream(pipedOutputStream, cipher)) {
+                byte[] buf = new byte[4096];
+                int length;
+                while ((length = input.read(buf)) > 0) {
+                    cipherOut.write(buf, 0, length);
+                }
+                input.close();
+
+                return pipedInputStream;
+            }
+        } catch (Exception exception) {
+            throw new EncryptionException("Error during encryption.");
+        }
+    }
+
+    public InputStream decrypt(SecretKey secretKey, HttpURLConnection con) {
+        requireNonNull(secretKey, "Secret key cannot be null.");
+        requireNonNull(con, "Connection cannot be null.");
+
+        byte[] iv = new byte[GCM_IV_LENGTH];
+        try {
+            InputStream input = con.getInputStream();
+            input.read(iv);
+
+            Cipher cipher = Cipher.getInstance(AES_GCM_NO_PADDING_ALGORITHM);
+            cipher.init(Cipher.DECRYPT_MODE, secretKey, new GCMParameterSpec(GCM_T_LENGTH, iv));
+
+            PipedOutputStream pipedOutputStream = new PipedOutputStream();
+            PipedInputStream pipedInputStream = new PipedInputStream(pipedOutputStream);
+
+            try (CipherInputStream cipherIn = new CipherInputStream(input, cipher)) {
+                byte[] buf = new byte[4096];
+                int length;
+                while ((length = cipherIn.read(buf)) > 0) {
+                    pipedOutputStream.write(buf, 0, length);
+                }
+                pipedOutputStream.close();
+                con.disconnect();
+                return pipedInputStream;
+            }
+        } catch (Exception exception) {
+            throw new EncryptionException("Error during message decryption.");
+        }
     }
 
     /**

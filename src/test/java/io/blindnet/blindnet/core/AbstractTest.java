@@ -29,7 +29,6 @@ public class AbstractTest {
 
     @AfterClass
     public static void classCleanup() {
-
         deleteFolder(new File(KeyStorageConfig.INSTANCE.getKeyFolderPath()));
     }
 

@@ -1,6 +1,7 @@
 package io.blindnet.blindnet.internal;
 
 import io.blindnet.blindnet.domain.HttpResponse;
+import io.blindnet.blindnet.domain.HttpStreamResponse;
 import io.blindnet.blindnet.exception.BlindnetApiException;
 import io.blindnet.blindnet.exception.InvalidJwtException;
 
@@ -58,6 +59,10 @@ public class HttpClient {
         return sendRequest(url, jwt, requestBody, POST_METHOD);
     }
 
+    public HttpResponse post(String url, String jwt, InputStream requestBody) {
+        return sendRequest(url, jwt, requestBody, POST_METHOD);
+    }
+
     /**
      * Sends HTTP Put request.
      *
@@ -89,6 +94,19 @@ public class HttpClient {
         return createResponse(con, url);
     }
 
+    public HttpURLConnection getAsStream(String url, String jwt) {
+        requireNonNull(url, "Url cannot be null.");
+        requireNonNull(jwt, "JWT cannot be null.");
+
+        HttpURLConnection con = init(url, GET_METHOD);
+
+        con.setRequestProperty("Authorization", "Bearer " + jwt);
+        con.setRequestProperty("Accept", "application/json");
+
+        validateResponse(con, url);
+        return con;
+    }
+
     /**
      * Sends HTTP Delete request.
      *
@@ -118,17 +136,32 @@ public class HttpClient {
      * @return a http response object.
      */
     private HttpResponse sendRequest(String url, String jwt, byte[] requestBody, String method) {
-        requireNonNull(url, "Url cannot be null.");
         requireNonNull(requestBody, "Request body cannot be null.");
+
+        HttpURLConnection con = initSendRequest(url, jwt, method);
+        sendRequestBody(con, requestBody);
+        return createResponse(con, url);
+    }
+
+    private HttpResponse sendRequest(String url, String jwt, InputStream requestBody, String method) {
+        requireNonNull(requestBody, "Request body cannot be null.");
+
+        HttpURLConnection con = initSendRequest(url, jwt, method);
+        sendRequestBody(con, requestBody);
+
+        return createResponse(con, url);
+    }
+
+    private HttpURLConnection initSendRequest(String url, String jwt, String method) {
+        requireNonNull(url, "Url cannot be null.");
+        requireNonNull(method, "Method cannot be null.");
 
         HttpURLConnection con = init(url, method);
         con.setRequestProperty("Authorization", "Bearer " + jwt);
         con.setRequestProperty("Content-Type", "application/json; utf-8");
         con.setRequestProperty("Accept", "application/json");
 
-        sendRequestBody(con, requestBody);
-
-        return createResponse(con, url);
+        return con;
     }
 
     /**
@@ -148,6 +181,17 @@ public class HttpClient {
         }
     }
 
+    private void sendRequestBody(HttpURLConnection con, InputStream requestBody) {
+        try {
+            con.setDoOutput(true);
+            try (OutputStream os = con.getOutputStream()) {
+                requestBody.transferTo(os);
+            }
+        } catch (IOException exception) {
+            throw new BlindnetApiException("Error sending request to Blindnet API.");
+        }
+    }
+
     /**
      * Creates a response of the request.
      *
@@ -156,6 +200,22 @@ public class HttpClient {
      * @return a http response object.
      */
     private HttpResponse createResponse(HttpURLConnection con, String url) {
+        try {
+            int responseCode = validateResponse(con, url);
+
+            byte[] response = parseResponse(con.getInputStream());
+            con.disconnect();
+
+            return new HttpResponse.Builder(responseCode)
+                    .withMessage(con.getResponseMessage())
+                    .withBody(response)
+                    .build();
+        } catch (IOException exception) {
+            throw new BlindnetApiException("Error parsing response from Blindnet API.");
+        }
+    }
+
+    private int validateResponse(HttpURLConnection con, String url) {
         try {
             int responseCode = con.getResponseCode();
 
@@ -172,14 +232,7 @@ public class HttpClient {
                 throw new BlindnetApiException(msg);
             }
 
-            // reading response
-            byte[] response = parseResponse(con.getInputStream());
-            con.disconnect();
-
-            return new HttpResponse.Builder(responseCode)
-                    .withMessage(con.getResponseMessage())
-                    .withBody(response)
-                    .build();
+            return responseCode;
         } catch (IOException exception) {
             throw new BlindnetApiException("Error parsing response from Blindnet API.");
         }

@@ -2,6 +2,7 @@ package io.blindnet.blindnet.core;
 
 import io.blindnet.blindnet.domain.HttpResponse;
 import io.blindnet.blindnet.domain.RsaJwk;
+import io.blindnet.blindnet.internal.EncryptionService;
 import io.blindnet.blindnet.internal.HttpClient;
 import io.blindnet.blindnet.internal.KeyFactory;
 import io.blindnet.blindnet.internal.KeyStorage;

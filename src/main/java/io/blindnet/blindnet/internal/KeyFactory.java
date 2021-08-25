@@ -8,6 +8,7 @@ import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.crypto.params.RSAKeyParameters;
 import org.bouncycastle.crypto.util.PublicKeyFactory;
 import org.json.JSONObject;
+import org.whispersystems.libsignal.ecc.ECPublicKey;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
