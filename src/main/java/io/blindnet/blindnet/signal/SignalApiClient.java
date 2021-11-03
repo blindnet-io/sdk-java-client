@@ -152,6 +152,7 @@ public class SignalApiClient {
     /**
      * Sends Signal encrypted message to the Blindnet api.
      *
+     * @param senderDeviceId id of sender's device.
      * @param recipientId id of a recipient.
      * @param recipientDeviceId id of recipient's device.
      * @param message encrypted message using Signal protocol.
@@ -163,7 +164,8 @@ public class SignalApiClient {
      *
      * @return a signal message sending result object.
      */
-    public SignalSendMessageResult sendMessage(String recipientId,
+    public SignalSendMessageResult sendMessage(String senderDeviceId,
+                                               String recipientId,
                                                String recipientDeviceId,
                                                String message,
                                                String timestamp,
@@ -178,11 +180,12 @@ public class SignalApiClient {
         requireNonNull(timestamp, "Timestamp cannot be null.");
         requireNonNull(protocolVersion, "Protocol version cannot be null.");
 
-        // todo check how to send timestamp
+        // todo typos
         JSONObject requestBody = new JSONObject().put("recipirntID", recipientId)
+                .put("senderDeviceId", senderDeviceId)
                 .put("recipientDeviceID", recipientDeviceId)
                 .put("message", message)
-                //.put("timestamp", timestamp)
+                .put("timestamp", timestamp)
                 .put("protocolVersion", protocolVersion);
 
         if (nonNull(diffieHellmanKey) && !diffieHellmanKey.isEmpty()) {
@@ -191,8 +194,8 @@ public class SignalApiClient {
 
         if (nonNull(publicIdentityKey) && nonNull(publicEphemeralKey)) {
             JSONObject senderKeys = new JSONObject().put("publicIk", publicIdentityKey)
-                    .put("publicEk", publicEphemeralKey);
-            requestBody.put("senderKeys", senderKeys);
+                    .put("publikEk", publicEphemeralKey);
+            requestBody.put("senderKeys", new JSONArray().put(senderKeys));
         }
 
         HttpResponse httpResponse = httpClient.post(apiConfig.getServerUrl() + SIGNAL_SEND_MESSAGE_ENDPOINT_PATH,
@@ -202,8 +205,21 @@ public class SignalApiClient {
         return new SignalSendMessageResult(httpResponse.getStatus() == HttpURLConnection.HTTP_OK, httpResponse.getMessage());
     }
 
+    // todo java doc
+    public List<SignalDeviceIds> fetchUserDeviceIds(String userId) {
+        requireNonNull(userId, "User id cannot be null.");
+
+        HttpResponse httpResponse = httpClient.get(apiConfig.getServerUrl() + SIGNAL_FETCH_USER_DEVICE_IDS + "?id=" + userId,
+                requireNonNull(jwtConfig.getJwt(), "JWT not configured properly."));
+
+        JSONArray response = new JSONArray(new String(httpResponse.getBody()));
+        List<SignalDeviceIds> result = new ArrayList<>();
+        response.forEach(obj -> result.add(SignalDeviceIds.create((JSONObject) obj)));
+        return result;
+    }
+
     /**
-     * Fetches all user messages.
+     * Fetches all user messages and returns comma separated list of message ids.
      *
      * @param deviceId id of the device.
      */
@@ -217,21 +233,18 @@ public class SignalApiClient {
         return list.substring(1, list.length() - 1);
     }
 
+    // todo java doc
     public List<BlindnetSignalMessage> fetchMessages(String deviceId, String messageIds) {
         requireNonNull(deviceId, "Device id cannot be null.");
         requireNonNull(messageIds, "Message ids cannot be null.");
 
-        String urlQueryParams = "?deviceID" + deviceId + "&messageIDs=" + messageIds;
+        String urlQueryParams = "?deviceID=" + deviceId + "&messageIDs=" + messageIds;
         HttpResponse httpResponse = httpClient.get(apiConfig.getServerUrl() + SIGNAL_FETCH_MESSAGES_ENDPOINT_PATH + urlQueryParams,
                 requireNonNull(jwtConfig.getJwt(), "JWT not configured properly."));
 
         JSONArray response = new JSONArray(new String(httpResponse.getBody()));
         List<BlindnetSignalMessage> result = new ArrayList<>();
-
-        // todo refactor
-        for (int i = 0; i < response.length(); ++i) {
-            result.add(BlindnetSignalMessage.create(response.getJSONObject(i)));
-        }
+        response.forEach(obj -> result.add(BlindnetSignalMessage.create((JSONObject) obj)));
         return result;
     }
 

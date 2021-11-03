@@ -14,6 +14,7 @@ public class BlindnetSignalImpl implements BlindnetSignal {
     private final SignalUserService signalUserService;
     private final SignalEncryptionService signalEncryptionService;
     private final SignalBackupService signalBackupService;
+    private final SignalIdentityDatabase signalIdentityDatabase;
 
     public BlindnetSignalImpl(String dbPath, String jwt, String serverUrl) {
         this(dbPath, jwt);
@@ -33,7 +34,7 @@ public class BlindnetSignalImpl implements BlindnetSignal {
         DatabaseService databaseService = new DatabaseService();
 
         SignalSessionDatabase signalSessionDatabase = new SignalSessionDatabase(databaseService);
-        SignalIdentityDatabase signalIdentityDatabase = new SignalIdentityDatabase(databaseService);
+        signalIdentityDatabase = new SignalIdentityDatabase(databaseService);
         SignalSignedPreKeyDatabase signalSignedPreKeyDatabase = new SignalSignedPreKeyDatabase(databaseService);
         SignalPreKeyDatabase signalPreKeyDatabase = new SignalPreKeyDatabase(databaseService);
 
@@ -82,8 +83,8 @@ public class BlindnetSignalImpl implements BlindnetSignal {
     }
 
     @Override
-    public List<MessageArrayWrapper> decryptMessage(String recipientId, String deviceID) {
-        return signalEncryptionService.decryptMessage(recipientId, deviceID);
+    public List<MessageArrayWrapper> decryptMessage(String deviceID) {
+        return signalEncryptionService.decryptMessage(deviceID);
     }
 
     @Override
@@ -104,6 +105,11 @@ public class BlindnetSignalImpl implements BlindnetSignal {
     @Override
     public InputStream recoverMessagesAsStream(String password) {
         return signalBackupService.recoverAsStream(password);
+    }
+
+    @Override
+    public int readDeviceId() {
+        return signalIdentityDatabase.readLocalDeviceId();
     }
 
 }

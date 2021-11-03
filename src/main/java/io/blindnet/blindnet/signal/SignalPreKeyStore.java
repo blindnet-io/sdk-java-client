@@ -62,6 +62,7 @@ public class SignalPreKeyStore implements PreKeyStore {
     public void removePreKey(int preKeyId) {
         signalPreKeyDatabase.delete(preKeyId);
 
+        // FR-SDK22
         if (signalPreKeyDatabase.countPreKeys() < 6) {
             int startId = ThreadLocalRandom.current().nextInt();
             List<PreKeyRecord> preKeys = KeyHelper.generatePreKeys(startId, 10);

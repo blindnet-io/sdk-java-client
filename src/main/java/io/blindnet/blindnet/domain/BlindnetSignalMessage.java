@@ -7,6 +7,7 @@ public class BlindnetSignalMessage {
 
     private final int id;
     private final String senderID;
+    private final String senderDeviceID;
     private final String recipientID;
     private final String recipientDeviceID;
     private final String protocolVersion;
@@ -21,6 +22,7 @@ public class BlindnetSignalMessage {
 
     public BlindnetSignalMessage(int id,
                                  String senderID,
+                                 String senderDeviceID,
                                  String recipientID,
                                  String recipientDeviceID,
                                  String protocolVersion,
@@ -35,6 +37,7 @@ public class BlindnetSignalMessage {
 
         this.id = id;
         this.senderID = senderID;
+        this.senderDeviceID = senderDeviceID;
         this.recipientID = recipientID;
         this.recipientDeviceID = recipientDeviceID;
         this.protocolVersion = protocolVersion;
@@ -49,22 +52,28 @@ public class BlindnetSignalMessage {
     }
 
     public static BlindnetSignalMessage create(JSONObject responseBody) {
+        // todo refactor
         return new BlindnetSignalMessage(responseBody.getInt("id"),
-                    responseBody.isNull("senderID") ? responseBody.getString("senderID"): null,
-                    responseBody.isNull("recipientID") ? responseBody.getString("recipientID"): null,
-                    responseBody.isNull("recipientDeviceID") ? responseBody.getString("recipientDeviceID"): null,
-                    responseBody.isNull("protocolVersion") ? responseBody.getString("protocolVersion"): null,
-                    responseBody.isNull("messageContent") ? responseBody.getString("messageContent"): null,
-                    responseBody.isNull("dhKey") ? responseBody.getString("dhKey"): null,
+                    responseBody.isNull("senderID") ? null: responseBody.getString("senderID"),
+                    responseBody.isNull("senderDeviceID") ? null: responseBody.getString("senderDeviceID"),
+                    responseBody.isNull("recipientID") ? null: responseBody.getString("recipientID"),
+                    // todo recipientDeviceID missing in response
+                    !responseBody.has("recipientDeviceID") || responseBody.isNull("recipientDeviceID") ? null: responseBody.getString("recipientDeviceID"),
+                    responseBody.isNull("protocolVersion") ? null: responseBody.getString("protocolVersion"),
+                    responseBody.isNull("messageContent") ? null: responseBody.getString("messageContent"),
+                    responseBody.isNull("dhKey") ? null: responseBody.getString("dhKey"),
                     responseBody.getString("timeSent"),
-                    responseBody.isNull("timeDelivered") ? responseBody.getString("timeDelivered"): null,
-                    responseBody.isNull("timeRead") ? responseBody.getString("timeRead"): null,
+                    responseBody.isNull("timeDelivered") ? null: responseBody.getString("timeDelivered"),
+                    // todo timeRead missing in response
+                    !responseBody.has("timeRead") || responseBody.isNull("timeRead") ? null: responseBody.getString("timeRead"),
                     new BlindnetSignalMessageSenderKeys(responseBody.getInt("id"),
-                            responseBody.isNull("publicIk") ? responseBody.getString("publicIk"): null,
-                            responseBody.isNull("publicEk") ? responseBody.getString("publicEk"): null,
-                            responseBody.getInt("messageID")),
-                    responseBody.isNull("senderApplicationID") ? responseBody.getString("senderApplicationID"): null,
-                    responseBody.isNull("recipientApplicationID") ? responseBody.getString("recipientApplicationID"): null);
+                            // todo publicIk missing in response
+                            !responseBody.has("publicIk") || responseBody.isNull("publicIk") ? null: responseBody.getString("publicIk"),
+                            // todo publicEk missing in response
+                            !responseBody.has("publicEk") || responseBody.isNull("publicEk") ? null: responseBody.getString("publicEk"),
+                            !responseBody.has("messageID") || responseBody.isNull("messageID") ? -1: responseBody.getInt("messageID")),
+                    responseBody.isNull("senderApplicationID") ? null: responseBody.getString("senderApplicationID"),
+                    responseBody.isNull("recipientApplicationID") ? null: responseBody.getString("recipientApplicationID"));
     }
 
     public int getId() {
@@ -73,6 +82,10 @@ public class BlindnetSignalMessage {
 
     public String getSenderID() {
         return senderID;
+    }
+
+    public String getSenderDeviceID() {
+        return senderDeviceID;
     }
 
     public String getRecipientID() {

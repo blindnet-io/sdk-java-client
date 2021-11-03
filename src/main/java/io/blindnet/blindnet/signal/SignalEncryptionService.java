@@ -10,6 +10,6 @@ public interface SignalEncryptionService {
     void encryptMessage(List<String> recipientIds, MessageArrayWrapper messageArrayWrapper);
 
     // FR-SDK20
-    List<MessageArrayWrapper> decryptMessage(String recipientId, String deviceId);
+    List<MessageArrayWrapper> decryptMessage(String deviceId);
 
 }

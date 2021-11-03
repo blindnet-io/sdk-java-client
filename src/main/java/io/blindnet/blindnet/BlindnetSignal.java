@@ -15,9 +15,9 @@ public interface BlindnetSignal {
 
     void unregister();
 
-    void encryptMessage(List<String> recipientIds, MessageArrayWrapper messageArrayWrapper);
+    void encryptMessage(List<String> recipientIds, MessageArrayWrapper messageArrayWrapper) throws InvalidKeyException;
 
-    List<MessageArrayWrapper> decryptMessage(String recipientId, String deviceID);
+    List<MessageArrayWrapper> decryptMessage(String deviceID);
 
     void backupMessages(String password, boolean newBackup, List<MessageArrayWrapper> messages);
 
@@ -26,5 +26,7 @@ public interface BlindnetSignal {
     List<MessageArrayWrapper> recoverMessages(String password);
 
     InputStream recoverMessagesAsStream(String password);
+
+    int readDeviceId();
 
 }

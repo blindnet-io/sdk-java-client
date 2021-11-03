@@ -9,6 +9,7 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 
 
@@ -224,7 +225,7 @@ public class HttpClient {
                         responseCode,
                         con.getResponseMessage(),
                         url,
-                        con.getErrorStream() != null ? new String(parseResponse(con.getErrorStream())) : "");
+                        nonNull(con.getErrorStream()) ? new String(parseResponse(con.getErrorStream())) : "");
                 if (responseCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
                     throw new InvalidJwtException(msg);
                 }

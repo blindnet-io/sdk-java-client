@@ -34,7 +34,11 @@ public class SignalSessionStore implements SessionStore {
     @Override
     public void storeSession(SignalProtocolAddress address, SessionRecord record) {
         synchronized (LOCK) {
-            signalSessionDatabase.store(address, record);
+            if (containsSession(address)) {
+                signalSessionDatabase.updateSession(address, record);
+            } else {
+                signalSessionDatabase.store(address, record);
+            }
         }
     }
 

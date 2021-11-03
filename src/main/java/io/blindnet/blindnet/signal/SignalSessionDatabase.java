@@ -23,8 +23,9 @@ public class SignalSessionDatabase {
     private static final String SESSION_RECORD_COLUMN = "session_record";
 
     private static final String INSERT_SESSION_STATEMENT = "INSERT INTO session (name, device_id, session_record) VALUES(?, ?, ?)";
+    private static final String UPDATE_SESSION_STATEMENT = "UPDATE session SET session_record = ? WHERE name = ? and device_id = ?";
     private static final String READ_SESSION_STATEMENT = "SELECT session_record FROM session WHERE name = ? AND device_id = ?";
-    private static final String READ_SESSIONS_BY_NAME_STATEMENT = "SELECT device_id FROM session WHERE name = ?";
+    private static final String READ_SESSIONS_BY_NAME_STATEMENT = "SELECT device_id FROM session WHERE name = ? AND device_id != 1";
     private static final String DELETE_SESSION_STATEMENT = "DELETE FROM session WHERE name = ? AND device_id = ?";
     private static final String DELETE_ALL_SESSIONS_STATEMENT = "DELETE FROM session WHERE name = ?";
 
@@ -43,6 +44,20 @@ public class SignalSessionDatabase {
             statement.setString(1, address.getName());
             statement.setInt(2, address.getDeviceId());
             statement.setBytes(3, record.serialize());
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public void updateSession(SignalProtocolAddress address, SessionRecord record) {
+        try (Connection conn = databaseService.connect();
+             PreparedStatement statement = conn.prepareStatement(UPDATE_SESSION_STATEMENT)) {
+
+            statement.setBytes(1, record.serialize());
+            statement.setString(2, address.getName());
+            statement.setInt(3, address.getDeviceId());
+
             statement.executeUpdate();
         } catch (SQLException e) {
             System.out.println(e.getMessage());
@@ -112,8 +127,8 @@ public class SignalSessionDatabase {
         String createSessionTableCmd = "CREATE TABLE IF NOT EXISTS " + SESSION_TABLE_NAME + " (\n"
                 + NAME_COLUMN + " text NOT NULL,\n"
                 + DEVICE_ID_COLUMN + " integer NOT NULL,\n"
-                + SESSION_RECORD_COLUMN + "	blob NOT NULL,\n"
-                + "UNIQUE(" + DEVICE_ID_COLUMN + "," + NAME_COLUMN + ")\n"
+                + SESSION_RECORD_COLUMN + "	blob NOT NULL\n"
+                //+ "UNIQUE(" + DEVICE_ID_COLUMN + "," + NAME_COLUMN + ")\n"
                 + ");";
 
         databaseService.createTable(createSessionTableCmd);
