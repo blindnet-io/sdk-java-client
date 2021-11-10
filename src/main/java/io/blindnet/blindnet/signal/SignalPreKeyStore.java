@@ -62,20 +62,20 @@ public class SignalPreKeyStore implements PreKeyStore {
     public void removePreKey(int preKeyId) {
         signalPreKeyDatabase.delete(preKeyId);
 
-        // FR-SDK22
-        if (signalPreKeyDatabase.countPreKeys() < 6) {
-            int startId = ThreadLocalRandom.current().nextInt();
-            List<PreKeyRecord> preKeys = KeyHelper.generatePreKeys(startId, 10);
-            preKeys.forEach(preKey -> storePreKey(preKey.getId(), preKey));
-
-            Map<String, String> listOfPublicPreKeys = new HashMap<>();
-            preKeys.forEach(key ->
-                    listOfPublicPreKeys.put(String.valueOf(key.getId()), Base64.getEncoder().encodeToString(
-                            signalKeyFactory.removeKeyTypeByte(key.getKeyPair().getPublicKey().serialize()))));
-
-            signalApiClient.uploadPreKeys(String.valueOf(signalIdentityDatabase.readLocalDeviceId()),
-                    listOfPublicPreKeys);
-        }
+        // FR-SDK22 // todo check
+//        if (signalPreKeyDatabase.countPreKeys() < 6) {
+//            int startId = ThreadLocalRandom.current().nextInt();
+//            List<PreKeyRecord> preKeys = KeyHelper.generatePreKeys(startId, 10);
+//            preKeys.forEach(preKey -> storePreKey(preKey.getId(), preKey));
+//
+//            Map<String, String> listOfPublicPreKeys = new HashMap<>();
+//            preKeys.forEach(key ->
+//                    listOfPublicPreKeys.put(String.valueOf(key.getId()), Base64.getEncoder().encodeToString(
+//                            signalKeyFactory.removeKeyTypeByte(key.getKeyPair().getPublicKey().serialize()))));
+//
+//            signalApiClient.uploadPreKeys(String.valueOf(signalIdentityDatabase.readLocalDeviceId()),
+//                    listOfPublicPreKeys);
+//        }
     }
 
 }

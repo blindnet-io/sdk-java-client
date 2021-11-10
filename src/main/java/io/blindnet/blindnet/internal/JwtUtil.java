@@ -1,4 +1,4 @@
-package io.blindnet.blindnet.core;
+package io.blindnet.blindnet.internal;
 
 import org.json.JSONObject;
 
@@ -7,7 +7,7 @@ import java.util.Base64;
 /**
  * Provides API for JWT related operations.
  */
-class JwtUtil {
+public class JwtUtil {
 
     private static final String USER_ID_FIELD = "uid";
 

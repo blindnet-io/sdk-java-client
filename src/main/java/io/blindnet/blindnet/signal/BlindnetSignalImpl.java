@@ -2,6 +2,7 @@ package io.blindnet.blindnet.signal;
 
 import io.blindnet.blindnet.BlindnetSignal;
 import io.blindnet.blindnet.domain.MessageArrayWrapper;
+import io.blindnet.blindnet.domain.MessageStreamWrapper;
 import io.blindnet.blindnet.domain.UserRegistrationResult;
 import io.blindnet.blindnet.internal.*;
 import org.whispersystems.libsignal.InvalidKeyException;
@@ -83,8 +84,18 @@ public class BlindnetSignalImpl implements BlindnetSignal {
     }
 
     @Override
-    public List<MessageArrayWrapper> decryptMessage(String deviceID) {
-        return signalEncryptionService.decryptMessage(deviceID);
+    public List<MessageArrayWrapper> decryptMessage(String deviceId) {
+        return signalEncryptionService.decryptMessage(deviceId);
+    }
+
+    @Override
+    public void encryptMessage(List<String> recipientIds, MessageStreamWrapper messageStreamWrapper) {
+        signalEncryptionService.encryptMessage(recipientIds, messageStreamWrapper);
+    }
+
+    @Override
+    public List<MessageStreamWrapper> decryptStreamMessage(String deviceId) {
+        return signalEncryptionService.decryptStreamMessage(deviceId);
     }
 
     @Override

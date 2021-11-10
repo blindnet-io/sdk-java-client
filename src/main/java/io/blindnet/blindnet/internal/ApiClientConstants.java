@@ -23,7 +23,9 @@ public class ApiClientConstants {
     public static final String SIGNAL_FETCH_BACKUP_MESSAGES_ENDPOINT_PATH = "/api/v1/messages/backup";
     public static final String SIGNAL_FETCH_BACKUP_SALT_ENDPOINT_PATH = "/api/v1/messages/backup/salt";
     public static final String SIGNAL_SEND_MESSAGE_ENDPOINT_PATH = "/api/v1/messages";
+    public static final String SIGNAL_SEND_STREAM_MESSAGE_ENDPOINT_PATH = "/api/v1/messages/stream";
     public static final String SIGNAL_FETCH_MESSAGE_IDS_ENDPOINT_PATH = "/api/v1/messages";
     public static final String SIGNAL_FETCH_MESSAGES_ENDPOINT_PATH = "/api/v1/messages/content";
+    public static final String SIGNAL_FETCH_MESSAGE_AS_STREAM_ENDPOINT_PATH = "/api/v1/messages/content/stream/";
 
 }

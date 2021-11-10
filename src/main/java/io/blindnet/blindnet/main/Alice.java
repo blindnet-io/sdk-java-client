@@ -35,15 +35,15 @@ public class Alice {
         // 8. alice responds
         // 9. bob reads message
         boolean REGISTER = true;
-        String BOB_USERNAME = "bob772";
+        String BOB_USERNAME = "bob505";
 
-        // username = alice772
         BlindnetSignal ALICE = BlindnetSignalProvider.getInstance(
                 "/Users/stefanveselinovic/Desktop/blindnetdb2/",
-                "eyJhbGciOiJFZERTQSIsInR5cCI6Imp3dCJ9.eyJhcHAiOiI0MWRmMTBlYS05NjY4LTQwMTItYjRiNS04NTYyM2UyNzc5N2YiLCJ1aWQiOiJhbGljZTc3MyIsIm5iZiI6MTYzNTkzMTI4NSwiZXhwIjoxNjM1OTc0NDg1LCJpYXQiOjE2MzU5MzEyODV9.SCrwqgaz1i4gIvZah4ScGGGl1TXTMcRyvmUvmIYhEILyurWafnyBWq9bWrQXBAxG308KtxUKYpi3AjF_-AmoDg");
+                "eyJhbGciOiJFZERTQSIsInR5cCI6Imp3dCJ9.eyJhcHAiOiI0MWRmMTBlYS05NjY4LTQwMTItYjRiNS04NTYyM2UyNzc5N2YiLCJ1aWQiOiJhbGljZTUwNSIsIm5iZiI6MTYzNjUyMDI5NywiZXhwIjoxNjM2NTYzNDk3LCJpYXQiOjE2MzY1MjAyOTd9.4HsHdbhYAt0RmVdiFUNREG6LRjnQUO4qPos5al5HQkQUsMvCwIY4DV6SVeOVuMX78tpcdOCgBnj_jd2hub4hBg");
         if (REGISTER) {
             UserRegistrationResult aliceRegistrationResult = ALICE.register();
             System.out.println("Alice registration result is: " + aliceRegistrationResult.isSuccessful());
+            // return;
         }
 
         // alice sends message

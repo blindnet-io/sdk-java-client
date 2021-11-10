@@ -6,7 +6,7 @@ import java.util.Map;
 /**
  * A wrapper object of the message represented as input stream and message data.
  */
-public final class MessageStreamWrapper {
+public final class MessageStreamWrapper implements MessageWrapper {
 
     /**
      * A metadata of the message.

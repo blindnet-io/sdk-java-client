@@ -9,7 +9,7 @@ public class DatabaseService {
 
     private static final String URL_PREFIX = "jdbc:sqlite:";
 
-    // todo singleton, transaction management, exception handling, javadoc
+    // todo singleton, exception handling, javadoc
 
     public static String URL;
 

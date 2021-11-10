@@ -123,11 +123,16 @@ public class SignalApiClient {
      *
      * @param recipientID id of a recipient.
      */
-    public List<BlindnetSignalPublicKeys> fetchPublicKeys(String recipientID) {
+    public List<BlindnetSignalPublicKeys> fetchPublicKeys(String recipientID, String deviceIds) {
         requireNonNull(recipientID, "Recipient ID cannot be null.");
 
-        HttpResponse httpResponse = httpClient.get(apiConfig.getServerUrl() + SIGNAL_FETCH_PUBLIC_KEYS_ENDPOINT_PATH + recipientID,
-                requireNonNull(jwtConfig.getJwt(), "JWT not configured properly."));
+        String url = apiConfig.getServerUrl() + SIGNAL_FETCH_PUBLIC_KEYS_ENDPOINT_PATH + recipientID;
+
+        if (nonNull(deviceIds)) {
+            url += "deviceID=" + deviceIds;
+        }
+
+        HttpResponse httpResponse = httpClient.get(url, requireNonNull(jwtConfig.getJwt(), "JWT not configured properly."));
 
         JSONArray responseBody = new JSONArray(new String(httpResponse.getBody()));
 
@@ -209,7 +214,7 @@ public class SignalApiClient {
     public List<SignalDeviceIds> fetchUserDeviceIds(String userId) {
         requireNonNull(userId, "User id cannot be null.");
 
-        HttpResponse httpResponse = httpClient.get(apiConfig.getServerUrl() + SIGNAL_FETCH_USER_DEVICE_IDS + "?id=" + userId,
+        HttpResponse httpResponse = httpClient.get(apiConfig.getServerUrl() + SIGNAL_FETCH_USER_DEVICE_IDS + userId,
                 requireNonNull(jwtConfig.getJwt(), "JWT not configured properly."));
 
         JSONArray response = new JSONArray(new String(httpResponse.getBody()));

@@ -8,7 +8,7 @@ import java.util.Map;
 /**
  * A wrapper object of the message represented as byte array and message data.
  */
-public final class MessageArrayWrapper {
+public final class MessageArrayWrapper implements MessageWrapper {
 
     /**
      * A metadata of the message.

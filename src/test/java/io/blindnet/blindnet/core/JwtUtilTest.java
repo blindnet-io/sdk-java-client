@@ -1,5 +1,6 @@
 package io.blindnet.blindnet.core;
 
+import io.blindnet.blindnet.internal.JwtUtil;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 

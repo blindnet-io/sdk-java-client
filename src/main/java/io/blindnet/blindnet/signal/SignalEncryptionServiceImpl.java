@@ -1,10 +1,9 @@
 package io.blindnet.blindnet.signal;
 
-import io.blindnet.blindnet.domain.MessageArrayWrapper;
-import io.blindnet.blindnet.domain.BlindnetSignalMessage;
-import io.blindnet.blindnet.domain.BlindnetSignalPublicKeys;
-import io.blindnet.blindnet.domain.SignalSendMessageResult;
+import io.blindnet.blindnet.domain.*;
 import io.blindnet.blindnet.exception.EncryptionException;
+import io.blindnet.blindnet.internal.JwtConfig;
+import io.blindnet.blindnet.internal.JwtUtil;
 import org.whispersystems.libsignal.*;
 import org.whispersystems.libsignal.protocol.CiphertextMessage;
 import org.whispersystems.libsignal.protocol.PreKeySignalMessage;
@@ -19,7 +18,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.lang.String.valueOf;
 
@@ -50,15 +52,11 @@ public class SignalEncryptionServiceImpl implements SignalEncryptionService {
 
     @Override
     public void encryptMessage(List<String> recipientIds, MessageArrayWrapper messageArrayWrapper) {
-        byte[] preparedMessage = messageArrayWrapper.prepare();
-        recipientIds.forEach(recipientId -> {
-            List<Integer> deviceIds = sessionStore.getSubDeviceSessions(recipientId);
-            if (deviceIds.isEmpty()) {
-                encryptNotExistingSession(recipientId, preparedMessage);
-            } else {
-                deviceIds.forEach(deviceId -> encrypt(new SignalProtocolAddress(recipientId, deviceId), preparedMessage));
-            }
-        });
+        int localDeviceId = signalIdentityKeyStore.getLocalDeviceId();
+        String currentUserId = JwtUtil.extractUserId(JwtConfig.INSTANCE.getJwt());
+
+        recipientIds.forEach(recipientId ->
+            calculateEncryption(recipientId, localDeviceId, currentUserId, messageArrayWrapper));
     }
 
     @Override
@@ -73,8 +71,114 @@ public class SignalEncryptionServiceImpl implements SignalEncryptionService {
         return result;
     }
 
-    private void encryptNotExistingSession(String recipientId, byte[] preparedMessage) {
-        List<BlindnetSignalPublicKeys> signalPublicKeysResponse = signalApiClient.fetchPublicKeys(recipientId);
+    @Override
+    public void encryptMessage(List<String> recipientIds, MessageStreamWrapper messageStreamWrapper) {
+        int localDeviceId = signalIdentityKeyStore.getLocalDeviceId();
+        String currentUserId = JwtUtil.extractUserId(JwtConfig.INSTANCE.getJwt());
+
+        recipientIds.forEach(recipientId ->
+                calculateEncryption(recipientId, localDeviceId, currentUserId, messageStreamWrapper));
+    }
+
+    @Override
+    public List<MessageStreamWrapper> decryptStreamMessage(String deviceId) {
+        String messageIds = signalApiClient.fetchMessageIds(deviceId);
+        if (messageIds.isBlank()) {
+            List.of();
+        }
+        // todo fetch stream
+//        List<BlindnetSignalMessage> messages = signalApiClient.fetchMessages(deviceId, messageIds);
+//        List<MessageStreamWrapper> result = new ArrayList<>();
+//        messages.forEach(message -> result.add(decrypt(message)));
+        return null;
+    }
+
+    private void calculateEncryption(String recipientId,
+                                     int localDeviceId,
+                                     String currentUserId,
+                                     MessageWrapper messageWrapper) {
+        List<Integer> deviceIds = sessionStore.getSubDeviceSessions(recipientId);
+
+        // if there are no sessions with recipient devices, we send message to all devices of that recipient
+        // and to all other devices of this user
+        if (deviceIds.isEmpty()) {
+            // public keys of all recipient devices
+            List<BlindnetSignalPublicKeys> recipientPublicKeys = signalApiClient.fetchPublicKeys(recipientId, null);
+
+            // list of other devices of this user
+            List<String> currentUserDevices = signalApiClient.fetchUserDeviceIds(currentUserId)
+                    .stream()
+                    .map(SignalDeviceIds::getDeviceId)
+                    .filter(deviceId -> !deviceId.equals(String.valueOf(localDeviceId)))
+                    .collect(Collectors.toList());
+
+            // public keys of other devices of this user
+            List<BlindnetSignalPublicKeys> currentUserOtherDevicesPublicKeys = currentUserDevices.isEmpty() ?
+                    List.of() :
+                    signalApiClient.fetchPublicKeys(recipientId, String.join(",", currentUserDevices));
+
+            encryptNotExistingSession(recipientId,
+                    Stream.of(recipientPublicKeys, currentUserOtherDevicesPublicKeys)
+                            .flatMap(Collection::stream)
+                            .collect(Collectors.toList()),
+                    messageWrapper);
+        }
+        // if there are sessions with recipient devices and some of other devices of this user,
+        // we send a session message to all these devices
+        // and create new sessions for all devices we do not have session with at the moment
+        else {
+            // list of all devices of recipient
+            List<SignalDeviceIds> recipientDevices = signalApiClient.fetchUserDeviceIds(recipientId);
+
+            // list of all devices of recipient that current user does not have session with
+            List<String> recipientNoSessionDeviceIds = recipientDevices
+                    .stream()
+                    .map(SignalDeviceIds::getDeviceId)
+                    .filter(deviceId -> !deviceIds.contains(Integer.valueOf(deviceId)))
+                    .collect(Collectors.toList());
+
+            // list of public keys of all devices of recipient
+            // that current user does not have session with
+            List<BlindnetSignalPublicKeys> recipientPublicKeys = recipientNoSessionDeviceIds.isEmpty() ?
+                    List.of() :
+                    signalApiClient.fetchPublicKeys(recipientId, String.join(",", recipientNoSessionDeviceIds));
+
+            // list of all devices of the current user excluding current device
+            List<SignalDeviceIds> currentUserDevices = signalApiClient.fetchUserDeviceIds(currentUserId)
+                    .stream()
+                    .filter(deviceId -> !deviceId.getDeviceId().equals(String.valueOf(localDeviceId)))
+                    .collect(Collectors.toList());
+
+            // list of all devices of the current user
+            // that current device does not have session with
+            List<String> currentUserNoSessionDeviceIds = currentUserDevices
+                    .stream()
+                    .map(SignalDeviceIds::getDeviceId)
+                    .filter(deviceId -> !deviceIds.contains(Integer.valueOf(deviceId)))
+                    .collect(Collectors.toList());
+
+            // list of public keys of all devices of current user
+            // that current device does not have session with
+            List<BlindnetSignalPublicKeys> currentUserOtherDevicesPublicKeys = currentUserNoSessionDeviceIds.isEmpty() ?
+                    List.of() :
+                    signalApiClient.fetchPublicKeys(recipientId, String.join(",", currentUserNoSessionDeviceIds));
+
+            // send message and create session with devices there is no session with at the moment
+            encryptNotExistingSession(recipientId,
+                    Stream.of(recipientPublicKeys, currentUserOtherDevicesPublicKeys)
+                            .flatMap(Collection::stream)
+                            .collect(Collectors.toList()),
+                    messageWrapper);
+
+            // send message to all devices there is a session with already
+            deviceIds.forEach(deviceId -> encrypt(new SignalProtocolAddress(recipientId, deviceId), messageWrapper));
+        }
+    }
+
+    private void encryptNotExistingSession(String recipientId,
+                                           List<BlindnetSignalPublicKeys> signalPublicKeysResponse,
+                                           MessageWrapper messageWrapper) {
+
         signalPublicKeysResponse.forEach(spk -> {
             SignalProtocolAddress address = new SignalProtocolAddress(recipientId, Integer.parseInt(spk.getDeviceID()));
             SessionBuilder sessionBuilder = new SessionBuilder(sessionStore,
@@ -94,22 +198,30 @@ public class SignalEncryptionServiceImpl implements SignalEncryptionService {
 
             try {
                 sessionBuilder.process(preKeyBundle);
-                encrypt(address, preparedMessage);
+                encrypt(address, messageWrapper);
             } catch (UntrustedIdentityException | InvalidKeyException exception) {
                 throw new EncryptionException("Error cannot create signal session.");
             }
         });
     }
 
-    private SignalSendMessageResult encrypt(SignalProtocolAddress address, byte[] data) {
+    private SignalSendMessageResult encrypt(SignalProtocolAddress address, MessageWrapper messageWrapper) {
         CiphertextMessage message;
+        byte[] preparedMessage;
+        if (messageWrapper instanceof MessageArrayWrapper) {
+            preparedMessage = ((MessageArrayWrapper) messageWrapper).prepare();
+        } else {
+            // todo is stream wrapper
+            // todo send stream to blindnet api
+            preparedMessage = new byte[2048];
+        }
         try {
             SessionCipher sessionCipher = new SessionCipher(sessionStore,
                     preKeyStore,
                     signedPreKeyStore,
                     signalIdentityKeyStore,
                     address);
-            message = sessionCipher.encrypt(data);
+            message = sessionCipher.encrypt(preparedMessage);
         } catch (UntrustedIdentityException exception) {
             throw new EncryptionException("Error: cannot encrypt signal message.");
         }
@@ -151,12 +263,14 @@ public class SignalEncryptionServiceImpl implements SignalEncryptionService {
                 signedPreKeyStore,
                 signalIdentityKeyStore,
                 address);
+        String protocolVersion = blindnetSignalMessage.getProtocolVersion();
+        byte[] messageContent = Base64.getDecoder().decode(blindnetSignalMessage.getMessageContent());
         try {
-            if (PRE_KEY_SIGNAL_MSG_PROTOCOL.equals(blindnetSignalMessage.getProtocolVersion())) {
-                PreKeySignalMessage message = new PreKeySignalMessage(Base64.getDecoder().decode(blindnetSignalMessage.getMessageContent()));
+            if (PRE_KEY_SIGNAL_MSG_PROTOCOL.equals(protocolVersion)) {
+                PreKeySignalMessage message = new PreKeySignalMessage(messageContent);
                 return MessageArrayWrapper.process(ByteBuffer.wrap(sessionCipher.decrypt(message)));
-            } else if (SIGNAL_MSG_PROTOCOL.equals(blindnetSignalMessage.getProtocolVersion())) {
-                SignalMessage message = new SignalMessage(Base64.getDecoder().decode(blindnetSignalMessage.getMessageContent()));
+            } else if (SIGNAL_MSG_PROTOCOL.equals(protocolVersion)) {
+                SignalMessage message = new SignalMessage(messageContent);
                 return MessageArrayWrapper.process(ByteBuffer.wrap(sessionCipher.decrypt(message)));
             } else {
                 throw new EncryptionException("Unrecognized signal message protocol.");
