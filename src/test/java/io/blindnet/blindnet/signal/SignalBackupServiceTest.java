@@ -6,19 +6,21 @@ import io.blindnet.blindnet.internal.EncryptionService;
 import io.blindnet.blindnet.internal.KeyFactory;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import javax.crypto.SecretKey;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.*;
 
 import static io.blindnet.blindnet.internal.EncryptionConstants.*;
 import static io.blindnet.blindnet.internal.EncryptionConstants.PBKDF_SHA256;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class SignalBackupServiceTest extends AbstractTest {
 
@@ -42,18 +44,36 @@ public class SignalBackupServiceTest extends AbstractTest {
     }
 
     @Test
+    @DisplayName("Test backup of a list of messages.")
     public void testBackup() {
         String password = UUID.randomUUID().toString();
 
         List<MessageArrayWrapper> messages = new ArrayList<>();
         messages.add(createMessage());
         messages.add(createMessage());
-
-        doNothing().when(signalApiClient).uploadBackup(any(), any(), anyList());
         assertDoesNotThrow(() -> signalBackupService.backup(password, true, messages));
     }
 
     @Test
+    @DisplayName("Test backup of a list of messages.")
+    public void testStreamBackup() throws IOException {
+        String password = UUID.randomUUID().toString();
+
+        List<MessageArrayWrapper> messages = new ArrayList<>();
+        messages.add(createMessage());
+        messages.add(createMessage());
+
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(bos);
+        oos.writeObject(messages);
+        byte[] bytes = bos.toByteArray();
+
+        ByteArrayInputStream messagesStream = new ByteArrayInputStream(bytes);
+        assertDoesNotThrow(() -> signalBackupService.backup(password, true, messagesStream));
+    }
+
+    @Test
+    @DisplayName("Test recover of messages.")
     public void testRecoverMessages() {
         String password = UUID.randomUUID().toString();
 

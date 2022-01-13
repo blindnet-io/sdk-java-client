@@ -2,7 +2,6 @@ package io.blindnet.blindnet.core;
 
 import io.blindnet.blindnet.domain.UserRegistrationResult;
 import io.blindnet.blindnet.internal.KeyFactory;
-import io.blindnet.blindnet.internal.KeyStorage;
 import io.blindnet.blindnet.internal.SigningService;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,11 +25,10 @@ public class UserServiceTest extends AbstractTest {
     @Before
     public void setup() {
         MockitoAnnotations.openMocks(this);
-        KeyStorage keyStorage = KeyStorage.getInstance();
         KeyFactory keyFactory = new KeyFactory();
         SigningService signingService = new SigningService();
 
-        userService = new UserServiceImpl(keyStorage,
+        userService = new UserServiceImpl(KeyStorage.getInstance(),
                 keyFactory,
                 signingService,
                 apiClient);

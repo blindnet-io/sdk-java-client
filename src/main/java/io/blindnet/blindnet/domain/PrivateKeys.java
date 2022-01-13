@@ -1,7 +1,7 @@
 package io.blindnet.blindnet.domain;
 
 /**
- * A wrapper object for the encryption and signing private keys.
+ * A wrapper class for the encryption and signing private keys.
  */
 public final class PrivateKeys {
 

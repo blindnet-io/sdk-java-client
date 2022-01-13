@@ -34,12 +34,12 @@ public class Alice {
         // 7. alice reads message
         // 8. alice responds
         // 9. bob reads message
-        boolean REGISTER = true;
-        String BOB_USERNAME = "bob505";
+        boolean REGISTER = false;
+        String BOB_USERNAME = "bob2000";
 
         BlindnetSignal ALICE = BlindnetSignalProvider.getInstance(
                 "/Users/stefanveselinovic/Desktop/blindnetdb2/",
-                "eyJhbGciOiJFZERTQSIsInR5cCI6Imp3dCJ9.eyJhcHAiOiI0MWRmMTBlYS05NjY4LTQwMTItYjRiNS04NTYyM2UyNzc5N2YiLCJ1aWQiOiJhbGljZTUwNSIsIm5iZiI6MTYzNjUyMDI5NywiZXhwIjoxNjM2NTYzNDk3LCJpYXQiOjE2MzY1MjAyOTd9.4HsHdbhYAt0RmVdiFUNREG6LRjnQUO4qPos5al5HQkQUsMvCwIY4DV6SVeOVuMX78tpcdOCgBnj_jd2hub4hBg");
+                "eyJhbGciOiJFZERTQSIsInR5cCI6Imp3dCJ9.eyJhcHAiOiI0MWRmMTBlYS05NjY4LTQwMTItYjRiNS04NTYyM2UyNzc5N2YiLCJ1aWQiOiJhbGljZTIwMDAiLCJuYmYiOjE2Mzk1MTMwMzgsImV4cCI6MTYzOTU1NjIzOCwiaWF0IjoxNjM5NTEzMDM4fQ.ocAaPQu-RIRCPpz5MXO3-JC3UbTc7j0kqycBGih-6xlL0MHjIJRDqGKtMfkzWzJEdUr0eSv9mHFTaCYGx3mTAg");
         if (REGISTER) {
             UserRegistrationResult aliceRegistrationResult = ALICE.register();
             System.out.println("Alice registration result is: " + aliceRegistrationResult.isSuccessful());
@@ -66,7 +66,7 @@ public class Alice {
 
 
 
-        // todo: backup messages
+//        BACKUP MESSAGES
 //        List<MessageArrayWrapper> list = new ArrayList<>();
 //        Map<String, Object> metadata = new HashMap<>();
 //        metadata.put("random2", "random1");
@@ -76,7 +76,7 @@ public class Alice {
 //        blindnetSignal.backupMessages("randomPassword", list);
 //        System.out.println("backup successful");
 
-        // todo backup messages as stream
+//        BACKUP MESSAGES AS STREAM
 //        String metadata = "metarara";
 //        String data = "gari";
 //        String metadata2 = "metaprso2";
@@ -93,28 +93,11 @@ public class Alice {
 //        blindnetSignal.backupMessages("randomPassword", messages);
 //
 
-////        // todo: recover messages
+////      RECOVER MESSAGES
 //        List<MessageArrayWrapper> response = blindnetSignal.recoverMessages("randomPassword");
 //        response.forEach(msg -> System.out.println(new String(msg.getData())));
 //        System.out.println("Recovered successfully");
 
 
-//        // todo: recover messages as stream
-//        InputStream recoverMessagesAsStream = blindnetSignal.recoverMessagesAsStream("randomPassword");
-//        byte[] rmetadata = new byte[8];
-//        recoverMessagesAsStream.read(rmetadata);
-//        byte[] rdata = new byte[4];
-//        recoverMessagesAsStream.read(rdata);
-//        byte[] rmetadat2 = new byte[9];
-//        recoverMessagesAsStream.read(rmetadat2);
-//        byte[] rdata2 = new byte[5];
-//        recoverMessagesAsStream.read(rdata2);
-//        System.out.println("Messages: " + new String(rmetadata) + " " + new String(rdata) + "  " + new String(rmetadat2) + " " + new String(rdata2));
-//        System.out.println("Successfully recovered.");
-
-//        SignalKeyFactory signalKeyFactory = new SignalKeyFactory();
-//        SignalApiClient signalApiClient = new SignalApiClient(HttpClient.getInstance(), signalKeyFactory);
-//        List<SignalPublicKeysResponse> response = signalApiClient.fetchPublicKeys("stefan-test-810");
-//        System.out.println(response);
     }
 }

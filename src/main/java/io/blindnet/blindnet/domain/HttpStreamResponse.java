@@ -2,6 +2,9 @@ package io.blindnet.blindnet.domain;
 
 import java.io.InputStream;
 
+/**
+ * A wrapper class for the http response in form of a stream.
+ */
 public class HttpStreamResponse {
 
     /**

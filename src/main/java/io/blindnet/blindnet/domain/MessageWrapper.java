@@ -1,4 +1,9 @@
 package io.blindnet.blindnet.domain;
 
-public interface MessageWrapper {
+import java.io.Serializable;
+
+/**
+ * A message wrapper interface.
+ */
+public interface MessageWrapper extends Serializable {
 }

@@ -7,12 +7,12 @@ import io.blindnet.blindnet.domain.UserRegistrationResult;
 import java.io.InputStream;
 
 /**
- * Provides api for core operations in blindnet sdk.
+ * Provides API for core operations in Blindnet SDK.
  */
 public interface Blindnet {
 
     /**
-     * Set jwt that will be used for authorsiation against blindnet api.
+     * Set jwt that will be used for authorization against blindnet api.
      *
      * @param jwt a jwt object.
      */

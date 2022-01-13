@@ -1,14 +1,12 @@
 package io.blindnet.blindnet.core;
 
 import io.blindnet.blindnet.domain.MessageArrayWrapper;
-import io.blindnet.blindnet.domain.MessageArrayWrapperTest;
 import io.blindnet.blindnet.domain.MessageStreamWrapper;
 import io.blindnet.blindnet.domain.PublicKeys;
 import io.blindnet.blindnet.exception.BlindnetApiException;
 import io.blindnet.blindnet.exception.SignatureException;
 import io.blindnet.blindnet.internal.EncryptionService;
 import io.blindnet.blindnet.internal.KeyFactory;
-import io.blindnet.blindnet.internal.KeyStorage;
 import io.blindnet.blindnet.internal.SigningService;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
@@ -77,9 +75,9 @@ public class MessageServiceTest extends AbstractTest {
         recipientId = UUID.randomUUID().toString();
 
         secretKey = keyFactory.generateSecretKey(AES_ALGORITHM, AES_KEY_SIZE);
-        encryptionKeyPair = keyFactory.generateKeyPair(RSA_ALGORITHM, BC_PROVIDER, RSA_KEY_SIZE_4096);
+        encryptionKeyPair = keyFactory.generateRSAKeyPair();
         keyStorage.storeEncryptionKey(encryptionKeyPair.getPrivate());
-        signingKeyPair = keyFactory.generateKeyPair(Ed25519_ALGORITHM, BC_PROVIDER, -1);
+        signingKeyPair = keyFactory.generateEd25519KeyPair();
         keyStorage.storeSigningKey(signingKeyPair.getPrivate());
 
         SubjectPublicKeyInfo publicKeyInfo = new SubjectPublicKeyInfo(new AlgorithmIdentifier(PKCSObjectIdentifiers.rsaEncryption),

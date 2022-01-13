@@ -1,7 +1,7 @@
 package io.blindnet.blindnet.domain;
 
 /**
- * A wrapper object for the http response.
+ * A wrapper class for the http response.
  */
 public final class HttpResponse {
 

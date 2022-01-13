@@ -37,9 +37,9 @@ public class ApiClientTest extends AbstractTest {
     private KeyEnvelopeService keyEnvelopeService;
     private SigningService signingService;
     private KeyStorage keyStorage;
-    private JwtConfig jwtConfig = JwtConfig.INSTANCE;
     private KeyPair encryptionKeyPair;
     private KeyPair signingKeyPair;
+    private final JwtConfig jwtConfig = JwtConfig.INSTANCE;
 
     @Mock
     private HttpClient httpClient;
@@ -62,15 +62,15 @@ public class ApiClientTest extends AbstractTest {
                 keyEnvelopeService
         );
 
-        encryptionKeyPair = keyFactory.generateKeyPair(RSA_ALGORITHM, BC_PROVIDER, RSA_KEY_SIZE_4096);
-        signingKeyPair = keyFactory.generateKeyPair(Ed25519_ALGORITHM, BC_PROVIDER, -1);
+        encryptionKeyPair = keyFactory.generateRSAKeyPair();
+        signingKeyPair = keyFactory.generateEd25519KeyPair();
     }
 
     @Test
     @DisplayName("Test registration of a user.")
     public void testRegister() throws IOException {
         String msg = "Registration successful.";
-        when(httpClient.post(anyString(), eq(TEST_JWT), any(byte[].class)))
+        when(httpClient.post(anyString(), any(byte[].class)))
                 .thenReturn(new HttpResponse.Builder(HttpURLConnection.HTTP_OK)
                         .withMessage(msg)
                         .withBody(new byte[1])
@@ -100,7 +100,7 @@ public class ApiClientTest extends AbstractTest {
     @Test
     @DisplayName("Test unregistering of a user.")
     public void testUnregister() {
-        when(httpClient.delete(anyString(), eq(TEST_JWT)))
+        when(httpClient.delete(anyString()))
                 .thenReturn(new HttpResponse.Builder(HttpURLConnection.HTTP_OK)
                         .withMessage(UUID.randomUUID().toString())
                         .withBody(new byte[1])
@@ -112,7 +112,7 @@ public class ApiClientTest extends AbstractTest {
     @Test
     @DisplayName("Test sending of secret key.")
     public void testSendSecretKey() {
-        when(httpClient.post(anyString(), eq(TEST_JWT), any(byte[].class)))
+        when(httpClient.post(anyString(), any(byte[].class)))
                 .thenReturn(new HttpResponse.Builder(HttpURLConnection.HTTP_OK)
                         .withMessage(UUID.randomUUID().toString())
                         .withBody(new byte[1])
@@ -150,7 +150,7 @@ public class ApiClientTest extends AbstractTest {
                 UUID.randomUUID().toString());
 
 
-        when(httpClient.get(eq(url), eq(TEST_JWT)))
+        when(httpClient.get(eq(url)))
                 .thenReturn(new HttpResponse.Builder(HttpURLConnection.HTTP_OK)
                         .withMessage(UUID.randomUUID().toString())
                         .withBody(new JSONObject(keyEnvelope).toString().getBytes(StandardCharsets.UTF_8))
@@ -167,7 +167,7 @@ public class ApiClientTest extends AbstractTest {
     @Test
     @DisplayName("Test sending of private keys.")
     public void testSendPrivateKeys() {
-        when(httpClient.put(anyString(), eq(TEST_JWT), any(byte[].class)))
+        when(httpClient.put(anyString(), any(byte[].class)))
                 .thenReturn(new HttpResponse.Builder(HttpURLConnection.HTTP_OK)
                         .withMessage(UUID.randomUUID().toString())
                         .withBody(new byte[1])
@@ -194,7 +194,7 @@ public class ApiClientTest extends AbstractTest {
 
         Base64.Encoder encoder = Base64.getEncoder();
 
-        when(httpClient.get(eq(ApiConfig.INSTANCE.getServerUrl() + PRIVATE_KEYS_ENDPOINT_PATH), eq(TEST_JWT)))
+        when(httpClient.get(eq(ApiConfig.INSTANCE.getServerUrl() + PRIVATE_KEYS_ENDPOINT_PATH)))
                 .thenReturn(new HttpResponse.Builder(HttpURLConnection.HTTP_OK)
                         .withMessage(UUID.randomUUID().toString())
                         .withBody(new JSONObject().put("encryptedPrivateEncryptionKey", encoder.encodeToString(encryptedEPK))
@@ -237,7 +237,7 @@ public class ApiClientTest extends AbstractTest {
                 Ed25519_ALGORITHM);
         Base64.Encoder encoder = Base64.getEncoder();
 
-        when(httpClient.get(anyString(), eq(TEST_JWT)))
+        when(httpClient.get(anyString()))
                 .thenReturn(new HttpResponse.Builder(HttpURLConnection.HTTP_OK)
                         .withMessage(UUID.randomUUID().toString())
                         .withBody(new JSONObject().put("publicEncryptionKey", encoder.encodeToString(publicKeyInfo.getEncoded()))

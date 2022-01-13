@@ -29,8 +29,8 @@ public class KeyEnvelopeServiceTest extends AbstractTest {
         KeyFactory keyFactory = new KeyFactory();
         encryptionService = new EncryptionService(keyFactory);
 
-        signingKeyPair = keyFactory.generateKeyPair(Ed25519_ALGORITHM, BC_PROVIDER, -1);
-        encryptionKeyPair = keyFactory.generateKeyPair(RSA_ALGORITHM, BC_PROVIDER, RSA_KEY_SIZE_4096);
+        signingKeyPair = keyFactory.generateEd25519KeyPair();
+        encryptionKeyPair = keyFactory.generateRSAKeyPair();
         generatedSecretKey = keyFactory.generateSecretKey(AES_ALGORITHM, AES_KEY_SIZE);
     }
 

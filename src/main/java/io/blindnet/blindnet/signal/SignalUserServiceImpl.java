@@ -1,7 +1,7 @@
 package io.blindnet.blindnet.signal;
 
 import io.blindnet.blindnet.domain.UserRegistrationResult;
-import io.blindnet.blindnet.exception.UnregisterException;
+import io.blindnet.blindnet.exception.UserRegistrationException;
 import io.blindnet.blindnet.internal.*;
 import org.whispersystems.libsignal.IdentityKeyPair;
 import org.whispersystems.libsignal.InvalidKeyException;
@@ -21,7 +21,10 @@ import static io.blindnet.blindnet.internal.DatabaseConfig.DATABASE_NAME;
 import static io.blindnet.blindnet.internal.EncryptionConstants.Ed25519_ALGORITHM;
 import static java.util.Objects.requireNonNull;
 
-public class SignalUserServiceImpl implements SignalUserService {
+/**
+ * Implement
+ */
+class SignalUserServiceImpl implements SignalUserService {
 
     private final KeyFactory keyFactory;
     private final SignalIdentityKeyStore signalIdentityKeyStore;
@@ -50,16 +53,21 @@ public class SignalUserServiceImpl implements SignalUserService {
         this.signalPreKeyStore = signalPreKeyStore;
     }
 
-    public UserRegistrationResult register() throws InvalidKeyException {
+    public UserRegistrationResult register() {
         // generate device id, identity key pair, identity key pair id (registration id) and store them
-        int deviceId = ThreadLocalRandom.current().nextInt();
+        int deviceId = ThreadLocalRandom.current().nextInt(0, Integer.MAX_VALUE);
         IdentityKeyPair identityKeyPair = KeyHelper.generateIdentityKeyPair();
         int registrationId = KeyHelper.generateRegistrationId(false);
         signalIdentityKeyStore.saveLocalIdentity(registrationId, deviceId, identityKeyPair);
 
         // generate pre key pair, sign it using identity key pair and store it
-        SignedPreKeyRecord signedPreKey = KeyHelper.generateSignedPreKey(identityKeyPair, ThreadLocalRandom.current().nextInt());
-        signalSignedPreKeyStore.storeSignedPreKey(signedPreKey.getId(), signedPreKey);
+        SignedPreKeyRecord signedPreKey = null;
+        try {
+            signedPreKey = KeyHelper.generateSignedPreKey(identityKeyPair, ThreadLocalRandom.current().nextInt());
+            signalSignedPreKeyStore.storeSignedPreKey(signedPreKey.getId(), signedPreKey);
+        } catch (InvalidKeyException exception) {
+            throw new UserRegistrationException("Error: Unable to register user. Signing pre key failed.");
+        }
 
         //generate set of ten pre key pairs
         int startId = ThreadLocalRandom.current().nextInt();
@@ -97,7 +105,7 @@ public class SignalUserServiceImpl implements SignalUserService {
         signalApiClient.unregister();
         File db = new File(DatabaseConfig.INSTANCE.getDbPath() + DATABASE_NAME);
         if (!db.delete()) {
-            throw new UnregisterException("Unable to clear user data.");
+            throw new UserRegistrationException("Unable to clear local user data.");
         }
     }
 

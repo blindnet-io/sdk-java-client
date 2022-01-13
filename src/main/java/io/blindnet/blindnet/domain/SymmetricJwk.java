@@ -4,7 +4,7 @@ import javax.crypto.SecretKey;
 import java.util.Base64;
 
 /**
- * Represents symmetric key in jwk format.
+ * A wrapper class for the symmetric key in JWK format.
  */
 public final class SymmetricJwk {
 

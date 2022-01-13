@@ -5,7 +5,6 @@ import io.blindnet.blindnet.domain.RsaJwk;
 import io.blindnet.blindnet.internal.EncryptionService;
 import io.blindnet.blindnet.internal.HttpClient;
 import io.blindnet.blindnet.internal.KeyFactory;
-import io.blindnet.blindnet.internal.KeyStorage;
 import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.edec.EdECObjectIdentifiers;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
@@ -61,8 +60,8 @@ public class KeyEncryptionServiceTest extends AbstractTest {
                 encryptionService,
                 apiClient);
 
-        encryptionKeyPair = keyFactory.generateKeyPair(RSA_ALGORITHM, BC_PROVIDER, RSA_KEY_SIZE_4096);
-        signingKeyPair = keyFactory.generateKeyPair(Ed25519_ALGORITHM, BC_PROVIDER, -1);
+        encryptionKeyPair = keyFactory.generateRSAKeyPair();
+        signingKeyPair = keyFactory.generateEd25519KeyPair();
     }
 
     @Test
@@ -72,7 +71,7 @@ public class KeyEncryptionServiceTest extends AbstractTest {
         keyStorage.storeEncryptionKey(encryptionKeyPair.getPrivate());
         keyStorage.storeSigningKey(signingKeyPair.getPrivate());
 
-        when(httpClient.put(anyString(), anyString(), any(byte[].class)))
+        when(httpClient.put(anyString(), any(byte[].class)))
                 .thenReturn(new HttpResponse.Builder(HttpURLConnection.HTTP_OK)
                         .withMessage(UUID.randomUUID().toString())
                         .withBody(new byte[1])
@@ -100,7 +99,7 @@ public class KeyEncryptionServiceTest extends AbstractTest {
         JSONObject jsonObject = new JSONObject().put("encryptedPrivateEncryptionKey", encoder.encodeToString(encryptedEPK))
                 .put("encryptedPrivateSigningKey", encoder.encodeToString(encryptedSPK))
                 .put("keyDerivationSalt", encoder.encodeToString(salt));
-        when(httpClient.get(anyString(), anyString()))
+        when(httpClient.get(anyString()))
                 .thenReturn(new HttpResponse.Builder(HttpURLConnection.HTTP_OK)
                         .withMessage(UUID.randomUUID().toString())
                         .withBody(jsonObject.toString().getBytes())

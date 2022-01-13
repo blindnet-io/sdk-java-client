@@ -70,7 +70,6 @@ class ApiClient {
                 .put("signedJwt", signedJwt);
 
         HttpResponse httpResponse = httpClient.post(apiConfig.getServerUrl() + USER_ENDPOINT_PATH,
-                requireNonNull(jwtConfig.getJwt(), "JWT not configured properly."),
                 requestBody.toString().getBytes(StandardCharsets.UTF_8));
 
         return new UserRegistrationResult(httpResponse.getStatus() == HttpURLConnection.HTTP_OK, httpResponse.getMessage());
@@ -80,8 +79,7 @@ class ApiClient {
      * Unregisters a user from Blindnet API.
      */
     public void unregister() {
-        httpClient.delete(apiConfig.getServerUrl() + DELETE_USER_ENDPOINT_PATH,
-                requireNonNull(jwtConfig.getJwt(), "JWT not configured properly."));
+        httpClient.delete(apiConfig.getServerUrl() + DELETE_USER_ENDPOINT_PATH);
     }
 
     /**
@@ -100,7 +98,6 @@ class ApiClient {
                 .put("envelopeSignature", senderKeyEnvelope.getEnvelopeSignature()));
 
         httpClient.post(apiConfig.getServerUrl() + SYMMETRIC_KEY_ENDPOINT_PATH,
-                requireNonNull(jwtConfig.getJwt(), "JWT not configured properly."),
                 requestBody.toString().getBytes(StandardCharsets.UTF_8));
     }
 
@@ -116,8 +113,7 @@ class ApiClient {
         requireNonNull(recipientId, "Recipient ID cannot be null.");
 
         String url = apiConfig.getServerUrl() + SYMMETRIC_KEY_ENDPOINT_PATH + "?senderID=" + senderId + "&recipientID=" + recipientId;
-        HttpResponse httpResponse = httpClient.get(url,
-                requireNonNull(jwtConfig.getJwt(), "JWT not configured properly."));
+        HttpResponse httpResponse = httpClient.get(url);
 
         JSONObject responseBody = new JSONObject(new String(httpResponse.getBody()));
 
@@ -165,7 +161,6 @@ class ApiClient {
                 .put("keyDerivationSalt", salt);
 
         httpClient.put(apiConfig.getServerUrl() + PRIVATE_KEYS_ENDPOINT_PATH,
-                requireNonNull(jwtConfig.getJwt(), "JWT not configured properly."),
                 requestBody.toString().getBytes(StandardCharsets.UTF_8));
     }
 
@@ -175,8 +170,7 @@ class ApiClient {
      * @return a private key pair object.
      */
     public PrivateKeys fetchPrivateKeys() {
-        HttpResponse httpResponse = httpClient.get(apiConfig.getServerUrl() + PRIVATE_KEYS_ENDPOINT_PATH,
-                requireNonNull(jwtConfig.getJwt(), "JWT not configured properly."));
+        HttpResponse httpResponse = httpClient.get(apiConfig.getServerUrl() + PRIVATE_KEYS_ENDPOINT_PATH);
 
         JSONObject responseBody = new JSONObject(new String(httpResponse.getBody()));
         return new PrivateKeys(responseBody.getString("encryptedPrivateEncryptionKey"),
@@ -193,8 +187,7 @@ class ApiClient {
     public PublicKeys fetchPublicKeys(String recipientID) {
         requireNonNull(recipientID, "Recipient ID cannot be null.");
 
-        HttpResponse httpResponse = httpClient.get(apiConfig.getServerUrl() + FETCH_PUBLIC_KEYS_ENDPOINT_PATH + recipientID,
-                requireNonNull(jwtConfig.getJwt(), "JWT not configured properly."));
+        HttpResponse httpResponse = httpClient.get(apiConfig.getServerUrl() + FETCH_PUBLIC_KEYS_ENDPOINT_PATH + recipientID);
 
         JSONObject responseBody = new JSONObject(new String(httpResponse.getBody()));
         PublicKey encryptionKey = keyFactory.convertToPublicKey(

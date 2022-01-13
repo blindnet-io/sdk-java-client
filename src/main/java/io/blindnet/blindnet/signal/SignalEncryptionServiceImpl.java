@@ -25,7 +25,10 @@ import java.util.stream.Stream;
 
 import static java.lang.String.valueOf;
 
-public class SignalEncryptionServiceImpl implements SignalEncryptionService {
+/**
+ * Implementation of API used for encryption and decryption of messages using Signal Blindnet API.
+ */
+class SignalEncryptionServiceImpl implements SignalEncryptionService {
 
     private final SignalApiClient signalApiClient;
     private final SessionStore sessionStore;
@@ -36,7 +39,6 @@ public class SignalEncryptionServiceImpl implements SignalEncryptionService {
     private static final String SIGNAL_MSG_PROTOCOL = "2";
     private static final String PRE_KEY_SIGNAL_MSG_PROTOCOL = "3";
 
-    // todo javadoc
     public SignalEncryptionServiceImpl(SignalApiClient signalApiClient,
                                        SessionStore sessionStore,
                                        PreKeyStore preKeyStore,
@@ -56,7 +58,7 @@ public class SignalEncryptionServiceImpl implements SignalEncryptionService {
         String currentUserId = JwtUtil.extractUserId(JwtConfig.INSTANCE.getJwt());
 
         recipientIds.forEach(recipientId ->
-            calculateEncryption(recipientId, localDeviceId, currentUserId, messageArrayWrapper));
+                calculateEncryption(recipientId, localDeviceId, currentUserId, messageArrayWrapper));
     }
 
     @Override
@@ -71,27 +73,23 @@ public class SignalEncryptionServiceImpl implements SignalEncryptionService {
         return result;
     }
 
-    @Override
-    public void encryptMessage(List<String> recipientIds, MessageStreamWrapper messageStreamWrapper) {
-        int localDeviceId = signalIdentityKeyStore.getLocalDeviceId();
-        String currentUserId = JwtUtil.extractUserId(JwtConfig.INSTANCE.getJwt());
+    /* Signal library does not support encryption of stream messages
+     *
+     * @Override
+     * public void encryptMessage(List<String> recipientIds, MessageStreamWrapper messageStreamWrapper) {
+     *   int localDeviceId = signalIdentityKeyStore.getLocalDeviceId();
+     *   String currentUserId = JwtUtil.extractUserId(JwtConfig.INSTANCE.getJwt());
+     *
+     *   recipientIds.forEach(recipientId ->
+     *           calculateEncryption(recipientId, localDeviceId, currentUserId, messageStreamWrapper));
+     * }
 
-        recipientIds.forEach(recipientId ->
-                calculateEncryption(recipientId, localDeviceId, currentUserId, messageStreamWrapper));
-    }
-
-    @Override
-    public List<MessageStreamWrapper> decryptStreamMessage(String deviceId) {
-        String messageIds = signalApiClient.fetchMessageIds(deviceId);
-        if (messageIds.isBlank()) {
-            List.of();
-        }
-        // todo fetch stream
-//        List<BlindnetSignalMessage> messages = signalApiClient.fetchMessages(deviceId, messageIds);
-//        List<MessageStreamWrapper> result = new ArrayList<>();
-//        messages.forEach(message -> result.add(decrypt(message)));
-        return null;
-    }
+    /* Signal library does not support encryption of stream messages
+     *
+     * @Override
+     * public List<MessageStreamWrapper> decryptStreamMessage(String deviceId) {
+     * }
+     */
 
     private void calculateEncryption(String recipientId,
                                      int localDeviceId,
@@ -108,7 +106,7 @@ public class SignalEncryptionServiceImpl implements SignalEncryptionService {
             // list of other devices of this user
             List<String> currentUserDevices = signalApiClient.fetchUserDeviceIds(currentUserId)
                     .stream()
-                    .map(SignalDeviceIds::getDeviceId)
+                    .map(SignalDevice::getDeviceId)
                     .filter(deviceId -> !deviceId.equals(String.valueOf(localDeviceId)))
                     .collect(Collectors.toList());
 
@@ -128,12 +126,12 @@ public class SignalEncryptionServiceImpl implements SignalEncryptionService {
         // and create new sessions for all devices we do not have session with at the moment
         else {
             // list of all devices of recipient
-            List<SignalDeviceIds> recipientDevices = signalApiClient.fetchUserDeviceIds(recipientId);
+            List<SignalDevice> recipientDevices = signalApiClient.fetchUserDeviceIds(recipientId);
 
             // list of all devices of recipient that current user does not have session with
             List<String> recipientNoSessionDeviceIds = recipientDevices
                     .stream()
-                    .map(SignalDeviceIds::getDeviceId)
+                    .map(SignalDevice::getDeviceId)
                     .filter(deviceId -> !deviceIds.contains(Integer.valueOf(deviceId)))
                     .collect(Collectors.toList());
 
@@ -144,7 +142,7 @@ public class SignalEncryptionServiceImpl implements SignalEncryptionService {
                     signalApiClient.fetchPublicKeys(recipientId, String.join(",", recipientNoSessionDeviceIds));
 
             // list of all devices of the current user excluding current device
-            List<SignalDeviceIds> currentUserDevices = signalApiClient.fetchUserDeviceIds(currentUserId)
+            List<SignalDevice> currentUserDevices = signalApiClient.fetchUserDeviceIds(currentUserId)
                     .stream()
                     .filter(deviceId -> !deviceId.getDeviceId().equals(String.valueOf(localDeviceId)))
                     .collect(Collectors.toList());
@@ -153,7 +151,7 @@ public class SignalEncryptionServiceImpl implements SignalEncryptionService {
             // that current device does not have session with
             List<String> currentUserNoSessionDeviceIds = currentUserDevices
                     .stream()
-                    .map(SignalDeviceIds::getDeviceId)
+                    .map(SignalDevice::getDeviceId)
                     .filter(deviceId -> !deviceIds.contains(Integer.valueOf(deviceId)))
                     .collect(Collectors.toList());
 
@@ -211,8 +209,8 @@ public class SignalEncryptionServiceImpl implements SignalEncryptionService {
         if (messageWrapper instanceof MessageArrayWrapper) {
             preparedMessage = ((MessageArrayWrapper) messageWrapper).prepare();
         } else {
-            // todo is stream wrapper
-            // todo send stream to blindnet api
+            // stream wrapper use case
+            // currently Signal library does not support encryption of messages in form of stream
             preparedMessage = new byte[2048];
         }
         try {
@@ -226,19 +224,22 @@ public class SignalEncryptionServiceImpl implements SignalEncryptionService {
             throw new EncryptionException("Error: cannot encrypt signal message.");
         }
 
-        String protocolVersion = "";
-        String diffieHellmanKey = "";
+        Base64.Encoder encoder = Base64.getEncoder();
+        String protocolVersion;
+        String diffieHellmanKey;
         String publicIdentityKey = null;
         String publicEphemeralKey = null;
 
         if (message instanceof PreKeySignalMessage) {
             protocolVersion = valueOf(message.getType());
-            diffieHellmanKey = Base64.getEncoder().encodeToString(((PreKeySignalMessage) message).getWhisperMessage().getSenderRatchetKey().serialize());
-            publicIdentityKey = Base64.getEncoder().encodeToString(((PreKeySignalMessage) message).getBaseKey().serialize());
-            publicEphemeralKey = Base64.getEncoder().encodeToString(((PreKeySignalMessage) message).getIdentityKey().serialize());
+            diffieHellmanKey = encoder.encodeToString(((PreKeySignalMessage) message).getWhisperMessage().getSenderRatchetKey().serialize());
+            publicIdentityKey = encoder.encodeToString(((PreKeySignalMessage) message).getBaseKey().serialize());
+            publicEphemeralKey = encoder.encodeToString(((PreKeySignalMessage) message).getIdentityKey().serialize());
         } else if (message instanceof SignalMessage) {
             protocolVersion = valueOf(message.getType());
-            diffieHellmanKey = Base64.getEncoder().encodeToString(((SignalMessage) message).getSenderRatchetKey().serialize());
+            diffieHellmanKey = encoder.encodeToString(((SignalMessage) message).getSenderRatchetKey().serialize());
+        } else {
+            throw new EncryptionException("Error: cannot encrypt signal message.");
         }
 
         LocalDateTime dateTime = LocalDateTime.now();
@@ -247,7 +248,7 @@ public class SignalEncryptionServiceImpl implements SignalEncryptionService {
         return signalApiClient.sendMessage(valueOf(signalIdentityKeyStore.getLocalDeviceId()),
                 address.getName(),
                 valueOf(address.getDeviceId()),
-                Base64.getEncoder().encodeToString(message.serialize()),
+                encoder.encodeToString(message.serialize()),
                 dateTime.format(formatter),
                 protocolVersion,
                 diffieHellmanKey,

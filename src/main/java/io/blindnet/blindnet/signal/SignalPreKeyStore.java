@@ -1,12 +1,6 @@
 package io.blindnet.blindnet.signal;
 
 import io.blindnet.blindnet.exception.KeyStorageException;
-import org.whispersystems.libsignal.InvalidKeyException;
-import org.whispersystems.libsignal.InvalidKeyIdException;
-import org.whispersystems.libsignal.ecc.Curve;
-import org.whispersystems.libsignal.ecc.ECKeyPair;
-import org.whispersystems.libsignal.ecc.ECPrivateKey;
-import org.whispersystems.libsignal.ecc.ECPublicKey;
 import org.whispersystems.libsignal.state.PreKeyRecord;
 import org.whispersystems.libsignal.state.PreKeyStore;
 import org.whispersystems.libsignal.util.KeyHelper;
@@ -17,7 +11,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class SignalPreKeyStore implements PreKeyStore {
+/**
+ * Signal pre key store implementation.
+ */
+class SignalPreKeyStore implements PreKeyStore {
 
     private static final Object LOCK = new Object();
 
@@ -62,20 +59,20 @@ public class SignalPreKeyStore implements PreKeyStore {
     public void removePreKey(int preKeyId) {
         signalPreKeyDatabase.delete(preKeyId);
 
-        // FR-SDK22 // todo check
-//        if (signalPreKeyDatabase.countPreKeys() < 6) {
-//            int startId = ThreadLocalRandom.current().nextInt();
-//            List<PreKeyRecord> preKeys = KeyHelper.generatePreKeys(startId, 10);
-//            preKeys.forEach(preKey -> storePreKey(preKey.getId(), preKey));
-//
-//            Map<String, String> listOfPublicPreKeys = new HashMap<>();
-//            preKeys.forEach(key ->
-//                    listOfPublicPreKeys.put(String.valueOf(key.getId()), Base64.getEncoder().encodeToString(
-//                            signalKeyFactory.removeKeyTypeByte(key.getKeyPair().getPublicKey().serialize()))));
-//
-//            signalApiClient.uploadPreKeys(String.valueOf(signalIdentityDatabase.readLocalDeviceId()),
-//                    listOfPublicPreKeys);
-//        }
+        // FR-SDK22
+        if (signalPreKeyDatabase.countPreKeys() < 6) {
+            int startId = ThreadLocalRandom.current().nextInt();
+            List<PreKeyRecord> preKeys = KeyHelper.generatePreKeys(startId, 10);
+            preKeys.forEach(preKey -> storePreKey(preKey.getId(), preKey));
+
+            Map<String, String> listOfPublicPreKeys = new HashMap<>();
+            preKeys.forEach(key ->
+                    listOfPublicPreKeys.put(String.valueOf(key.getId()), Base64.getEncoder().encodeToString(
+                            signalKeyFactory.removeKeyTypeByte(key.getKeyPair().getPublicKey().serialize()))));
+
+            signalApiClient.uploadPreKeys(String.valueOf(signalIdentityDatabase.readLocalDeviceId()),
+                    listOfPublicPreKeys);
+        }
     }
 
 }

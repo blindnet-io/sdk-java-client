@@ -4,7 +4,6 @@ import io.blindnet.blindnet.domain.MessageArrayWrapper;
 import io.blindnet.blindnet.domain.MessageStreamWrapper;
 import io.blindnet.blindnet.exception.EncryptionException;
 import io.blindnet.blindnet.exception.KeyEncryptionException;
-import io.blindnet.blindnet.internal.KeyFactory;
 import org.bouncycastle.jcajce.io.CipherInputStream;
 import org.bouncycastle.jcajce.io.CipherOutputStream;
 import org.json.JSONObject;
@@ -26,7 +25,7 @@ import static io.blindnet.blindnet.internal.EncryptionConstants.*;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Provides API for encryption/decryption related operations.
+ * Provides API for encryption and decryption operations.
  */
 public class EncryptionService {
 
@@ -43,7 +42,7 @@ public class EncryptionService {
      * @param messageWrapper a message wrapper.
      * @return encrypted message as byte array.
      */
-    public byte[] encryptMessage(SecretKey secretKey, MessageArrayWrapper messageWrapper) {
+    public byte[] encryptMessage(final SecretKey secretKey, final MessageArrayWrapper messageWrapper) {
         requireNonNull(secretKey, "Secret key cannot be null.");
         requireNonNull(messageWrapper, "Message wrapper cannot be null.");
         return encrypt(secretKey, messageWrapper.prepare());
@@ -56,7 +55,7 @@ public class EncryptionService {
      * @param data      an encrypted data.
      * @return a decrypted message and message metadata as message wrapper object.
      */
-    public MessageArrayWrapper decryptMessage(SecretKey secretKey, byte[] data) {
+    public MessageArrayWrapper decryptMessage(final SecretKey secretKey, final byte[] data) {
         requireNonNull(secretKey, "Secret key cannot be null.");
         requireNonNull(data, "Input data cannot be null.");
 
@@ -71,7 +70,7 @@ public class EncryptionService {
      * @param messageStreamWrapper a message wrapper.
      * @return a stream of encrypted data.
      */
-    public InputStream encryptMessage(SecretKey secretKey, MessageStreamWrapper messageStreamWrapper) {
+    public InputStream encryptMessage(final SecretKey secretKey, final MessageStreamWrapper messageStreamWrapper) {
         requireNonNull(secretKey, "Secret key cannot be null.");
         requireNonNull(messageStreamWrapper, "Message wrapper cannot be null.");
 
@@ -85,18 +84,18 @@ public class EncryptionService {
                 .array());
 
         try {
-            byte[] iv = keyFactory.generateRandom(NONCE_IV_ALGORITHM, BC_PROVIDER, GCM_IV_LENGTH);
             /*
              * 1. writes IV
              * 2. encrypts a length of message metadata and message metadata
              * 3. encrypts message stream data
              */
+            byte[] iv = keyFactory.generateRandom(NONCE_IV_ALGORITHM, BC_PROVIDER, GCM_IV_LENGTH);
             Cipher cipher = Cipher.getInstance(AES_GCM_NO_PADDING_ALGORITHM);
             cipher.init(Cipher.ENCRYPT_MODE, secretKey, new GCMParameterSpec(GCM_T_LENGTH, iv));
-
             PipedOutputStream pipedOutputStream = new PipedOutputStream();
             PipedInputStream pipedInputStream = new PipedInputStream(pipedOutputStream);
             pipedOutputStream.write(iv);
+
             try (CipherOutputStream cipherOut = new CipherOutputStream(pipedOutputStream, cipher)) {
 
                 byte[] buf = new byte[4096];
@@ -126,7 +125,7 @@ public class EncryptionService {
      * @param input     an input stream which provides encrypted message and message metadata.
      * @return a decrypted message and message metadata as message wrapper object.
      */
-    public MessageStreamWrapper decryptMessage(SecretKey secretKey, InputStream input) {
+    public MessageStreamWrapper decryptMessage(final SecretKey secretKey, final InputStream input) {
         requireNonNull(secretKey, "Secret key cannot be null.");
         requireNonNull(input, "Input stream cannot be null.");
 
@@ -167,20 +166,18 @@ public class EncryptionService {
         }
     }
 
-    public InputStream encrypt(SecretKey secretKey, InputStream input) {
+    public InputStream encrypt(final SecretKey secretKey, final InputStream input) {
         requireNonNull(secretKey, "Secret key cannot be null.");
         requireNonNull(input, "Input cannot be null.");
 
-        // todo duplicated parts
         try {
             byte[] iv = keyFactory.generateRandom(NONCE_IV_ALGORITHM, BC_PROVIDER, GCM_IV_LENGTH);
-
             Cipher cipher = Cipher.getInstance(AES_GCM_NO_PADDING_ALGORITHM);
             cipher.init(Cipher.ENCRYPT_MODE, secretKey, new GCMParameterSpec(GCM_T_LENGTH, iv));
-
             PipedOutputStream pipedOutputStream = new PipedOutputStream();
             PipedInputStream pipedInputStream = new PipedInputStream(pipedOutputStream);
             pipedOutputStream.write(iv);
+
             try (CipherOutputStream cipherOut = new CipherOutputStream(pipedOutputStream, cipher)) {
                 byte[] buf = new byte[4096];
                 int length;
@@ -196,7 +193,7 @@ public class EncryptionService {
         }
     }
 
-    public InputStream decrypt(SecretKey secretKey, HttpURLConnection con) {
+    public InputStream decrypt(final SecretKey secretKey, final HttpURLConnection con) {
         requireNonNull(secretKey, "Secret key cannot be null.");
         requireNonNull(con, "Connection cannot be null.");
 
@@ -233,7 +230,7 @@ public class EncryptionService {
      * @param data      a data to be encrypted.
      * @return an encrypted data as byte array.
      */
-    public byte[] encrypt(SecretKey secretKey, byte[] data) {
+    public byte[] encrypt(final SecretKey secretKey, final byte[] data) {
         requireNonNull(secretKey, "Secret key cannot be null.");
         requireNonNull(data, "Input data cannot be null.");
 
@@ -261,7 +258,7 @@ public class EncryptionService {
      * @param data      a data to be decrypted.
      * @return a decrypted data as byte array.
      */
-    public byte[] decrypt(SecretKey secretKey, byte[] data) {
+    public byte[] decrypt(final SecretKey secretKey, final byte[] data) {
         requireNonNull(secretKey, "Secret key cannot be null.");
         requireNonNull(data, "Input data cannot be null.");
 
@@ -290,7 +287,7 @@ public class EncryptionService {
      * @param data      a data to be encrypted.
      * @return a encrypted data.
      */
-    public byte[] encrypt(PublicKey publicKey, byte[] data) {
+    public byte[] encrypt(final PublicKey publicKey, final byte[] data) {
         requireNonNull(publicKey, "Public key cannot be null.");
         requireNonNull(data, "Data cannot be null.");
 
@@ -310,7 +307,7 @@ public class EncryptionService {
      * @param data       a data to be decrypted.
      * @return a decrypted data.
      */
-    public byte[] decrypt(PrivateKey privateKey, byte[] data) {
+    public byte[] decrypt(final PrivateKey privateKey, final byte[] data) {
         requireNonNull(privateKey, "Private key cannot be null.");
         requireNonNull(data, "Data key cannot be null.");
 

@@ -1,5 +1,6 @@
-package io.blindnet.blindnet.core;
+package io.blindnet.blindnet.internal;
 
+import io.blindnet.blindnet.core.AbstractTest;
 import io.blindnet.blindnet.exception.SignatureException;
 import io.blindnet.blindnet.internal.KeyFactory;
 import io.blindnet.blindnet.internal.SigningService;
@@ -28,7 +29,7 @@ public class SigningServiceTest extends AbstractTest {
     public void setup() {
         signingService = new SigningService();
         KeyFactory keyFactory = new KeyFactory();
-        signingKeyPair = keyFactory.generateKeyPair(Ed25519_ALGORITHM, BC_PROVIDER, -1);
+        signingKeyPair = keyFactory.generateEd25519KeyPair();
         object = new HashMap<>();
         object.put("user_id", "random_id");
     }

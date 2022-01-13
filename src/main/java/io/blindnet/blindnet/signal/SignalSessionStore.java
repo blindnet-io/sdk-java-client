@@ -7,7 +7,10 @@ import org.whispersystems.libsignal.state.SessionStore;
 import java.util.List;
 import java.util.Optional;
 
-public class SignalSessionStore implements SessionStore {
+/**
+ * Implementation of session store.
+ */
+class SignalSessionStore implements SessionStore {
 
     private static final Object LOCK = new Object();
 

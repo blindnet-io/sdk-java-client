@@ -3,7 +3,7 @@ package io.blindnet.blindnet.core;
 import io.blindnet.blindnet.Blindnet;
 
 /**
- * Provides instance of default implementation of Blindnet SDK api.
+ * Provides instance of default implementation of core Blindnet SDK API.
  */
 public class BlindnetProvider {
 

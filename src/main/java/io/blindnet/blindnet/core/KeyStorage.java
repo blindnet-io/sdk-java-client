@@ -1,4 +1,4 @@
-package io.blindnet.blindnet.internal;
+package io.blindnet.blindnet.core;
 
 import io.blindnet.blindnet.exception.KeyStorageException;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
@@ -18,11 +18,8 @@ import static java.util.Objects.requireNonNull;
 /**
  * Provides API for key storage.
  */
-public class KeyStorage {
+class KeyStorage {
 
-    /**
-     * todo add readme
-     */
     public static final String SIGNING_PRIVATE_KEY_ALIAS = "SIGNING_PRIVATE_KEY";
     public static final String ENCRYPTION_PRIVATE_KEY_ALIAS = "ENCRYPTION_PRIVATE_KEY";
 
@@ -53,8 +50,6 @@ public class KeyStorage {
         return InstanceHolder.instance;
     }
 
-
-
     /**
      * Stores a private used for encryption.
      *
@@ -67,7 +62,7 @@ public class KeyStorage {
             storeKS(privateKey, ENCRYPTION_PRIVATE_KEY_ALIAS);
             return;
         }
-        requireNonNull(KeyStorageConfig.INSTANCE.getKeyFolderPath(), "Key storage not configured properly.");
+        Objects.requireNonNull(KeyStorageConfig.INSTANCE.getKeyFolderPath(), "Key storage not configured properly.");
         store(privateKey, KeyStorageConfig.INSTANCE.getKeyFolderPath() + ENCRYPTION_PRIVATE_KEY_FILENAME);
     }
 
@@ -77,7 +72,6 @@ public class KeyStorage {
      * @return a private key object.
      */
     public PrivateKey readEncryptionPrivateKey() {
-        // todo add android reading
         return read(KeyStorageConfig.INSTANCE.getKeyFolderPath() + ENCRYPTION_PRIVATE_KEY_FILENAME);
     }
 
@@ -103,21 +97,7 @@ public class KeyStorage {
      * @return a private key object.
      */
     public PrivateKey readSigningPrivateKey() {
-        // todo add android reading
         return read(KeyStorageConfig.INSTANCE.getKeyFolderPath() + SIGNING_PRIVATE_KEY_FILENAME);
-    }
-
-    // todo javaddoc, android support
-    public void storeEd25519PrivateKey(PrivateKey privateKey, String keyID) {
-        requireNonNull(privateKey, "Private key cannot be null.");
-        requireNonNull(keyID, "Id cannot be null.");
-
-        store(privateKey, KeyStorageConfig.INSTANCE.getKeyFolderPath() + keyID + ".key");
-    }
-
-    // todo impl
-    public PrivateKey readEd25519PrivateKey() {
-        return null;
     }
 
     /**
@@ -131,7 +111,6 @@ public class KeyStorage {
         requireNonNull(publicKey, "Recipient signing public key cannot be null.");
         requireNonNull(recipientId, "Recipient Id key cannot be null.");
 
-        // todo add android storing of public key
         store(publicKey, KeyStorageConfig.INSTANCE.getKeyFolderPath() + recipientId + ".key");
     }
 
@@ -141,7 +120,6 @@ public class KeyStorage {
     public boolean deleteKeyFolder() {
         requireNonNull(KeyStorageConfig.INSTANCE.getKeyFolderPath(), "Key storage not configured properly.");
 
-        // todo add android support
         return deleteFolder(new File(KeyStorageConfig.INSTANCE.getKeyFolderPath()));
     }
 

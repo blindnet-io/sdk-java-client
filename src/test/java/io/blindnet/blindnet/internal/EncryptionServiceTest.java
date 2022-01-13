@@ -1,5 +1,6 @@
-package io.blindnet.blindnet.core;
+package io.blindnet.blindnet.internal;
 
+import io.blindnet.blindnet.core.AbstractTest;
 import io.blindnet.blindnet.domain.MessageArrayWrapper;
 import io.blindnet.blindnet.domain.MessageArrayWrapperTest;
 import io.blindnet.blindnet.domain.MessageStreamWrapper;
@@ -38,7 +39,7 @@ public class EncryptionServiceTest extends AbstractTest {
         keyFactory = new KeyFactory();
         encryptionService = new EncryptionService(keyFactory);
         secretKey = keyFactory.generateSecretKey(AES_ALGORITHM, AES_KEY_SIZE);
-        encryptionKeyPair = keyFactory.generateKeyPair(RSA_ALGORITHM, BC_PROVIDER, RSA_KEY_SIZE_4096);
+        encryptionKeyPair = keyFactory.generateRSAKeyPair();
         metadata.put("metadatakey", "metadatavalue");
         data = "random data";
     }
@@ -77,7 +78,7 @@ public class EncryptionServiceTest extends AbstractTest {
     @Test
     @DisplayName("Test encrypting of secret key.")
     public void testEncryptSecretKey() {
-        KeyPair encryptionKeyPair = keyFactory.generateKeyPair(RSA_ALGORITHM, BC_PROVIDER, RSA_KEY_SIZE_4096);
+        KeyPair encryptionKeyPair = keyFactory.generateRSAKeyPair();
 
         byte[] encrypted = encryptionService.encrypt(encryptionKeyPair.getPublic(),
                 new JSONObject(new SymmetricJwk(secretKey)).toString().getBytes());
@@ -88,7 +89,7 @@ public class EncryptionServiceTest extends AbstractTest {
     @Test
     @DisplayName("Test decryption of secret key.")
     public void testDecryptSecretKey() {
-        KeyPair encryptionKeyPair = keyFactory.generateKeyPair(RSA_ALGORITHM, BC_PROVIDER, RSA_KEY_SIZE_4096);
+        KeyPair encryptionKeyPair = keyFactory.generateRSAKeyPair();
         JSONObject secretJwkJson = new JSONObject(new SymmetricJwk(secretKey));
         byte[] encrypted = encryptionService.encrypt(encryptionKeyPair.getPublic(),
                 secretJwkJson.toString().getBytes());
@@ -117,7 +118,7 @@ public class EncryptionServiceTest extends AbstractTest {
 
         assertTrue(decryptionKeyEncryptionException.getMessage().contains("Error while unwrapping secret key."));
 
-        KeyPair ed25519keyPair = keyFactory.generateKeyPair(Ed25519_ALGORITHM, BC_PROVIDER, -1);
+        KeyPair ed25519keyPair = keyFactory.generateEd25519KeyPair();
         KeyEncryptionException encryptionKeyEncryptionException = assertThrows(KeyEncryptionException.class,
                 () -> encryptionService.encrypt(ed25519keyPair.getPublic(),
                         new JSONObject(new SymmetricJwk(secretKey)).toString().getBytes()));

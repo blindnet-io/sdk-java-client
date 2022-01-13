@@ -4,7 +4,7 @@ import java.io.InputStream;
 import java.util.Map;
 
 /**
- * A wrapper object of the message represented as input stream and message data.
+ * A wrapper class of the message represented as input stream and message metadata.
  */
 public final class MessageStreamWrapper implements MessageWrapper {
 

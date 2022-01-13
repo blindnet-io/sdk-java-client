@@ -6,7 +6,7 @@ import java.nio.ByteBuffer;
 import java.util.Map;
 
 /**
- * A wrapper object of the message represented as byte array and message data.
+ * A wrapper class of the message represented as byte array and message metadata.
  */
 public final class MessageArrayWrapper implements MessageWrapper {
 

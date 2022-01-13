@@ -1,5 +1,6 @@
-package io.blindnet.blindnet.core;
+package io.blindnet.blindnet.internal;
 
+import io.blindnet.blindnet.core.AbstractTest;
 import io.blindnet.blindnet.exception.KeyGenerationException;
 import io.blindnet.blindnet.internal.KeyFactory;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
@@ -57,21 +58,17 @@ public class KeyFactoryTest extends AbstractTest {
     @Test
     @DisplayName("Test generation of RSA key pair.")
     public void testGenerateRSAKeyPair() {
-        KeyPair rsaKeyPair = keyFactory.generateKeyPair(RSA_ALGORITHM, BC_PROVIDER, RSA_KEY_SIZE_4096);
+        KeyPair rsaKeyPair = keyFactory.generateRSAKeyPair();
 
         assertNotNull(rsaKeyPair);
         assertNotNull(rsaKeyPair.getPrivate());
         assertNotNull(rsaKeyPair.getPublic());
-
-        KeyGenerationException generateKeyPairKGException = assertThrows(KeyGenerationException.class,
-                () -> keyFactory.generateKeyPair(INVALID_ASYMMETRIC_ALGORITHM, BC_PROVIDER, RSA_KEY_SIZE_4096));
-        assertTrue(generateKeyPairKGException.getMessage().contains("Invalid algorithm."));
     }
 
     @Test
     @DisplayName("Test generation of Ed25519 key pair.")
     public void testGenerateEd25519KeyPair() {
-        KeyPair ed25519KeyPair = keyFactory.generateKeyPair(Ed25519_ALGORITHM, BC_PROVIDER, -1);
+        KeyPair ed25519KeyPair = keyFactory.generateEd25519KeyPair();
 
         assertNotNull(ed25519KeyPair);
         assertNotNull(ed25519KeyPair.getPrivate());
@@ -100,7 +97,7 @@ public class KeyFactoryTest extends AbstractTest {
     @Test
     @DisplayName("Test extraction of RSA public key from private key.")
     public void testExtractRsaPublicKey() {
-        KeyPair rsaKeyPair = keyFactory.generateKeyPair(RSA_ALGORITHM, BC_PROVIDER, RSA_KEY_SIZE_4096);
+        KeyPair rsaKeyPair = keyFactory.generateRSAKeyPair();
         PublicKey publicKey = keyFactory.extractRsaPublicKey(rsaKeyPair.getPrivate());
 
         assertNotNull(publicKey);
@@ -112,7 +109,7 @@ public class KeyFactoryTest extends AbstractTest {
     @Test
     @DisplayName("Test conversion to public key object from base64 encoded data.")
     public void testConvertToPublicKey() throws IOException {
-        KeyPair rsaKeyPair = keyFactory.generateKeyPair(RSA_ALGORITHM, BC_PROVIDER, RSA_KEY_SIZE_4096);
+        KeyPair rsaKeyPair = keyFactory.generateRSAKeyPair();
         String base64EncodedPublicKey = Base64.getEncoder().encodeToString(
                 new SubjectPublicKeyInfo(new AlgorithmIdentifier(PKCSObjectIdentifiers.rsaEncryption),
                         rsaKeyPair.getPublic().getEncoded()).getEncoded());
@@ -125,7 +122,7 @@ public class KeyFactoryTest extends AbstractTest {
     @Test
     @DisplayName("Test conversion to Ed25519 private key.")
     public void testConvertToEd25519PrivateKey() {
-        KeyPair signingKeyPair = keyFactory.generateKeyPair(Ed25519_ALGORITHM, BC_PROVIDER, -1);
+        KeyPair signingKeyPair = keyFactory.generateEd25519KeyPair();
         PrivateKey privateKey = signingKeyPair.getPrivate();
         PrivateKey convertedKey = keyFactory.convertToEd25519PrivateKey(privateKey.getEncoded());
 

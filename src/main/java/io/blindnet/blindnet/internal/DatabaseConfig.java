@@ -37,7 +37,6 @@ public enum DatabaseConfig {
      * @param dbPath a path to the folder where database is stored.
      */
     public void setup(String dbPath) {
-
         if (!dbPath.endsWith(File.separator)) {
             dbPath = dbPath + File.separator;
         }

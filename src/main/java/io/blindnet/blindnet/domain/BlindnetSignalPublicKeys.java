@@ -2,17 +2,54 @@ package io.blindnet.blindnet.domain;
 
 import org.whispersystems.libsignal.ecc.ECPublicKey;
 
-// todo javadoc
+/**
+ * A wrapper class for user's public keys retrieved from Blindnet server.
+ */
 public class BlindnetSignalPublicKeys {
 
+    /**
+     * The ID of the user.
+     */
     private final String userID;
+
+    /**
+     * The ID of the user's device.
+     */
     private final String deviceID;
+
+    /**
+     * The identity ID.
+     */
     private final String identityID;
+
+    /**
+     * The public identity key of the user.
+     */
     private final ECPublicKey publicIdentityKey;
+
+    /**
+     * The ID of the pre key pair.
+     */
     private final String preKeyPairID;
+
+    /**
+     * The public pre key object.
+     */
     private final ECPublicKey publicPreKey;
+
+    /**
+     * Pre key signature value.
+     */
     private final byte[] preKeySignature;
+
+    /**
+     * The ID of the one time pre key.
+     */
     private final String oneTimePreKeyID;
+
+    /**
+     * The public one time pre key object.
+     */
     private final ECPublicKey publicOneTimePrKey;
 
 

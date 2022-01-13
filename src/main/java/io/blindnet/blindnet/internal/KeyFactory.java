@@ -67,26 +67,33 @@ public class KeyFactory {
         return keyGenerator.generateKey();
     }
 
+    /**
+     * Generates an Ed25519 key pair.
+     *
+     * @return a key pair object.
+     */
     public KeyPair generateEd25519KeyPair() {
-        return generateKeyPair(Ed25519_ALGORITHM, BC_PROVIDER, -1);
+        return generateKeyPair(Ed25519_ALGORITHM, -1);
     }
 
+    /**
+     * Generates an RSA key pair.
+     *
+     * @return a key pair object.
+     */
     public KeyPair generateRSAKeyPair() {
-        return generateKeyPair(RSA_ALGORITHM, BC_PROVIDER, RSA_KEY_SIZE_4096);
+        return generateKeyPair(RSA_ALGORITHM, RSA_KEY_SIZE_4096);
     }
 
     /**
      * Generates asymmetric key pair.
      *
      * @param algorithm an encryption algorithm.
-     * @param provider  a security provider.
      * @param keySize   a key size.
      * @return a key pair object.
      */
-    // todo convert this to private method
-    public KeyPair generateKeyPair(String algorithm, String provider, int keySize) {
+    private KeyPair generateKeyPair(String algorithm, int keySize) {
         requireNonNull(algorithm, "Algorithm name cannot be null.");
-        requireNonNull(provider, "Provider name cannot be null.");
 
         KeyPairGenerator keyPairGenerator = initialiseKeyPairGenerator(algorithm);
         if (keySize > 0) keyPairGenerator.initialize(keySize);
@@ -117,7 +124,7 @@ public class KeyFactory {
     }
 
     /**
-     * Extracts a RSA public key from private key.
+     * Extracts an RSA public key from private key.
      *
      * @param privateKey a private key from which the public key is extracted.
      * @return a public key object.
@@ -159,6 +166,12 @@ public class KeyFactory {
         }
     }
 
+    /**
+     * Encodes an Ed25519 public key.
+     *
+     * @param publicKey a public key object.
+     * @return a encoded public key in form of byte array.
+     */
     public byte[] encodeEd25519PublicKey(PublicKey publicKey) {
         return Arrays.copyOfRange(publicKey.getEncoded(), 12, publicKey.getEncoded().length);
     }
@@ -213,8 +226,8 @@ public class KeyFactory {
      */
     private KeyPairGenerator initialiseKeyPairGenerator(String algorithm) {
         try {
-            return KeyPairGenerator.getInstance(algorithm);
-        } catch (NoSuchAlgorithmException exception) {
+            return KeyPairGenerator.getInstance(algorithm, BC_PROVIDER);
+        } catch (NoSuchAlgorithmException | NoSuchProviderException exception) {
             throw new KeyGenerationException("Invalid algorithm. rr " + exception.getMessage(), exception);
         }
     }
@@ -227,8 +240,8 @@ public class KeyFactory {
      */
     private KeyGenerator initialiseGenerator(String algorithm) {
         try {
-            return KeyGenerator.getInstance(algorithm);
-        } catch (NoSuchAlgorithmException exception) {
+            return KeyGenerator.getInstance(algorithm, BC_PROVIDER);
+        } catch (NoSuchAlgorithmException | NoSuchProviderException exception) {
             throw new KeyGenerationException("Invalid algorithm. rr2 " + exception.getMessage(), exception);
         }
     }

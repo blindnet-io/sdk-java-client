@@ -1,8 +1,6 @@
 package io.blindnet.blindnet.core;
 
 import io.blindnet.blindnet.internal.KeyFactory;
-import io.blindnet.blindnet.internal.KeyStorage;
-import io.blindnet.blindnet.internal.KeyStorageConfig;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -28,8 +26,8 @@ public class KeyStorageTest extends AbstractTest {
 
         keyStorage = KeyStorage.getInstance();
         KeyFactory keyFactory = new KeyFactory();
-        rsaKeyPair = keyFactory.generateKeyPair(RSA_ALGORITHM, BC_PROVIDER, RSA_KEY_SIZE_4096);
-        ed25519keyPair = keyFactory.generateKeyPair(Ed25519_ALGORITHM, BC_PROVIDER, -1);
+        rsaKeyPair = keyFactory.generateRSAKeyPair();
+        ed25519keyPair = keyFactory.generateEd25519KeyPair();
     }
 
     @Test

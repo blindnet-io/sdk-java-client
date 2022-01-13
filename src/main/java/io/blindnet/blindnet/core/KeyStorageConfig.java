@@ -1,11 +1,11 @@
-package io.blindnet.blindnet.internal;
+package io.blindnet.blindnet.core;
 
 import java.io.File;
 
 /**
  * Provides Singleton instance for the key storage configuration.
  */
-public enum KeyStorageConfig {
+enum KeyStorageConfig {
 
     /**
      * Key Storage Config Instance.

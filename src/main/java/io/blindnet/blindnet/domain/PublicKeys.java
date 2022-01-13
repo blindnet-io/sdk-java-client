@@ -3,7 +3,7 @@ package io.blindnet.blindnet.domain;
 import java.security.PublicKey;
 
 /**
- * A wrapper object for the encryption and signing public keys.
+ * A wrapper class for the encryption and signing public keys.
  */
 public final class PublicKeys {
 

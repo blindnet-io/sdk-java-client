@@ -3,10 +3,21 @@ package io.blindnet.blindnet.signal;
 import io.blindnet.blindnet.domain.UserRegistrationResult;
 import org.whispersystems.libsignal.InvalidKeyException;
 
-public interface SignalUserService {
+/**
+ * Provides API to register/unregister user against Signal Blindnet API.
+ */
+interface SignalUserService {
 
-    UserRegistrationResult register() throws InvalidKeyException;
+    /**
+     * Registers user against Signal Blindnet API.
+     *
+     * @return user registration result object.
+     */
+    UserRegistrationResult register();
 
+    /**
+     * Unregisters user against Signal Blindnet API and deletes local user data.
+     */
     void unregister();
 
 }

@@ -20,18 +20,18 @@ public class Bob {
     public static void main(String[] args) throws InvalidKeyException {
         Security.addProvider(new BouncyCastleProvider());
 
-        boolean REGISTER = true;
-        String ALICE_USERNAME = "alice505";
+        boolean REGISTER = false;
+        String ALICE_USERNAME = "alice2000";
 
-        // username = bob772
+        // username = bob2000
         BlindnetSignal BOB = BlindnetSignalProvider.getInstance(
                 "/Users/stefanveselinovic/Desktop/blindnetdb/",
-                "eyJhbGciOiJFZERTQSIsInR5cCI6Imp3dCJ9.eyJhcHAiOiI0MWRmMTBlYS05NjY4LTQwMTItYjRiNS04NTYyM2UyNzc5N2YiLCJ1aWQiOiJib2I1MDUiLCJuYmYiOjE2MzY1MjAyODIsImV4cCI6MTYzNjU2MzQ4MiwiaWF0IjoxNjM2NTIwMjgyfQ.AFNBdSl3fu5HX9XWuEzb6_tyIo5bNjwo6xFH6ViR1Mj3WR8W8v9ULKYFrxieMYkVbsTfgSC5PMJ9a6O26Y8SDw");
+                "eyJhbGciOiJFZERTQSIsInR5cCI6Imp3dCJ9.eyJhcHAiOiI0MWRmMTBlYS05NjY4LTQwMTItYjRiNS04NTYyM2UyNzc5N2YiLCJ1aWQiOiJib2IyMDAwIiwibmJmIjoxNjM5NTEzMDgwLCJleHAiOjE2Mzk1NTYyODAsImlhdCI6MTYzOTUxMzA4MH0.i6KmBQ-LfmaywBsK7my4Razips2UhKvdlWIM3a8TwuYcV4kiiKCK_4UcspvvvSp4B261D3d2aAdslaDgeeb1Cg");
 
         if (REGISTER) {
             UserRegistrationResult bobRegistrationResult = BOB.register();
             System.out.println("Bob registration result is: " + bobRegistrationResult.isSuccessful());
-            // return;
+             return;
         }
 
         // bob reads message

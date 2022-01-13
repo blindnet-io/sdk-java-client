@@ -9,7 +9,10 @@ import java.util.Optional;
 
 import static org.whispersystems.libsignal.state.IdentityKeyStore.Direction.RECEIVING;
 
-public class SignalIdentityKeyStore implements IdentityKeyStore {
+/**
+ * Signal Identity key store implementation.
+ */
+class SignalIdentityKeyStore implements IdentityKeyStore {
 
     private static final Object LOCK = new Object();
 
@@ -44,12 +47,16 @@ public class SignalIdentityKeyStore implements IdentityKeyStore {
         }
     }
 
-    // todo check this
     @Override
     public boolean isTrustedIdentity(SignalProtocolAddress address, IdentityKey identityKey, Direction direction) {
         synchronized (LOCK) {
-            if (direction == RECEIVING) return true;
-
+            if (direction == RECEIVING) {
+                return true;
+            }
+            // todo check this
+//            else {
+//
+//            }
             return true;
         }
     }

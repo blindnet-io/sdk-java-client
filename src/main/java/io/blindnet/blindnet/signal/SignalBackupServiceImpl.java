@@ -15,7 +15,10 @@ import java.util.List;
 import static io.blindnet.blindnet.internal.EncryptionConstants.*;
 import static io.blindnet.blindnet.internal.EncryptionConstants.PBKDF_SHA256;
 
-public class SignalBackupServiceImpl implements SignalBackupService {
+/**
+ * Implementation of API used to back up and recover messages using Signal Blindnet API.
+ */
+class SignalBackupServiceImpl implements SignalBackupService {
 
     private final KeyFactory keyFactory;
     private final SignalApiClient signalApiClient;

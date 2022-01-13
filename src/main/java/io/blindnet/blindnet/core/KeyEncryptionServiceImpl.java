@@ -4,7 +4,6 @@ import io.blindnet.blindnet.domain.PrivateKeys;
 import io.blindnet.blindnet.domain.RsaJwk;
 import io.blindnet.blindnet.internal.EncryptionService;
 import io.blindnet.blindnet.internal.KeyFactory;
-import io.blindnet.blindnet.internal.KeyStorage;
 import org.json.JSONObject;
 
 import javax.crypto.SecretKey;

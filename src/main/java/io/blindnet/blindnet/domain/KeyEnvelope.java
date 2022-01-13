@@ -5,7 +5,7 @@ import org.json.JSONObject;
 import java.io.Serializable;
 
 /**
- * A wrapper object for key envelope.
+ * A wrapper class for a key envelope.
  */
 public final class KeyEnvelope implements Serializable {
 

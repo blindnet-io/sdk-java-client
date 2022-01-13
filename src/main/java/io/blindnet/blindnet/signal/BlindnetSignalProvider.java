@@ -2,6 +2,9 @@ package io.blindnet.blindnet.signal;
 
 import io.blindnet.blindnet.BlindnetSignal;
 
+/**
+ * Provides instance of default implementation of Signal Blindnet SDK API.
+ */
 public class BlindnetSignalProvider {
 
     private BlindnetSignalProvider() {

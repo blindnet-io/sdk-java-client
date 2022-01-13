@@ -1,6 +1,7 @@
 package io.blindnet.blindnet.signal;
 
-import io.blindnet.blindnet.internal.DatabaseService;
+import io.blindnet.blindnet.exception.StorageException;
+import io.blindnet.blindnet.internal.Database;
 import org.whispersystems.libsignal.SignalProtocolAddress;
 import org.whispersystems.libsignal.state.SessionRecord;
 
@@ -13,9 +14,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class SignalSessionDatabase {
-
-    private final DatabaseService databaseService;
+/**
+ * Database API used for storing of Signal sessions.
+ */
+class SignalSessionDatabase {
 
     private static final String SESSION_TABLE_NAME = "session";
     private static final String NAME_COLUMN = "name";
@@ -29,16 +31,21 @@ public class SignalSessionDatabase {
     private static final String DELETE_SESSION_STATEMENT = "DELETE FROM session WHERE name = ? AND device_id = ?";
     private static final String DELETE_ALL_SESSIONS_STATEMENT = "DELETE FROM session WHERE name = ?";
 
-    // todo; refactor parts that are repeated, exception handling, java doc
+    private final Database database;
 
-    public SignalSessionDatabase(DatabaseService databaseService) {
-        this.databaseService = databaseService;
+    public SignalSessionDatabase() {
+        database = Database.getInstance();
         init();
     }
 
-    // todo possible duplicate
+    /**
+     * Stores Signal session.
+     *
+     * @param address a signal address.
+     * @param record  a session record.
+     */
     public void store(SignalProtocolAddress address, SessionRecord record) {
-        try (Connection conn = databaseService.connect();
+        try (Connection conn = database.connect();
              PreparedStatement statement = conn.prepareStatement(INSERT_SESSION_STATEMENT)) {
 
             statement.setString(1, address.getName());
@@ -46,12 +53,18 @@ public class SignalSessionDatabase {
             statement.setBytes(3, record.serialize());
             statement.executeUpdate();
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            throw new StorageException("Unable to store signal session.");
         }
     }
 
+    /**
+     * Updates signal session.
+     *
+     * @param address a signal address.
+     * @param record  a session record.
+     */
     public void updateSession(SignalProtocolAddress address, SessionRecord record) {
-        try (Connection conn = databaseService.connect();
+        try (Connection conn = database.connect();
              PreparedStatement statement = conn.prepareStatement(UPDATE_SESSION_STATEMENT)) {
 
             statement.setBytes(1, record.serialize());
@@ -60,34 +73,45 @@ public class SignalSessionDatabase {
 
             statement.executeUpdate();
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            throw new StorageException("Unable to update signal session");
         }
     }
 
+    /**
+     * Loads Signal session based on address.
+     *
+     * @param address a signal address.
+     * @return an optional wrapper of signal session record.
+     */
     public Optional<SessionRecord> load(SignalProtocolAddress address) {
-        try (Connection conn = databaseService.connect();
-             PreparedStatement statement  = conn.prepareStatement(READ_SESSION_STATEMENT)) {
+        try (Connection conn = database.connect();
+             PreparedStatement statement = conn.prepareStatement(READ_SESSION_STATEMENT)) {
 
             statement.setString(1, address.getName());
             statement.setInt(2, address.getDeviceId());
-            ResultSet rs  = statement.executeQuery();
+            ResultSet rs = statement.executeQuery();
 
             if (rs.next()) {
                 return Optional.of(new SessionRecord(rs.getBytes(SESSION_RECORD_COLUMN)));
             }
             return Optional.empty();
         } catch (SQLException | IOException e) {
-            System.out.println(e.getMessage());
-            return Optional.empty();
+            throw new StorageException("Unable to load signal session");
         }
     }
 
+    /**
+     * Loads all device ids of a signal session.
+     *
+     * @param name a name of the session address.
+     * @return a list of device ids.
+     */
     public List<Integer> getSubDeviceSessions(String name) {
-        try (Connection conn = databaseService.connect();
-             PreparedStatement statement  = conn.prepareStatement(READ_SESSIONS_BY_NAME_STATEMENT)) {
+        try (Connection conn = database.connect();
+             PreparedStatement statement = conn.prepareStatement(READ_SESSIONS_BY_NAME_STATEMENT)) {
 
             statement.setString(1, name);
-            ResultSet rs  = statement.executeQuery();
+            ResultSet rs = statement.executeQuery();
 
             List<Integer> result = new ArrayList<>();
             while (rs.next()) {
@@ -95,34 +119,46 @@ public class SignalSessionDatabase {
             }
             return result;
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
-            return List.of();
+            throw new StorageException("Unable to load device ids of signal session.");
         }
     }
 
+    /**
+     * Deletes signal session based on address.
+     *
+     * @param address a signal address.
+     */
     public void delete(SignalProtocolAddress address) {
-        try (Connection conn = databaseService.connect();
+        try (Connection conn = database.connect();
              PreparedStatement stmt = conn.prepareStatement(DELETE_SESSION_STATEMENT)) {
 
             stmt.setString(1, address.getName());
             stmt.setInt(2, address.getDeviceId());
             stmt.executeUpdate();
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            throw new StorageException("Unable to delete signal session.");
         }
     }
 
+    /**
+     * Deletes all signal sessions based on provided name.
+     *
+     * @param name a signal address name.
+     */
     public void deleteAll(String name) {
-        try (Connection conn = databaseService.connect();
+        try (Connection conn = database.connect();
              PreparedStatement stmt = conn.prepareStatement(DELETE_ALL_SESSIONS_STATEMENT)) {
 
             stmt.setString(1, name);
             stmt.executeUpdate();
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            throw new StorageException("Unable to delete signal sessions.");
         }
     }
 
+    /**
+     * Initialization method that creates session table.
+     */
     private void init() {
         String createSessionTableCmd = "CREATE TABLE IF NOT EXISTS " + SESSION_TABLE_NAME + " (\n"
                 + NAME_COLUMN + " text NOT NULL,\n"
@@ -131,7 +167,7 @@ public class SignalSessionDatabase {
                 //+ "UNIQUE(" + DEVICE_ID_COLUMN + "," + NAME_COLUMN + ")\n"
                 + ");";
 
-        databaseService.createTable(createSessionTableCmd);
+        database.executeStatement(createSessionTableCmd);
     }
 
 }

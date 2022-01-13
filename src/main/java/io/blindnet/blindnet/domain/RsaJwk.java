@@ -7,7 +7,7 @@ import java.security.interfaces.RSAPrivateCrtKey;
 import java.util.Base64;
 
 /**
- * Represents RSA private key in jwk format.
+ * A wrapper class for the RSA private key in JWK format.
  */
 public final class RsaJwk {
 

@@ -4,7 +4,6 @@ import io.blindnet.blindnet.domain.UserRegistrationResult;
 import io.blindnet.blindnet.exception.KeyConstructionException;
 import io.blindnet.blindnet.internal.JwtConfig;
 import io.blindnet.blindnet.internal.KeyFactory;
-import io.blindnet.blindnet.internal.KeyStorage;
 import io.blindnet.blindnet.internal.SigningService;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
@@ -49,11 +48,11 @@ class UserServiceImpl implements UserService {
      */
     @Override
     public UserRegistrationResult register() {
-        KeyPair encryptionKeyPair = keyFactory.generateKeyPair(RSA_ALGORITHM, BC_PROVIDER, RSA_KEY_SIZE_4096);
+        KeyPair encryptionKeyPair = keyFactory.generateRSAKeyPair();
         PrivateKey encryptionPrivateKey = encryptionKeyPair.getPrivate();
         keyStorage.storeEncryptionKey(encryptionPrivateKey);
 
-        KeyPair signingKeyPair = keyFactory.generateKeyPair(Ed25519_ALGORITHM, BC_PROVIDER, -1);
+        KeyPair signingKeyPair = keyFactory.generateEd25519KeyPair();
         PrivateKey signingPrivateKey = signingKeyPair.getPrivate();
         keyStorage.storeSigningKey(signingPrivateKey);
 

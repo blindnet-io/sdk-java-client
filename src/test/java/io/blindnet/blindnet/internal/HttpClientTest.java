@@ -1,4 +1,4 @@
-package io.blindnet.blindnet.core;
+package io.blindnet.blindnet.internal;
 
 import io.blindnet.blindnet.internal.HttpClient;
 import org.junit.Before;
@@ -27,7 +27,7 @@ public class HttpClientTest {
                 "}";
         byte[] body = jsonInputString.getBytes(StandardCharsets.UTF_8);
         assertDoesNotThrow(() ->
-                httpClient.post("https://38d53445-1473-4da0-9ab6-f34a24412c93.mock.pstmn.io/api/v1/users", "jwt", body));
+                httpClient.post("https://38d53445-1473-4da0-9ab6-f34a24412c93.mock.pstmn.io/api/v1/users", body));
     }
 
 }

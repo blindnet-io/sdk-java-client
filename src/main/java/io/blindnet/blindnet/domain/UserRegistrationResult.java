@@ -1,7 +1,7 @@
 package io.blindnet.blindnet.domain;
 
 /**
- * Returns result of a registration of a user process.
+ * A wrapper for the result of a user registration process.
  */
 public final class UserRegistrationResult {
 

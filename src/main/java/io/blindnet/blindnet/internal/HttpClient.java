@@ -1,7 +1,6 @@
 package io.blindnet.blindnet.internal;
 
 import io.blindnet.blindnet.domain.HttpResponse;
-import io.blindnet.blindnet.domain.HttpStreamResponse;
 import io.blindnet.blindnet.exception.BlindnetApiException;
 import io.blindnet.blindnet.exception.InvalidJwtException;
 
@@ -14,7 +13,7 @@ import static java.util.Objects.requireNonNull;
 
 
 /**
- * Provides API to for standard HTTP methods.
+ * Provides API for sending HTTP requests.
  */
 public class HttpClient {
 
@@ -49,59 +48,67 @@ public class HttpClient {
     }
 
     /**
-     * Sends HTTP Post request.
+     * Sends HTTP POST request.
      *
      * @param url         an url of the request.
-     * @param jwt         a jwt used for authorization.
      * @param requestBody a body of the request.
      * @return a http response object.
      */
-    public HttpResponse post(String url, String jwt, byte[] requestBody) {
-        return sendRequest(url, jwt, requestBody, POST_METHOD);
-    }
-
-    public HttpResponse post(String url, String jwt, InputStream requestBody) {
-        return sendRequest(url, jwt, requestBody, POST_METHOD);
+    public HttpResponse post(String url, byte[] requestBody) {
+        return sendRequest(url, requestBody, POST_METHOD);
     }
 
     /**
-     * Sends HTTP Put request.
+     * Sends HTTP POST request by streaming body content.
      *
      * @param url         an url of the request.
-     * @param jwt         a jwt used for authorization.
+     * @param requestBody a body of the request, represented as stream.
+     * @return a http response object.
+     */
+    public HttpResponse post(String url, InputStream requestBody) {
+        return sendRequest(url, requestBody, POST_METHOD);
+    }
+
+    /**
+     * Sends HTTP PUT request.
+     *
+     * @param url         an url of the request.
      * @param requestBody a body of the request.
      * @return a http response object.
      */
-    public HttpResponse put(String url, String jwt, byte[] requestBody) {
-        return sendRequest(url, jwt, requestBody, PUT_METHOD);
+    public HttpResponse put(String url, byte[] requestBody) {
+        return sendRequest(url, requestBody, PUT_METHOD);
     }
 
     /**
-     * Sends HTTP Get request.
+     * Sends HTTP GET request.
      *
      * @param url an url of the request.
-     * @param jwt a jwt used for authorization.
      * @return a http response object.
      */
-    public HttpResponse get(String url, String jwt) {
+    public HttpResponse get(String url) {
         requireNonNull(url, "Url cannot be null.");
-        requireNonNull(jwt, "JWT cannot be null.");
 
         HttpURLConnection con = init(url, GET_METHOD);
 
-        con.setRequestProperty("Authorization", "Bearer " + jwt);
+        con.setRequestProperty("Authorization", "Bearer " + requireNonNull(JwtConfig.INSTANCE.getJwt(), "JWT not configured properly."));
         con.setRequestProperty("Accept", "application/json");
 
         return createResponse(con, url);
     }
 
-    public HttpURLConnection getAsStream(String url, String jwt) {
+    /**
+     * Sends HTTP GET request and expects response in form of stream.
+     *
+     * @param url an url of the request.
+     * @return a http url connection object.
+     */
+    public HttpURLConnection getAsStream(String url) {
         requireNonNull(url, "Url cannot be null.");
-        requireNonNull(jwt, "JWT cannot be null.");
 
         HttpURLConnection con = init(url, GET_METHOD);
 
-        con.setRequestProperty("Authorization", "Bearer " + jwt);
+        con.setRequestProperty("Authorization", "Bearer " + requireNonNull(JwtConfig.INSTANCE.getJwt(), "JWT not configured properly."));
         con.setRequestProperty("Accept", "application/json");
 
         validateResponse(con, url);
@@ -109,19 +116,17 @@ public class HttpClient {
     }
 
     /**
-     * Sends HTTP Delete request.
+     * Sends HTTP DELETE request.
      *
      * @param url an url of the request.
-     * @param jwt a jwt used for authorization.
      * @return a http response object.
      */
-    public HttpResponse delete(String url, String jwt) {
+    public HttpResponse delete(String url) {
         requireNonNull(url, "Url cannot be null.");
-        requireNonNull(jwt, "JWT cannot be null.");
 
         HttpURLConnection con = init(url, DELETE_METHOD);
 
-        con.setRequestProperty("Authorization", "Bearer " + jwt);
+        con.setRequestProperty("Authorization", "Bearer " + requireNonNull(JwtConfig.INSTANCE.getJwt(), "JWT not configured properly."));
         con.setRequestProperty("Accept", "application/json");
 
         return createResponse(con, url);
@@ -131,34 +136,48 @@ public class HttpClient {
      * Sends a HTTP request.
      *
      * @param url         an url of the request.
-     * @param jwt         a jwt used for authorization.
      * @param requestBody a body of the request.
      * @param method      a HTTP method.
      * @return a http response object.
      */
-    private HttpResponse sendRequest(String url, String jwt, byte[] requestBody, String method) {
+    private HttpResponse sendRequest(String url, byte[] requestBody, String method) {
         requireNonNull(requestBody, "Request body cannot be null.");
 
-        HttpURLConnection con = initSendRequest(url, jwt, method);
+        HttpURLConnection con = initSendRequest(url, method);
         sendRequestBody(con, requestBody);
         return createResponse(con, url);
     }
 
-    private HttpResponse sendRequest(String url, String jwt, InputStream requestBody, String method) {
+    /**
+     * SEnds a HTTP request with a request body in for of stream.
+     *
+     * @param url         an url of the request.
+     * @param requestBody a body of the request, in form of stream.
+     * @param method      a HTTP method.
+     * @return a http response object.
+     */
+    private HttpResponse sendRequest(String url, InputStream requestBody, String method) {
         requireNonNull(requestBody, "Request body cannot be null.");
 
-        HttpURLConnection con = initSendRequest(url, jwt, method);
+        HttpURLConnection con = initSendRequest(url, method);
         sendRequestBody(con, requestBody);
 
         return createResponse(con, url);
     }
 
-    private HttpURLConnection initSendRequest(String url, String jwt, String method) {
+    /**
+     * Creates initial HTTP connection used to send HTTP request.
+     *
+     * @param url    an url of the request.
+     * @param method a HTTP method.
+     * @return a http url connection object.
+     */
+    private HttpURLConnection initSendRequest(String url, String method) {
         requireNonNull(url, "Url cannot be null.");
         requireNonNull(method, "Method cannot be null.");
 
         HttpURLConnection con = init(url, method);
-        con.setRequestProperty("Authorization", "Bearer " + jwt);
+        con.setRequestProperty("Authorization", "Bearer " + requireNonNull(JwtConfig.INSTANCE.getJwt(), "JWT not configured properly."));
         con.setRequestProperty("Content-Type", "application/json; utf-8");
         con.setRequestProperty("Accept", "application/json");
 
@@ -166,7 +185,7 @@ public class HttpClient {
     }
 
     /**
-     * Sends a body of the request.
+     * Writes a body of the request to the request stream.
      *
      * @param con         a http url connection object.
      * @param requestBody a request body as byte array.
@@ -182,6 +201,12 @@ public class HttpClient {
         }
     }
 
+    /**
+     * Writes a body of the request to the request stream.
+     *
+     * @param con         a http url connection object.
+     * @param requestBody a request body in form of stream.
+     */
     private void sendRequestBody(HttpURLConnection con, InputStream requestBody) {
         try {
             con.setDoOutput(true);
@@ -216,6 +241,13 @@ public class HttpClient {
         }
     }
 
+    /**
+     * Validates response.
+     *
+     * @param con a http url connection object.
+     * @param url an url of the request.
+     * @return a http response code.
+     */
     private int validateResponse(HttpURLConnection con, String url) {
         try {
             int responseCode = con.getResponseCode();
@@ -256,7 +288,6 @@ public class HttpClient {
         in.close();
         return content.toString().getBytes();
     }
-
 
     /**
      * Initialises a http url connection object.

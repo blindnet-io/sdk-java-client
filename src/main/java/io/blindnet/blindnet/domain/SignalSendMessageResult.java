@@ -1,5 +1,8 @@
 package io.blindnet.blindnet.domain;
 
+/**
+ * A wrapper class for the result of sending the Signal message.
+ */
 public class SignalSendMessageResult {
 
     /**

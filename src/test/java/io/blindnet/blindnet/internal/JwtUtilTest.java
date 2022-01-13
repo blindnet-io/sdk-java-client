@@ -1,5 +1,6 @@
-package io.blindnet.blindnet.core;
+package io.blindnet.blindnet.internal;
 
+import io.blindnet.blindnet.core.AbstractTest;
 import io.blindnet.blindnet.internal.JwtUtil;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;

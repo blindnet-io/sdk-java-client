@@ -1,7 +1,7 @@
 package io.blindnet.blindnet.exception;
 
 /**
- * Exception indicating that jwt is either expired or invalid.
+ * Exception indicating that JWT is either expired or invalid.
  */
 public class InvalidJwtException extends RuntimeException {
 

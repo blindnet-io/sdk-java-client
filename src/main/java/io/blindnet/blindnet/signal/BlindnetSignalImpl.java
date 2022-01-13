@@ -2,15 +2,16 @@ package io.blindnet.blindnet.signal;
 
 import io.blindnet.blindnet.BlindnetSignal;
 import io.blindnet.blindnet.domain.MessageArrayWrapper;
-import io.blindnet.blindnet.domain.MessageStreamWrapper;
 import io.blindnet.blindnet.domain.UserRegistrationResult;
 import io.blindnet.blindnet.internal.*;
-import org.whispersystems.libsignal.InvalidKeyException;
 
 import java.io.InputStream;
 import java.util.List;
 
-public class BlindnetSignalImpl implements BlindnetSignal {
+/**
+ * Provides implementation of Signal Blindnet SDK Api.
+ */
+class BlindnetSignalImpl implements BlindnetSignal {
 
     private final SignalUserService signalUserService;
     private final SignalEncryptionService signalEncryptionService;
@@ -26,20 +27,19 @@ public class BlindnetSignalImpl implements BlindnetSignal {
         JwtConfig.INSTANCE.setup(jwt);
         DatabaseConfig.INSTANCE.setup(dbPath);
 
-        // todo fix dependencies
         KeyFactory keyFactory = new KeyFactory();
         SignalKeyFactory signalKeyFactory = new SignalKeyFactory();
         SigningService signingService = new SigningService();
         SignalApiClient signalApiClient = new SignalApiClient(HttpClient.getInstance(), signalKeyFactory);
 
-        DatabaseService databaseService = new DatabaseService();
-
-        SignalSessionDatabase signalSessionDatabase = new SignalSessionDatabase(databaseService);
-        signalIdentityDatabase = new SignalIdentityDatabase(databaseService);
-        SignalSignedPreKeyDatabase signalSignedPreKeyDatabase = new SignalSignedPreKeyDatabase(databaseService);
-        SignalPreKeyDatabase signalPreKeyDatabase = new SignalPreKeyDatabase(databaseService);
+        SignalSessionDatabase signalSessionDatabase = new SignalSessionDatabase();
+        SignalSignedPreKeyDatabase signalSignedPreKeyDatabase = new SignalSignedPreKeyDatabase();
+        SignalPreKeyDatabase signalPreKeyDatabase = new SignalPreKeyDatabase();
 
         SignalSessionStore signalSessionStore = new SignalSessionStore(signalSessionDatabase);
+
+        signalIdentityDatabase = new SignalIdentityDatabase();
+
         SignalPreKeyStore signalPreKeyStore = new SignalPreKeyStore(signalPreKeyDatabase,
                 signalIdentityDatabase,
                 signalApiClient,
@@ -69,7 +69,7 @@ public class BlindnetSignalImpl implements BlindnetSignal {
     }
 
     @Override
-    public UserRegistrationResult register() throws InvalidKeyException {
+    public UserRegistrationResult register() {
         return signalUserService.register();
     }
 
@@ -88,15 +88,21 @@ public class BlindnetSignalImpl implements BlindnetSignal {
         return signalEncryptionService.decryptMessage(deviceId);
     }
 
-    @Override
-    public void encryptMessage(List<String> recipientIds, MessageStreamWrapper messageStreamWrapper) {
-        signalEncryptionService.encryptMessage(recipientIds, messageStreamWrapper);
-    }
+    /* Signal library does not support encryption of stream messages
+     *
+     * @Override
+     * public void encryptMessage(List<String> recipientIds, MessageStreamWrapper messageStreamWrapper) {
+     *   signalEncryptionService.encryptMessage(recipientIds, messageStreamWrapper);
+     * }
+     */
 
-    @Override
-    public List<MessageStreamWrapper> decryptStreamMessage(String deviceId) {
-        return signalEncryptionService.decryptStreamMessage(deviceId);
-    }
+    /* Signal library does not support encryption of stream messages
+     *
+     * @Override
+     * public List<MessageStreamWrapper> decryptStreamMessage(String deviceId) {
+     *   return signalEncryptionService.decryptStreamMessage(deviceId);
+     * }
+     */
 
     @Override
     public void backupMessages(String password, boolean newBackup, List<MessageArrayWrapper> messages) {

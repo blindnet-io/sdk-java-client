@@ -1,33 +1,33 @@
 package io.blindnet.blindnet.signal;
 
-import io.blindnet.blindnet.internal.DatabaseConfig;
-import io.blindnet.blindnet.internal.DatabaseService;
-import org.junit.AfterClass;
+import io.blindnet.blindnet.internal.Database;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
 import org.whispersystems.libsignal.IdentityKey;
 import org.whispersystems.libsignal.IdentityKeyPair;
 import org.whispersystems.libsignal.SignalProtocolAddress;
 import org.whispersystems.libsignal.util.KeyHelper;
 
-import java.io.File;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class SignalIdentityDatabaseTest {
+public class SignalIdentityDatabaseTest extends SignalAbstractTest {
 
     private SignalIdentityDatabase signalIdentityDatabase;
 
     @Before
     public void setup() {
-        DatabaseConfig.INSTANCE.setup(System.getProperty("java.io.tmpdir"));
-        signalIdentityDatabase = new SignalIdentityDatabase(new DatabaseService());
+        Database.getInstance().executeStatement("drop table if exists 'local_identity';");
+        Database.getInstance().executeStatement("drop table if exists 'identity';");
+        signalIdentityDatabase = new SignalIdentityDatabase();
     }
 
     @Test
+    @DisplayName("Test storing of local identity key.")
     public void testStoringOfLocalIdentityKey() {
         int registrationId = KeyHelper.generateRegistrationId(false);
         IdentityKeyPair identityKeyPair = KeyHelper.generateIdentityKeyPair();
@@ -49,6 +49,7 @@ public class SignalIdentityDatabaseTest {
     }
 
     @Test
+    @DisplayName("Test storing of identity.")
     public void testStoringOfIdentity() {
         String name = UUID.randomUUID().toString();
         int deviceId = 123;
@@ -62,23 +63,19 @@ public class SignalIdentityDatabaseTest {
         assertArrayEquals(identityKey.serialize(), optionalIdentityKey.get().serialize());
     }
 
-    // TODO refactor
-    @AfterClass
-    public static void classCleanup() {
-        deleteFolder(new File(DatabaseService.URL));
+    @Test
+    @DisplayName("Test deleting of identity.")
+    public void testDeletingOfIdentity() {
+        String name = UUID.randomUUID().toString();
+        int deviceId = 123;
+        IdentityKey identityKey = KeyHelper.generateIdentityKeyPair().getPublicKey();
+        SignalProtocolAddress signalProtocolAddress = new SignalProtocolAddress(name, deviceId);
+
+        signalIdentityDatabase.saveIdentity(signalProtocolAddress, identityKey);
+        signalIdentityDatabase.deleteIdentity(signalProtocolAddress);
+        Optional<IdentityKey> optionalIdentityKey = signalIdentityDatabase.readIdentity(signalProtocolAddress);
+
+        assertTrue(optionalIdentityKey.isEmpty());
     }
 
-    private static void deleteFolder(File folder) {
-        File[] files = folder.listFiles();
-        if (files != null) {
-            for (File f : files) {
-                if (f.isDirectory()) {
-                    deleteFolder(f);
-                } else {
-                    f.delete();
-                }
-            }
-        }
-        folder.delete();
-    }
 }
