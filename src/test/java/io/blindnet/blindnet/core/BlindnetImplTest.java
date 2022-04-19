@@ -22,19 +22,13 @@ public class BlindnetImplTest extends AbstractTest {
     public void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        blindnet = new BlindnetImpl(keyFolderPath, TEST_JWT);
+        blindnet = new BlindnetImpl(keyFolderPath, TEST_TOKEN);
     }
 
     @Test
-    @DisplayName("Test configuring jwt.")
-    public void testSetJwt() {
-        assertDoesNotThrow(() -> blindnet.setJwt(UUID.randomUUID().toString()));
-    }
-
-    @Test
-    @DisplayName("Test configuring server api url.")
-    public void testSetApiUrl() {
-        assertDoesNotThrow(() -> blindnet.setApiUrl(UUID.randomUUID().toString()));
+    @DisplayName("Test configuring token.")
+    public void testSetToken() {
+        assertDoesNotThrow(() -> blindnet.updateToken(UUID.randomUUID().toString()));
     }
 
 }

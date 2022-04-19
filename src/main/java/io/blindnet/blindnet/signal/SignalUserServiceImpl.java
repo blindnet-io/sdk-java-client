@@ -11,18 +11,18 @@ import org.whispersystems.libsignal.util.KeyHelper;
 
 import java.io.File;
 import java.security.KeyPair;
+import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ThreadLocalRandom;
 
 import static io.blindnet.blindnet.internal.DatabaseConfig.DATABASE_NAME;
 import static io.blindnet.blindnet.internal.EncryptionConstants.Ed25519_ALGORITHM;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Implement
+ * Implementation of service that provides API to register/unregister user against Signal Blindnet API.
  */
 class SignalUserServiceImpl implements SignalUserService {
 
@@ -32,7 +32,7 @@ class SignalUserServiceImpl implements SignalUserService {
     private final SignalSignedPreKeyStore signalSignedPreKeyStore;
     private final SigningService signingService;
     private final SignalApiClient signalApiClient;
-    private final JwtConfig jwtConfig;
+    private final TokenConfig tokenConfig;
     private final SignalKeyFactory signalKeyFactory;
 
     SignalUserServiceImpl(KeyFactory keyFactory,
@@ -47,7 +47,7 @@ class SignalUserServiceImpl implements SignalUserService {
         this.signalKeyFactory = signalKeyFactory;
         this.signingService = signingService;
         this.signalApiClient = signalApiClient;
-        this.jwtConfig = JwtConfig.INSTANCE;
+        this.tokenConfig = TokenConfig.INSTANCE;
         this.signalIdentityKeyStore = signalIdentityKeyStore;
         this.signalSignedPreKeyStore = signalSignedPreKeyStore;
         this.signalPreKeyStore = signalPreKeyStore;
@@ -55,28 +55,28 @@ class SignalUserServiceImpl implements SignalUserService {
 
     public UserRegistrationResult register() {
         // generate device id, identity key pair, identity key pair id (registration id) and store them
-        int deviceId = ThreadLocalRandom.current().nextInt(0, Integer.MAX_VALUE);
+        int deviceId = new SecureRandom().nextInt(Integer.MAX_VALUE);
         IdentityKeyPair identityKeyPair = KeyHelper.generateIdentityKeyPair();
         int registrationId = KeyHelper.generateRegistrationId(false);
         signalIdentityKeyStore.saveLocalIdentity(registrationId, deviceId, identityKeyPair);
 
         // generate pre key pair, sign it using identity key pair and store it
-        SignedPreKeyRecord signedPreKey = null;
+        SignedPreKeyRecord signedPreKey;
         try {
-            signedPreKey = KeyHelper.generateSignedPreKey(identityKeyPair, ThreadLocalRandom.current().nextInt());
+            signedPreKey = KeyHelper.generateSignedPreKey(identityKeyPair, new SecureRandom().nextInt());
             signalSignedPreKeyStore.storeSignedPreKey(signedPreKey.getId(), signedPreKey);
         } catch (InvalidKeyException exception) {
             throw new UserRegistrationException("Error: Unable to register user. Signing pre key failed.");
         }
 
         //generate set of ten pre key pairs
-        int startId = ThreadLocalRandom.current().nextInt();
+        int startId = new SecureRandom().nextInt();
         List<PreKeyRecord> preKeys = KeyHelper.generatePreKeys(startId, 10);
         preKeys.forEach(preKey -> signalPreKeyStore.storePreKey(preKey.getId(), preKey));
 
-        // signs jwt with private identity key
+        // signs token with private identity key
         KeyPair signingKeyPair = keyFactory.generateEd25519KeyPair();
-        byte[] signedJwt = signingService.sign(requireNonNull(jwtConfig.getJwt(), "JWT not configured properly."),
+        byte[] signedToken = signingService.sign(requireNonNull(tokenConfig.getToken(), "Token not configured properly."),
                 signingKeyPair.getPrivate(),
                 Ed25519_ALGORITHM);
 
@@ -96,7 +96,7 @@ class SignalUserServiceImpl implements SignalUserService {
                 String.valueOf(signedPreKey.getId()),
                 encoder.encodeToString(signedPreKey.getSignature()),
                 listOfPublicPreKeys,
-                Base64.getUrlEncoder().encodeToString(signedJwt)
+                Base64.getUrlEncoder().encodeToString(signedToken)
         );
     }
 

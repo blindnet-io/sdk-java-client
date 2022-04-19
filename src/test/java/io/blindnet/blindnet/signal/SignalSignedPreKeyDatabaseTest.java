@@ -10,9 +10,9 @@ import org.whispersystems.libsignal.InvalidKeyException;
 import org.whispersystems.libsignal.state.SignedPreKeyRecord;
 import org.whispersystems.libsignal.util.KeyHelper;
 
+import java.security.SecureRandom;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ThreadLocalRandom;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -30,7 +30,7 @@ public class SignalSignedPreKeyDatabaseTest extends SignalAbstractTest {
     @DisplayName("Test storing of signed pre key.")
     public void testStoringOfPreKey() throws InvalidKeyException {
         IdentityKeyPair identityKeyPair = KeyHelper.generateIdentityKeyPair();
-        SignedPreKeyRecord signedPreKey = KeyHelper.generateSignedPreKey(identityKeyPair, ThreadLocalRandom.current().nextInt());
+        SignedPreKeyRecord signedPreKey = KeyHelper.generateSignedPreKey(identityKeyPair, new SecureRandom().nextInt());
 
         signalSignedPreKeyDatabase.store(signedPreKey.getId(), signedPreKey);
 
@@ -44,11 +44,11 @@ public class SignalSignedPreKeyDatabaseTest extends SignalAbstractTest {
     @DisplayName("Test storing of signed pre key with invalid id.")
     public void testStoringOfPreKey_thenInvalidId() throws InvalidKeyException {
         IdentityKeyPair identityKeyPair = KeyHelper.generateIdentityKeyPair();
-        SignedPreKeyRecord signedPreKey = KeyHelper.generateSignedPreKey(identityKeyPair, ThreadLocalRandom.current().nextInt());
+        SignedPreKeyRecord signedPreKey = KeyHelper.generateSignedPreKey(identityKeyPair, new SecureRandom().nextInt());
 
         signalSignedPreKeyDatabase.store(signedPreKey.getId(), signedPreKey);
 
-        SignedPreKeyRecord duplicateSignedPreKey = KeyHelper.generateSignedPreKey(identityKeyPair, ThreadLocalRandom.current().nextInt());
+        SignedPreKeyRecord duplicateSignedPreKey = KeyHelper.generateSignedPreKey(identityKeyPair, new SecureRandom().nextInt());
         StorageException storePreKeyException = assertThrows(StorageException.class,
                 () -> signalSignedPreKeyDatabase.store(signedPreKey.getId(), duplicateSignedPreKey));
         assertTrue(storePreKeyException.getMessage().contains("Unable to store signed pre key"));
@@ -58,11 +58,11 @@ public class SignalSignedPreKeyDatabaseTest extends SignalAbstractTest {
     @DisplayName("Test storing of multiple signed pre keys.")
     public void testStoringOfMultiplePreKey() throws InvalidKeyException {
         IdentityKeyPair identityKeyPairOne = KeyHelper.generateIdentityKeyPair();
-        SignedPreKeyRecord signedPreKeyOne = KeyHelper.generateSignedPreKey(identityKeyPairOne, ThreadLocalRandom.current().nextInt());
+        SignedPreKeyRecord signedPreKeyOne = KeyHelper.generateSignedPreKey(identityKeyPairOne, new SecureRandom().nextInt());
         signalSignedPreKeyDatabase.store(signedPreKeyOne.getId(), signedPreKeyOne);
 
         IdentityKeyPair identityKeyPairTwo = KeyHelper.generateIdentityKeyPair();
-        SignedPreKeyRecord signedPreKeyTwo = KeyHelper.generateSignedPreKey(identityKeyPairTwo, ThreadLocalRandom.current().nextInt());
+        SignedPreKeyRecord signedPreKeyTwo = KeyHelper.generateSignedPreKey(identityKeyPairTwo, new SecureRandom().nextInt());
         signalSignedPreKeyDatabase.store(signedPreKeyTwo.getId(), signedPreKeyTwo);
 
         List<SignedPreKeyRecord> signedPreKeys = signalSignedPreKeyDatabase.loadRecords();
@@ -78,7 +78,7 @@ public class SignalSignedPreKeyDatabaseTest extends SignalAbstractTest {
     @DisplayName("Test deleting of signed pre key.")
     public void testDeletingOfPreKey() throws InvalidKeyException {
         IdentityKeyPair identityKeyPair = KeyHelper.generateIdentityKeyPair();
-        SignedPreKeyRecord signedPreKey = KeyHelper.generateSignedPreKey(identityKeyPair, ThreadLocalRandom.current().nextInt());
+        SignedPreKeyRecord signedPreKey = KeyHelper.generateSignedPreKey(identityKeyPair, new SecureRandom().nextInt());
 
         signalSignedPreKeyDatabase.store(signedPreKey.getId(), signedPreKey);
         signalSignedPreKeyDatabase.delete(signedPreKey.getId());

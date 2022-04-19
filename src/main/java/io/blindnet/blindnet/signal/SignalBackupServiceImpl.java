@@ -1,6 +1,6 @@
 package io.blindnet.blindnet.signal;
 
-import io.blindnet.blindnet.domain.MessageArrayWrapper;
+import io.blindnet.blindnet.domain.message.MessageArrayWrapper;
 import io.blindnet.blindnet.internal.EncryptionService;
 import io.blindnet.blindnet.internal.KeyFactory;
 

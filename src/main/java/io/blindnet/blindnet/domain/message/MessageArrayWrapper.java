@@ -1,4 +1,4 @@
-package io.blindnet.blindnet.domain;
+package io.blindnet.blindnet.domain.message;
 
 import org.json.JSONObject;
 
@@ -10,6 +10,20 @@ import java.util.Map;
  */
 public final class MessageArrayWrapper implements MessageWrapper {
 
+    /**
+     * The ID of signal message sender.
+     */
+    private String signalSenderID;
+
+    /**
+     * The ID of signal sender's device.
+     */
+    private String signalSenderDeviceID;
+
+    /**
+     * The time signal message was sent at.
+     */
+    private String signalMessageTimeSent;
     /**
      * A metadata of the message.
      */
@@ -73,6 +87,30 @@ public final class MessageArrayWrapper implements MessageWrapper {
 
     public byte[] getData() {
         return data;
+    }
+
+    public void setSignalSenderID(String signalSenderID) {
+        this.signalSenderID = signalSenderID;
+    }
+
+    public void setSignalSenderDeviceID(String signalSenderDeviceID) {
+        this.signalSenderDeviceID = signalSenderDeviceID;
+    }
+
+    public void setSignalMessageTimeSent(String signalMessageTimeSent) {
+        this.signalMessageTimeSent = signalMessageTimeSent;
+    }
+
+    public String getSignalSenderID() {
+        return signalSenderID;
+    }
+
+    public String getSignalSenderDeviceID() {
+        return signalSenderDeviceID;
+    }
+
+    public String getSignalMessageTimeSent() {
+        return signalMessageTimeSent;
     }
 
 }

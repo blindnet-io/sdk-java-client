@@ -9,9 +9,9 @@ import org.whispersystems.libsignal.IdentityKeyPair;
 import org.whispersystems.libsignal.SignalProtocolAddress;
 import org.whispersystems.libsignal.util.KeyHelper;
 
+import java.security.SecureRandom;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.ThreadLocalRandom;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -31,7 +31,7 @@ public class SignalIdentityDatabaseTest extends SignalAbstractTest {
     public void testStoringOfLocalIdentityKey() {
         int registrationId = KeyHelper.generateRegistrationId(false);
         IdentityKeyPair identityKeyPair = KeyHelper.generateIdentityKeyPair();
-        int deviceId = ThreadLocalRandom.current().nextInt();
+        int deviceId = new SecureRandom().nextInt();
 
         signalIdentityDatabase.saveLocalIdentity(registrationId, deviceId, identityKeyPair);
         IdentityKeyPair savedIdentityKey = signalIdentityDatabase.readLocalIdentity();

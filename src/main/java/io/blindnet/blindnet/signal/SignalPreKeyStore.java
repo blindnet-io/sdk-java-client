@@ -5,11 +5,11 @@ import org.whispersystems.libsignal.state.PreKeyRecord;
 import org.whispersystems.libsignal.state.PreKeyStore;
 import org.whispersystems.libsignal.util.KeyHelper;
 
+import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Signal pre key store implementation.
@@ -61,7 +61,7 @@ class SignalPreKeyStore implements PreKeyStore {
 
         // FR-SDK22
         if (signalPreKeyDatabase.countPreKeys() < 6) {
-            int startId = ThreadLocalRandom.current().nextInt();
+            int startId = new SecureRandom().nextInt();
             List<PreKeyRecord> preKeys = KeyHelper.generatePreKeys(startId, 10);
             preKeys.forEach(preKey -> storePreKey(preKey.getId(), preKey));
 

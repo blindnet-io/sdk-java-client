@@ -1,7 +1,7 @@
 package io.blindnet.blindnet.signal;
 
 import io.blindnet.blindnet.core.AbstractTest;
-import io.blindnet.blindnet.domain.MessageArrayWrapper;
+import io.blindnet.blindnet.domain.message.MessageArrayWrapper;
 import io.blindnet.blindnet.internal.EncryptionService;
 import io.blindnet.blindnet.internal.KeyFactory;
 import org.junit.Before;

@@ -1,14 +1,11 @@
 package io.blindnet.blindnet.internal;
 
 import io.blindnet.blindnet.core.AbstractTest;
-import io.blindnet.blindnet.domain.MessageArrayWrapper;
-import io.blindnet.blindnet.domain.MessageArrayWrapperTest;
-import io.blindnet.blindnet.domain.MessageStreamWrapper;
-import io.blindnet.blindnet.domain.SymmetricJwk;
+import io.blindnet.blindnet.domain.message.MessageArrayWrapper;
+import io.blindnet.blindnet.domain.message.MessageStreamWrapper;
+import io.blindnet.blindnet.domain.key.SymmetricJwk;
 import io.blindnet.blindnet.exception.EncryptionException;
 import io.blindnet.blindnet.exception.KeyEncryptionException;
-import io.blindnet.blindnet.internal.EncryptionService;
-import io.blindnet.blindnet.internal.KeyFactory;
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;

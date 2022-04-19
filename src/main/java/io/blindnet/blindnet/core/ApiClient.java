@@ -1,6 +1,9 @@
 package io.blindnet.blindnet.core;
 
 import io.blindnet.blindnet.domain.*;
+import io.blindnet.blindnet.domain.key.KeyEnvelope;
+import io.blindnet.blindnet.domain.key.PrivateKeys;
+import io.blindnet.blindnet.domain.key.PublicKeys;
 import io.blindnet.blindnet.exception.SignatureException;
 import io.blindnet.blindnet.internal.*;
 import org.bouncycastle.jcajce.interfaces.EdDSAPrivateKey;
@@ -28,7 +31,7 @@ class ApiClient {
     private final EncryptionService encryptionService;
     private final HttpClient httpClient;
     private final KeyEnvelopeService keyEnvelopeService;
-    private final JwtConfig jwtConfig;
+    private final TokenConfig tokenConfig;
     private final ApiConfig apiConfig;
 
     public ApiClient(KeyStorage keyStorage,
@@ -42,7 +45,7 @@ class ApiClient {
         this.encryptionService = encryptionService;
         this.httpClient = httpClient;
         this.keyEnvelopeService = keyEnvelopeService;
-        this.jwtConfig = JwtConfig.INSTANCE;
+        this.tokenConfig = TokenConfig.INSTANCE;
         this.apiConfig = ApiConfig.INSTANCE;
     }
 
@@ -52,22 +55,22 @@ class ApiClient {
      * @param publicEncryptionKey       user's public key used for encryption.
      * @param signedPublicEncryptionKey a signature of public key used for encryption.
      * @param publicSigningKey          user's public key used for signing.
-     * @param signedJwt                 a JWT signature.
+     * @param signedToken                 a Token signature.
      * @return a user registration result object.
      */
     public UserRegistrationResult register(String publicEncryptionKey,
                                            String signedPublicEncryptionKey,
                                            String publicSigningKey,
-                                           String signedJwt) {
+                                           String signedToken) {
         requireNonNull(publicEncryptionKey, "Public Encryption Key cannot be null.");
         requireNonNull(signedPublicEncryptionKey, "Signed Public Encryption Key cannot be null.");
         requireNonNull(publicSigningKey, "Public Signing Key cannot be null.");
-        requireNonNull(signedJwt, "Signed JWT cannot be null.");
+        requireNonNull(signedToken, "Signed token cannot be null.");
 
         JSONObject requestBody = new JSONObject().put("publicEncryptionKey", publicEncryptionKey)
                 .put("publicSigningKey", publicSigningKey)
                 .put("signedPublicEncryptionKey", signedPublicEncryptionKey)
-                .put("signedJwt", signedJwt);
+                .put("signedJwt", signedToken);
 
         HttpResponse httpResponse = httpClient.post(apiConfig.getServerUrl() + USER_ENDPOINT_PATH,
                 requestBody.toString().getBytes(StandardCharsets.UTF_8));
@@ -127,7 +130,7 @@ class ApiClient {
                 .build();
 
         // use local signing public key if the current user is not recipient otherwise pull it from blindnet api
-        PublicKey signingKey = JwtUtil.extractUserId(jwtConfig.getJwt()).equals(recipientId) ?
+        PublicKey signingKey = TokenUtil.extractUserId(tokenConfig.getToken()).equals(recipientId) ?
                 fetchPublicKeys(senderId).getSigningKey() :
                 ((EdDSAPrivateKey) keyStorage.readSigningPrivateKey()).getPublicKey();
 

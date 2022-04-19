@@ -1,6 +1,9 @@
 package io.blindnet.blindnet.signal;
 
 import io.blindnet.blindnet.domain.*;
+import io.blindnet.blindnet.domain.key.BlindnetSignalPublicKeys;
+import io.blindnet.blindnet.domain.message.BlindnetSignalMessage;
+import io.blindnet.blindnet.domain.message.SignalSendMessageResult;
 import io.blindnet.blindnet.internal.HttpClient;
 import io.blindnet.blindnet.internal.KeyFactory;
 import io.blindnet.blindnet.internal.SigningService;
@@ -24,7 +27,6 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
 
 import static io.blindnet.blindnet.internal.EncryptionConstants.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -67,13 +69,13 @@ public class SignalApiClientTest extends SignalAbstractTest {
         IdentityKeyPair identityKeyPair = KeyHelper.generateIdentityKeyPair();
         int registrationId = KeyHelper.generateRegistrationId(false);
 
-        SignedPreKeyRecord signedPreKey = KeyHelper.generateSignedPreKey(identityKeyPair, ThreadLocalRandom.current().nextInt());
+        SignedPreKeyRecord signedPreKey = KeyHelper.generateSignedPreKey(identityKeyPair, new SecureRandom().nextInt());
         KeyPair signingKeyPair = keyFactory.generateEd25519KeyPair();
-        byte[] signedJwt = signingService.sign(TEST_JWT,
+        byte[] signedToken = signingService.sign(TEST_TOKEN,
                 signingKeyPair.getPrivate(),
                 Ed25519_ALGORITHM);
 
-        int startId = ThreadLocalRandom.current().nextInt();
+        int startId = new SecureRandom().nextInt();
         List<PreKeyRecord> preKeys = KeyHelper.generatePreKeys(startId, 10);
         Map<String, String> listOfPublicPreKeys = new HashMap<>();
         preKeys.forEach(key ->
@@ -88,7 +90,7 @@ public class SignalApiClientTest extends SignalAbstractTest {
                 String.valueOf(signedPreKey.getId()),
                 encoder.encodeToString(signedPreKey.getSignature()),
                 listOfPublicPreKeys,
-                Base64.getUrlEncoder().encodeToString(signedJwt));
+                Base64.getUrlEncoder().encodeToString(signedToken));
 
         assertNotNull(result);
         assertTrue(result.isSuccessful());
@@ -98,7 +100,7 @@ public class SignalApiClientTest extends SignalAbstractTest {
     @Test
     @DisplayName("Test upload of pre keys.")
     public void testUploadPreKeys() {
-        int startId = ThreadLocalRandom.current().nextInt();
+        int startId = new SecureRandom().nextInt();
         List<PreKeyRecord> preKeys = KeyHelper.generatePreKeys(startId, 10);
         Map<String, String> listOfPublicPreKeys = new HashMap<>();
         preKeys.forEach(key ->
@@ -136,12 +138,12 @@ public class SignalApiClientTest extends SignalAbstractTest {
         userOne.put("publicSpkID", publicSpkID);
         KeyPair signingKeyPair = keyFactory.generateEd25519KeyPair();
         userOne.put("publicSpk", encoder.encodeToString(keyFactory.encodeEd25519PublicKey(signingKeyPair.getPublic())));
-        SignedPreKeyRecord signedPreKey = KeyHelper.generateSignedPreKey(identityKeyPair, ThreadLocalRandom.current().nextInt());
+        SignedPreKeyRecord signedPreKey = KeyHelper.generateSignedPreKey(identityKeyPair, new SecureRandom().nextInt());
         userOne.put("pkSig", encoder.encodeToString(signedPreKey.getSignature()));
 
         String publicOpkID = UUID.randomUUID().toString();
         userOne.put("publicOpkID", publicOpkID);
-        int startId = ThreadLocalRandom.current().nextInt();
+        int startId = new SecureRandom().nextInt();
         List<PreKeyRecord> preKeys = KeyHelper.generatePreKeys(startId, 1);
         userOne.put("publicOpk", encoder.encodeToString(signalKeyFactory.removeKeyTypeByte(preKeys.get(0).getKeyPair().getPublicKey().serialize())));
 

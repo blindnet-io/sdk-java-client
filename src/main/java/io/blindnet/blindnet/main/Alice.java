@@ -1,15 +1,12 @@
 package io.blindnet.blindnet.main;
 
 import io.blindnet.blindnet.BlindnetSignal;
-import io.blindnet.blindnet.domain.MessageArrayWrapper;
+import io.blindnet.blindnet.domain.message.MessageArrayWrapper;
 import io.blindnet.blindnet.domain.UserRegistrationResult;
 import io.blindnet.blindnet.signal.BlindnetSignalProvider;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import java.security.Security;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,12 +31,12 @@ public class Alice {
         // 7. alice reads message
         // 8. alice responds
         // 9. bob reads message
-        boolean REGISTER = false;
-        String BOB_USERNAME = "bob2000";
+        boolean REGISTER = true;
+        String BOB_USERNAME = "bob777";
 
         BlindnetSignal ALICE = BlindnetSignalProvider.getInstance(
                 "/Users/stefanveselinovic/Desktop/blindnetdb2/",
-                "eyJhbGciOiJFZERTQSIsInR5cCI6Imp3dCJ9.eyJhcHAiOiI0MWRmMTBlYS05NjY4LTQwMTItYjRiNS04NTYyM2UyNzc5N2YiLCJ1aWQiOiJhbGljZTIwMDAiLCJuYmYiOjE2Mzk1MTMwMzgsImV4cCI6MTYzOTU1NjIzOCwiaWF0IjoxNjM5NTEzMDM4fQ.ocAaPQu-RIRCPpz5MXO3-JC3UbTc7j0kqycBGih-6xlL0MHjIJRDqGKtMfkzWzJEdUr0eSv9mHFTaCYGx3mTAg");
+                "eyJhbGciOiJFZERTQSIsInR5cCI6Imp3dCJ9.eyJhcHAiOiI0MWRmMTBlYS05NjY4LTQwMTItYjRiNS04NTYyM2UyNzc5N2YiLCJ1aWQiOiJhbGljZSIsIm5iZiI6MTY1MDQwOTc1NSwiZXhwIjoxNjUwNDUyOTU1LCJpYXQiOjE2NTA0MDk3NTV9.ze_jH3ORpO2Sqvux12rA4VnR-XGN0jNYwD--Kt9qQtF2bAWD0JgWhPp7f2RcgPscVkNpKOAMgFHMaYYbGMMSBg");
         if (REGISTER) {
             UserRegistrationResult aliceRegistrationResult = ALICE.register();
             System.out.println("Alice registration result is: " + aliceRegistrationResult.isSuccessful());

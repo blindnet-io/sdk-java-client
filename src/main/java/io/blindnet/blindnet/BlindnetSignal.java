@@ -1,6 +1,6 @@
 package io.blindnet.blindnet;
 
-import io.blindnet.blindnet.domain.MessageArrayWrapper;
+import io.blindnet.blindnet.domain.message.MessageArrayWrapper;
 import io.blindnet.blindnet.domain.UserRegistrationResult;
 
 import java.io.InputStream;
@@ -19,9 +19,9 @@ public interface BlindnetSignal {
     UserRegistrationResult register();
 
     /**
-     * Unregisters user against Signal Blindnet API and deletes local user data.
+     * Unregisters/disconnects user against Signal Blindnet API and deletes local user data.
      */
-    void unregister();
+    void disconnect();
 
     /**
      * Encrypts message and sends to Signal Blindnet API.
@@ -87,7 +87,7 @@ public interface BlindnetSignal {
      * Currently, Signal library does not support encryption/decryption of stream messages.
      */
     /*
-     * List<MessageStreamWrapper> decryptStreamMessage(String deviceId);
+     * List<MessageStreamWrapper> decryptMessageAsStream(String deviceId);
      */
 
 }

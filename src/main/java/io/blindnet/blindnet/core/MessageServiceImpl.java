@@ -1,9 +1,9 @@
 package io.blindnet.blindnet.core;
 
-import io.blindnet.blindnet.domain.KeyEnvelope;
-import io.blindnet.blindnet.domain.MessageArrayWrapper;
-import io.blindnet.blindnet.domain.MessageStreamWrapper;
-import io.blindnet.blindnet.domain.PublicKeys;
+import io.blindnet.blindnet.domain.key.KeyEnvelope;
+import io.blindnet.blindnet.domain.message.MessageArrayWrapper;
+import io.blindnet.blindnet.domain.message.MessageStreamWrapper;
+import io.blindnet.blindnet.domain.key.PublicKeys;
 import io.blindnet.blindnet.exception.BlindnetApiException;
 import io.blindnet.blindnet.exception.KeyConstructionException;
 import io.blindnet.blindnet.exception.SignatureException;
@@ -32,7 +32,7 @@ public class MessageServiceImpl implements MessageService {
     private final SigningService signingService;
     private final KeyEnvelopeService keyEnvelopeService;
     private final ApiClient apiClient;
-    private final JwtConfig jwtConfig;
+    private final TokenConfig tokenConfig;
 
     public MessageServiceImpl(KeyStorage keyStorage,
                               KeyFactory keyFactory,
@@ -47,7 +47,7 @@ public class MessageServiceImpl implements MessageService {
         this.signingService = signingService;
         this.keyEnvelopeService = keyEnvelopeService;
         this.apiClient = apiClient;
-        this.jwtConfig = JwtConfig.INSTANCE;
+        this.tokenConfig = TokenConfig.INSTANCE;
     }
 
     /**
@@ -107,7 +107,7 @@ public class MessageServiceImpl implements MessageService {
      * @return a secret key object.
      */
     private SecretKey getEncryptionKey(String recipientId) {
-        String senderId = JwtUtil.extractUserId(requireNonNull(jwtConfig.getJwt(), "JWT not configured properly."));
+        String senderId = TokenUtil.extractUserId(requireNonNull(tokenConfig.getToken(), "Token not configured properly."));
         try {
             return apiClient.fetchSecretKey(senderId, recipientId);
         } catch (BlindnetApiException exception) {

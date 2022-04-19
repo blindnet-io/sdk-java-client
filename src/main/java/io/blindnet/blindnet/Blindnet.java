@@ -1,7 +1,7 @@
 package io.blindnet.blindnet;
 
-import io.blindnet.blindnet.domain.MessageArrayWrapper;
-import io.blindnet.blindnet.domain.MessageStreamWrapper;
+import io.blindnet.blindnet.domain.message.MessageArrayWrapper;
+import io.blindnet.blindnet.domain.message.MessageStreamWrapper;
 import io.blindnet.blindnet.domain.UserRegistrationResult;
 
 import java.io.InputStream;
@@ -12,32 +12,25 @@ import java.io.InputStream;
 public interface Blindnet {
 
     /**
-     * Set jwt that will be used for authorization against blindnet api.
+     * Update token that will be used for authorization against blindnet api.
      *
-     * @param jwt a jwt object.
+     * @param token a token object.
      */
-    void setJwt(String jwt);
+    void updateToken(String token);
 
     /**
-     * Set url of a blindnet api.
-     *
-     * @param url a api url.
-     */
-    void setApiUrl(String url);
-
-    /**
-     * Encrypts private keys and sends them to blindnet api.
+     * Encrypts/backups private keys and sends them to blindnet api.
      *
      * @param password a password phrase used for encryption of private keys.
      */
-    void encryptPrivateKeys(String password);
+    void backupKeys(String password);
 
     /**
-     * Fetches private keys from blindnet api and stores them locally.
+     * Retrieves private keys from blindnet api and stores them locally.
      *
      * @param password a password phrase used for decryption of private keys.
      */
-    void decryptPrivateKeys(String password);
+    void retrieveKeys(String password);
 
     /**
      * Encrypts message.
@@ -85,8 +78,8 @@ public interface Blindnet {
     UserRegistrationResult register();
 
     /**
-     * Unregisters user from blindnet api.
+     * Unregisters/disconnects user from blindnet api.
      */
-    void unregister();
+    void disconnect();
 
 }

@@ -2,7 +2,7 @@ package io.blindnet.blindnet.core;
 
 import io.blindnet.blindnet.domain.UserRegistrationResult;
 import io.blindnet.blindnet.exception.KeyConstructionException;
-import io.blindnet.blindnet.internal.JwtConfig;
+import io.blindnet.blindnet.internal.TokenConfig;
 import io.blindnet.blindnet.internal.KeyFactory;
 import io.blindnet.blindnet.internal.SigningService;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
@@ -27,7 +27,7 @@ class UserServiceImpl implements UserService {
     private final KeyFactory keyFactory;
     private final SigningService signingService;
     private final ApiClient apiClient;
-    private final JwtConfig jwtConfig;
+    private final TokenConfig tokenConfig;
 
     UserServiceImpl(KeyStorage keyStorage,
                     KeyFactory keyFactory,
@@ -38,7 +38,7 @@ class UserServiceImpl implements UserService {
         this.keyFactory = keyFactory;
         this.signingService = signingService;
         this.apiClient = apiClient;
-        this.jwtConfig = JwtConfig.INSTANCE;
+        this.tokenConfig = TokenConfig.INSTANCE;
     }
 
     /**
@@ -56,7 +56,7 @@ class UserServiceImpl implements UserService {
         PrivateKey signingPrivateKey = signingKeyPair.getPrivate();
         keyStorage.storeSigningKey(signingPrivateKey);
 
-        byte[] signedJwt = signingService.sign(requireNonNull(jwtConfig.getJwt(), "JWT not configured properly."),
+        byte[] signedToken = signingService.sign(requireNonNull(tokenConfig.getToken(), "Token not configured properly."),
                 signingPrivateKey,
                 Ed25519_ALGORITHM);
 
@@ -74,7 +74,7 @@ class UserServiceImpl implements UserService {
             return apiClient.register(encoder.encodeToString(publicKeyInfo.getEncoded()),
                     encoder.encodeToString(signedEncryptionPublicKey),
                     encoder.encodeToString(publicSigningKeyEncodedWithoutPrefix),
-                    Base64.getUrlEncoder().encodeToString(signedJwt));
+                    Base64.getUrlEncoder().encodeToString(signedToken));
         } catch (IOException e) {
             throw new KeyConstructionException("Unable to convert public key to SPKI format.");
         }

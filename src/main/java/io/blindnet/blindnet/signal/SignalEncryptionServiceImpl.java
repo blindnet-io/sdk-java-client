@@ -1,9 +1,14 @@
 package io.blindnet.blindnet.signal;
 
 import io.blindnet.blindnet.domain.*;
+import io.blindnet.blindnet.domain.key.BlindnetSignalPublicKeys;
+import io.blindnet.blindnet.domain.message.BlindnetSignalMessage;
+import io.blindnet.blindnet.domain.message.MessageArrayWrapper;
+import io.blindnet.blindnet.domain.message.MessageWrapper;
+import io.blindnet.blindnet.domain.message.SignalSendMessageResult;
 import io.blindnet.blindnet.exception.EncryptionException;
-import io.blindnet.blindnet.internal.JwtConfig;
-import io.blindnet.blindnet.internal.JwtUtil;
+import io.blindnet.blindnet.internal.TokenConfig;
+import io.blindnet.blindnet.internal.TokenUtil;
 import org.whispersystems.libsignal.*;
 import org.whispersystems.libsignal.protocol.CiphertextMessage;
 import org.whispersystems.libsignal.protocol.PreKeySignalMessage;
@@ -55,7 +60,7 @@ class SignalEncryptionServiceImpl implements SignalEncryptionService {
     @Override
     public void encryptMessage(List<String> recipientIds, MessageArrayWrapper messageArrayWrapper) {
         int localDeviceId = signalIdentityKeyStore.getLocalDeviceId();
-        String currentUserId = JwtUtil.extractUserId(JwtConfig.INSTANCE.getJwt());
+        String currentUserId = TokenUtil.extractUserId(TokenConfig.INSTANCE.getToken());
 
         recipientIds.forEach(recipientId ->
                 calculateEncryption(recipientId, localDeviceId, currentUserId, messageArrayWrapper));
@@ -264,18 +269,25 @@ class SignalEncryptionServiceImpl implements SignalEncryptionService {
                 signedPreKeyStore,
                 signalIdentityKeyStore,
                 address);
+
         String protocolVersion = blindnetSignalMessage.getProtocolVersion();
         byte[] messageContent = Base64.getDecoder().decode(blindnetSignalMessage.getMessageContent());
+        MessageArrayWrapper messageArrayWrapper;
+
         try {
             if (PRE_KEY_SIGNAL_MSG_PROTOCOL.equals(protocolVersion)) {
                 PreKeySignalMessage message = new PreKeySignalMessage(messageContent);
-                return MessageArrayWrapper.process(ByteBuffer.wrap(sessionCipher.decrypt(message)));
+                messageArrayWrapper = MessageArrayWrapper.process(ByteBuffer.wrap(sessionCipher.decrypt(message)));
             } else if (SIGNAL_MSG_PROTOCOL.equals(protocolVersion)) {
                 SignalMessage message = new SignalMessage(messageContent);
-                return MessageArrayWrapper.process(ByteBuffer.wrap(sessionCipher.decrypt(message)));
+                messageArrayWrapper = MessageArrayWrapper.process(ByteBuffer.wrap(sessionCipher.decrypt(message)));
             } else {
                 throw new EncryptionException("Unrecognized signal message protocol.");
             }
+            messageArrayWrapper.setSignalSenderID(blindnetSignalMessage.getSenderID());
+            messageArrayWrapper.setSignalSenderDeviceID(blindnetSignalMessage.getSenderDeviceID());
+            messageArrayWrapper.setSignalMessageTimeSent(blindnetSignalMessage.getTimeSent());
+            return messageArrayWrapper;
         } catch (Exception exception) {
             throw new EncryptionException("Error: cannot decrypt signal message.");
         }

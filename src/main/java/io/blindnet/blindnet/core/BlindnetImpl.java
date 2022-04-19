@@ -1,8 +1,8 @@
 package io.blindnet.blindnet.core;
 
 import io.blindnet.blindnet.Blindnet;
-import io.blindnet.blindnet.domain.MessageArrayWrapper;
-import io.blindnet.blindnet.domain.MessageStreamWrapper;
+import io.blindnet.blindnet.domain.message.MessageArrayWrapper;
+import io.blindnet.blindnet.domain.message.MessageStreamWrapper;
 import io.blindnet.blindnet.domain.UserRegistrationResult;
 import io.blindnet.blindnet.internal.*;
 
@@ -13,24 +13,24 @@ import java.io.InputStream;
  */
 class BlindnetImpl implements Blindnet {
 
-    private final JwtConfig jwtConfig = JwtConfig.INSTANCE;
+    private final TokenConfig tokenConfig = TokenConfig.INSTANCE;
     private final UserService userService;
     private final MessageService messageService;
     private final KeyEncryptionService keyEncryptionService;
 
-    public BlindnetImpl(String keyFolderPath, String jwt, String serverUrl) {
-        this(keyFolderPath, jwt);
+    public BlindnetImpl(String keyFolderPath, String token, String serverUrl) {
+        this(keyFolderPath, token);
         ApiConfig.INSTANCE.setup(serverUrl);
     }
 
-    public BlindnetImpl(String keyFolderPath, String jwt) {
+    public BlindnetImpl(String keyFolderPath, String token) {
         KeyStorage keyStorage = KeyStorage.getInstance();
         if (keyFolderPath != null) {
             KeyStorageConfig.INSTANCE.setup(keyFolderPath);
         } else {
             keyStorage.isAndroid = true;
         }
-        jwtConfig.setup(jwt);
+        tokenConfig.setup(token);
         KeyFactory keyFactory = new KeyFactory();
         EncryptionService encryptionService = new EncryptionService(keyFactory);
         SigningService signingService = new SigningService();
@@ -62,23 +62,13 @@ class BlindnetImpl implements Blindnet {
     }
 
     /**
-     * Set jwt that will be used for authorsiation against blindnet api.
+     * Set token that will be used for authorization against blindnet api.
      *
-     * @param jwt a jwt object.
+     * @param token a token object.
      */
     @Override
-    public void setJwt(String jwt) {
-        jwtConfig.setup(jwt);
-    }
-
-    /**
-     * Set url of a blindnet api.
-     *
-     * @param url a api url.
-     */
-    @Override
-    public void setApiUrl(String url) {
-        ApiConfig.INSTANCE.setup(url);
+    public void updateToken(String token) {
+        tokenConfig.setup(token);
     }
 
     /**
@@ -87,7 +77,7 @@ class BlindnetImpl implements Blindnet {
      * @param password a password phrase used for encryption of private keys.
      */
     @Override
-    public void encryptPrivateKeys(String password) {
+    public void backupKeys(String password) {
         keyEncryptionService.encrypt(password);
     }
 
@@ -97,7 +87,7 @@ class BlindnetImpl implements Blindnet {
      * @param password a password phrase used for decryption of private keys.
      */
     @Override
-    public void decryptPrivateKeys(String password) {
+    public void retrieveKeys(String password) {
         keyEncryptionService.decrypt(password);
     }
 
@@ -165,7 +155,7 @@ class BlindnetImpl implements Blindnet {
      * Unregisters user from blindnet api.
      */
     @Override
-    public void unregister() {
+    public void disconnect() {
         userService.unregister();
     }
 

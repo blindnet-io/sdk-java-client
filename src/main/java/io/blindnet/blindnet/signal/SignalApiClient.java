@@ -1,6 +1,9 @@
 package io.blindnet.blindnet.signal;
 
 import io.blindnet.blindnet.domain.*;
+import io.blindnet.blindnet.domain.key.BlindnetSignalPublicKeys;
+import io.blindnet.blindnet.domain.message.BlindnetSignalMessage;
+import io.blindnet.blindnet.domain.message.SignalSendMessageResult;
 import io.blindnet.blindnet.internal.ApiConfig;
 import io.blindnet.blindnet.internal.HttpClient;
 import org.json.JSONArray;
@@ -42,7 +45,7 @@ class SignalApiClient {
      * @param preKeyPairID          pre key pair id.
      * @param publicPreKeySignature signature of the public pre key.
      * @param listOfPublicPreKeys   a list of public pre keys with their corresponding ids.
-     * @param signedJwt             signed jwt.
+     * @param signedToken             signed token.
      * @return a user registration result object.
      */
     public UserRegistrationResult register(String deviceID,
@@ -53,7 +56,7 @@ class SignalApiClient {
                                            String preKeyPairID,
                                            String publicPreKeySignature,
                                            Map<String, String> listOfPublicPreKeys,
-                                           String signedJwt) {
+                                           String signedToken) {
 
         requireNonNull(deviceID, "Device ID cannot be null.");
         requireNonNull(userIdentityKey, "User identity key cannot be null.");
@@ -63,7 +66,7 @@ class SignalApiClient {
         requireNonNull(preKeyPairID, "Pre key pair ID cannot be null.");
         requireNonNull(publicPreKeySignature, "Public pre key signature cannot be null.");
         requireNonNull(listOfPublicPreKeys, "List of public pre keys cannot be null.");
-        requireNonNull(signedJwt, "Signed Jwt cannot be null.");
+        requireNonNull(signedToken, "Signed Token cannot be null.");
 
         JSONArray signalOneTimeKeysArr = new JSONArray();
         listOfPublicPreKeys.keySet().forEach(k ->
@@ -77,7 +80,7 @@ class SignalApiClient {
                 .put("publicSpk", publicPreKey)
                 .put("pkSig", publicPreKeySignature)
                 .put("signalOneTimeKeys", signalOneTimeKeysArr)
-                .put("signedJwt", signedJwt);
+                .put("signedJwt", signedToken);
 
         HttpResponse httpResponse = httpClient.post(apiConfig.getServerUrl() + SIGNAL_USER_ENDPOINT_PATH,
                 requestBody.toString().getBytes());
@@ -125,7 +128,7 @@ class SignalApiClient {
         String url = apiConfig.getServerUrl() + SIGNAL_FETCH_PUBLIC_KEYS_ENDPOINT_PATH + recipientID;
 
         if (nonNull(deviceIds)) {
-            url += "deviceID=" + deviceIds;
+            url += "?deviceID=" + deviceIds;
         }
 
         HttpResponse httpResponse = httpClient.get(url);

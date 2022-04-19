@@ -1,6 +1,10 @@
 package io.blindnet.blindnet.core;
 
 import io.blindnet.blindnet.domain.*;
+import io.blindnet.blindnet.domain.key.KeyEnvelope;
+import io.blindnet.blindnet.domain.key.PrivateKeys;
+import io.blindnet.blindnet.domain.key.PublicKeys;
+import io.blindnet.blindnet.domain.key.RsaJwk;
 import io.blindnet.blindnet.internal.*;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
@@ -39,7 +43,7 @@ public class ApiClientTest extends AbstractTest {
     private KeyStorage keyStorage;
     private KeyPair encryptionKeyPair;
     private KeyPair signingKeyPair;
-    private final JwtConfig jwtConfig = JwtConfig.INSTANCE;
+    private final TokenConfig tokenConfig = TokenConfig.INSTANCE;
 
     @Mock
     private HttpClient httpClient;
@@ -53,7 +57,7 @@ public class ApiClientTest extends AbstractTest {
         encryptionService = new EncryptionService(keyFactory);
         keyEnvelopeService = new KeyEnvelopeService();
         signingService = new SigningService();
-        jwtConfig.setup(TEST_JWT);
+        tokenConfig.setup(TEST_TOKEN);
 
         apiClient = new ApiClient(KeyStorage.getInstance(),
                 keyFactory,

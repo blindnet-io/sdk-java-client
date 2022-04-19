@@ -11,7 +11,7 @@ public class BlindnetProviderTest extends AbstractTest {
     @Test
     @DisplayName("Test creating default blindnet implementation.")
     public void testGetInstance() {
-        Blindnet blindnet = BlindnetProvider.getInstance(keyFolderPath, TEST_JWT);
+        Blindnet blindnet = BlindnetProvider.getInstance(keyFolderPath, TEST_TOKEN);
 
         assertNotNull(blindnet);
     }

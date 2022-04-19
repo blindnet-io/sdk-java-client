@@ -1,4 +1,4 @@
-package io.blindnet.blindnet.domain;
+package io.blindnet.blindnet.domain.message;
 
 /**
  * A wrapper class for the result of sending the Signal message.

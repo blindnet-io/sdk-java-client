@@ -1,7 +1,7 @@
 package io.blindnet.blindnet.internal;
 
-import io.blindnet.blindnet.domain.MessageArrayWrapper;
-import io.blindnet.blindnet.domain.MessageStreamWrapper;
+import io.blindnet.blindnet.domain.message.MessageArrayWrapper;
+import io.blindnet.blindnet.domain.message.MessageStreamWrapper;
 import io.blindnet.blindnet.exception.EncryptionException;
 import io.blindnet.blindnet.exception.KeyEncryptionException;
 import org.bouncycastle.jcajce.io.CipherInputStream;

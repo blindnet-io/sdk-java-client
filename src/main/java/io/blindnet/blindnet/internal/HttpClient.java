@@ -2,7 +2,7 @@ package io.blindnet.blindnet.internal;
 
 import io.blindnet.blindnet.domain.HttpResponse;
 import io.blindnet.blindnet.exception.BlindnetApiException;
-import io.blindnet.blindnet.exception.InvalidJwtException;
+import io.blindnet.blindnet.exception.InvalidTokenException;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -91,7 +91,7 @@ public class HttpClient {
 
         HttpURLConnection con = init(url, GET_METHOD);
 
-        con.setRequestProperty("Authorization", "Bearer " + requireNonNull(JwtConfig.INSTANCE.getJwt(), "JWT not configured properly."));
+        con.setRequestProperty("Authorization", "Bearer " + requireNonNull(TokenConfig.INSTANCE.getToken(), "Token not configured properly."));
         con.setRequestProperty("Accept", "application/json");
 
         return createResponse(con, url);
@@ -108,7 +108,7 @@ public class HttpClient {
 
         HttpURLConnection con = init(url, GET_METHOD);
 
-        con.setRequestProperty("Authorization", "Bearer " + requireNonNull(JwtConfig.INSTANCE.getJwt(), "JWT not configured properly."));
+        con.setRequestProperty("Authorization", "Bearer " + requireNonNull(TokenConfig.INSTANCE.getToken(), "Token not configured properly."));
         con.setRequestProperty("Accept", "application/json");
 
         validateResponse(con, url);
@@ -126,7 +126,7 @@ public class HttpClient {
 
         HttpURLConnection con = init(url, DELETE_METHOD);
 
-        con.setRequestProperty("Authorization", "Bearer " + requireNonNull(JwtConfig.INSTANCE.getJwt(), "JWT not configured properly."));
+        con.setRequestProperty("Authorization", "Bearer " + requireNonNull(TokenConfig.INSTANCE.getToken(), "Token not configured properly."));
         con.setRequestProperty("Accept", "application/json");
 
         return createResponse(con, url);
@@ -177,7 +177,7 @@ public class HttpClient {
         requireNonNull(method, "Method cannot be null.");
 
         HttpURLConnection con = init(url, method);
-        con.setRequestProperty("Authorization", "Bearer " + requireNonNull(JwtConfig.INSTANCE.getJwt(), "JWT not configured properly."));
+        con.setRequestProperty("Authorization", "Bearer " + requireNonNull(TokenConfig.INSTANCE.getToken(), "Token not configured properly."));
         con.setRequestProperty("Content-Type", "application/json; utf-8");
         con.setRequestProperty("Accept", "application/json");
 
@@ -259,7 +259,7 @@ public class HttpClient {
                         url,
                         nonNull(con.getErrorStream()) ? new String(parseResponse(con.getErrorStream())) : "");
                 if (responseCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
-                    throw new InvalidJwtException(msg);
+                    throw new InvalidTokenException(msg);
                 }
 
                 throw new BlindnetApiException(msg);

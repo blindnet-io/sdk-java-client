@@ -1,7 +1,7 @@
 package io.blindnet.blindnet.signal;
 
 import io.blindnet.blindnet.BlindnetSignal;
-import io.blindnet.blindnet.domain.MessageArrayWrapper;
+import io.blindnet.blindnet.domain.message.MessageArrayWrapper;
 import io.blindnet.blindnet.domain.UserRegistrationResult;
 import io.blindnet.blindnet.internal.*;
 
@@ -18,13 +18,13 @@ class BlindnetSignalImpl implements BlindnetSignal {
     private final SignalBackupService signalBackupService;
     private final SignalIdentityDatabase signalIdentityDatabase;
 
-    public BlindnetSignalImpl(String dbPath, String jwt, String serverUrl) {
-        this(dbPath, jwt);
+    public BlindnetSignalImpl(String dbPath, String token, String serverUrl) {
+        this(dbPath, token);
         ApiConfig.INSTANCE.setup(serverUrl);
     }
 
-    public BlindnetSignalImpl(String dbPath, String jwt) {
-        JwtConfig.INSTANCE.setup(jwt);
+    public BlindnetSignalImpl(String dbPath, String token) {
+        TokenConfig.INSTANCE.setup(token);
         DatabaseConfig.INSTANCE.setup(dbPath);
 
         KeyFactory keyFactory = new KeyFactory();
@@ -74,7 +74,7 @@ class BlindnetSignalImpl implements BlindnetSignal {
     }
 
     @Override
-    public void unregister() {
+    public void disconnect() {
         signalUserService.unregister();
     }
 
@@ -99,7 +99,7 @@ class BlindnetSignalImpl implements BlindnetSignal {
     /* Signal library does not support encryption of stream messages
      *
      * @Override
-     * public List<MessageStreamWrapper> decryptStreamMessage(String deviceId) {
+     * public List<MessageStreamWrapper> decryptMessageAsStream(String deviceId) {
      *   return signalEncryptionService.decryptStreamMessage(deviceId);
      * }
      */

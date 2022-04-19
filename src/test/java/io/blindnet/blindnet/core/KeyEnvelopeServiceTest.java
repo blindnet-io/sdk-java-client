@@ -1,6 +1,6 @@
 package io.blindnet.blindnet.core;
 
-import io.blindnet.blindnet.domain.KeyEnvelope;
+import io.blindnet.blindnet.domain.key.KeyEnvelope;
 import io.blindnet.blindnet.internal.EncryptionService;
 import io.blindnet.blindnet.internal.KeyFactory;
 import org.junit.Before;

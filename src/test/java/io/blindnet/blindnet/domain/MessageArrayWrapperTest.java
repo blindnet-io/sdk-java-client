@@ -1,5 +1,6 @@
 package io.blindnet.blindnet.domain;
 
+import io.blindnet.blindnet.domain.message.MessageArrayWrapper;
 import org.junit.Test;
 
 import java.nio.ByteBuffer;

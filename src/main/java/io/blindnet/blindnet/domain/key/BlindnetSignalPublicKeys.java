@@ -1,4 +1,4 @@
-package io.blindnet.blindnet.domain;
+package io.blindnet.blindnet.domain.key;
 
 import org.whispersystems.libsignal.ecc.ECPublicKey;
 

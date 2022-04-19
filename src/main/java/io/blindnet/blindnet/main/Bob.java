@@ -1,7 +1,7 @@
 package io.blindnet.blindnet.main;
 
 import io.blindnet.blindnet.BlindnetSignal;
-import io.blindnet.blindnet.domain.MessageArrayWrapper;
+import io.blindnet.blindnet.domain.message.MessageArrayWrapper;
 import io.blindnet.blindnet.domain.UserRegistrationResult;
 import io.blindnet.blindnet.signal.BlindnetSignalProvider;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -21,12 +21,12 @@ public class Bob {
         Security.addProvider(new BouncyCastleProvider());
 
         boolean REGISTER = false;
-        String ALICE_USERNAME = "alice2000";
+        String ALICE_USERNAME = "alice777";
 
         // username = bob2000
         BlindnetSignal BOB = BlindnetSignalProvider.getInstance(
                 "/Users/stefanveselinovic/Desktop/blindnetdb/",
-                "eyJhbGciOiJFZERTQSIsInR5cCI6Imp3dCJ9.eyJhcHAiOiI0MWRmMTBlYS05NjY4LTQwMTItYjRiNS04NTYyM2UyNzc5N2YiLCJ1aWQiOiJib2IyMDAwIiwibmJmIjoxNjM5NTEzMDgwLCJleHAiOjE2Mzk1NTYyODAsImlhdCI6MTYzOTUxMzA4MH0.i6KmBQ-LfmaywBsK7my4Razips2UhKvdlWIM3a8TwuYcV4kiiKCK_4UcspvvvSp4B261D3d2aAdslaDgeeb1Cg");
+                "eyJhbGciOiJFZERTQSIsInR5cCI6Imp3dCJ9.eyJhcHAiOiI0MWRmMTBlYS05NjY4LTQwMTItYjRiNS04NTYyM2UyNzc5N2YiLCJ1aWQiOiJhbGljZTc3NyIsIm5iZiI6MTY1MDQwOTgyNywiZXhwIjoxNjUwNDUzMDI3LCJpYXQiOjE2NTA0MDk4Mjd9.54TuJ8FU-zw8WGer6Qlefuosp2CRVWEKaH87jcpwo861EmBNwYChyfDwMfbFp_s4W4if5Paw671uozZYAy1mAQ");
 
         if (REGISTER) {
             UserRegistrationResult bobRegistrationResult = BOB.register();

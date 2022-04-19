@@ -1,4 +1,4 @@
-package io.blindnet.blindnet.domain;
+package io.blindnet.blindnet.domain.key;
 
 /**
  * A wrapper class for the encryption and signing private keys.

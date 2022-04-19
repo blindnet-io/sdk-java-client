@@ -1,4 +1,4 @@
-package io.blindnet.blindnet.domain;
+package io.blindnet.blindnet.domain.key;
 
 import javax.crypto.SecretKey;
 import java.util.Base64;

@@ -183,7 +183,6 @@ public class KeyFactory {
      * @return a private key object.
      */
     public PrivateKey convertToEd25519PrivateKey(byte[] pkBytes) {
-
         try {
             PKCS8EncodedKeySpec pkcs8KeySpec = new PKCS8EncodedKeySpec(pkBytes);
             java.security.KeyFactory kf = initialiseKeyFactory(Ed25519_ALGORITHM);
