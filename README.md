@@ -27,12 +27,26 @@
 
 ## About
 
-{explain what this project does and why it exists in the most concise way possible.}
 
-Those functionnalities are provided through two submodules:
+This is the Java client-side SDK component of blindnet devkit allowing you to:
 
-1. Core: {short explainer of what this module provide}
-2. Signal: {short explainer of what this module provide}
+- encrypt and decrypt data for users,
+- and manage user and data encryption keys.
+
+Those functionalities are provided through two submodules:
+
+- Core: this module uses Bouncy Castle library in order to expose API using which a client
+is able to perform encrypt/decrypt of data for users and manage users and their encryption keys. The module
+is provided through the interface named
+```
+  Blindnet
+```
+- Signal: this module uses Signal library in order to expose API using which a client
+  is able to perform encrypt/decrypt of data for users and manage users and their encryption keys. The module
+  is provided through the interface named
+```
+  BlindnetSignal
+```
 
 ## Get Started
 
@@ -42,10 +56,16 @@ Those functionnalities are provided through two submodules:
 
 This project requires [Java v11+](URL) {...} [Gradle v7.3.1+](URL) {...}
 
-Use [{package manager or plateform}][install-tool] to install {project's name}:
+Use Gradle Build Tool to build, install and test the project. To build project run:
 
 ```bash
-{install-command}
+gradle build
+```
+
+In order to run tests use:
+
+```bash
+gradle clean test
 ```
 
 ## Usage
