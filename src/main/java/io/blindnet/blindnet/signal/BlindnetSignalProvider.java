@@ -19,7 +19,7 @@ public class BlindnetSignalProvider {
     }
 
     public static BlindnetSignal getAndroidInstance(String token) {
-        return new BlindnetSignalImpl(null, null, token);
+        return new BlindnetSignalImpl(null, token, null);
     }
 
     public static BlindnetSignal getAndroidInstance(String token, String serverUrl) {
