@@ -138,7 +138,6 @@ class SignalApiClient {
         List<BlindnetSignalPublicKeys> result = new ArrayList<>();
         Base64.Decoder decoder = Base64.getDecoder();
 
-        // todo refactor
         for (int i = 0; i < responseBody.length(); ++i) {
             result.add(new BlindnetSignalPublicKeys(responseBody.getJSONObject(i).getString("userID"),
                     responseBody.getJSONObject(i).getString("deviceID"),

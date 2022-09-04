@@ -34,6 +34,12 @@ class SignalPreKeyStore implements PreKeyStore {
         this.signalKeyFactory = signalKeyFactory;
     }
 
+    /**
+     * Loads pre key from the database.
+     *
+     * @param preKeyId the ID of the local PreKeyRecord.
+     * @return a pre key record.
+     */
     @Override
     public PreKeyRecord loadPreKey(int preKeyId) {
         synchronized (LOCK) {
@@ -43,6 +49,12 @@ class SignalPreKeyStore implements PreKeyStore {
         }
     }
 
+    /**
+     * Stores pre key to the database.
+     *
+     * @param preKeyId the ID of the PreKeyRecord to store.
+     * @param record   the PreKeyRecord.
+     */
     @Override
     public void storePreKey(int preKeyId, PreKeyRecord record) {
         synchronized (LOCK) {
@@ -50,11 +62,22 @@ class SignalPreKeyStore implements PreKeyStore {
         }
     }
 
+    /**
+     * Checks whether the database contains pre key.
+     *
+     * @param preKeyId A PreKeyRecord ID.
+     * @return an indicator whether the pre key is stored in the database.
+     */
     @Override
     public boolean containsPreKey(int preKeyId) {
         return signalPreKeyDatabase.load(preKeyId).isPresent();
     }
 
+    /**
+     * Removes a pre key from the database.
+     *
+     * @param preKeyId The ID of the PreKeyRecord to remove.
+     */
     @Override
     public void removePreKey(int preKeyId) {
         signalPreKeyDatabase.delete(preKeyId);

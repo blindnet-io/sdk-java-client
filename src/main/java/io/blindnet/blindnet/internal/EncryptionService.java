@@ -97,7 +97,6 @@ public class EncryptionService {
             pipedOutputStream.write(iv);
 
             try (CipherOutputStream cipherOut = new CipherOutputStream(pipedOutputStream, cipher)) {
-
                 byte[] buf = new byte[4096];
                 int length;
                 while ((length = metadataInputStream.read(buf)) > 0) {
@@ -166,6 +165,13 @@ public class EncryptionService {
         }
     }
 
+    /**
+     * Encrypts data provided as an input stream.
+     *
+     * @param secretKey a secret key used for encryption.
+     * @param input an input stream of data that will be encrypted.
+     * @return a stream of encrypted data.
+     */
     public InputStream encrypt(final SecretKey secretKey, final InputStream input) {
         requireNonNull(secretKey, "Secret key cannot be null.");
         requireNonNull(input, "Input cannot be null.");
@@ -193,6 +199,13 @@ public class EncryptionService {
         }
     }
 
+    /**
+     * Decrypts data provided within a Http connection.
+     *
+     * @param secretKey a secret key used for decryption.
+     * @param con a http connection that provides data through input stream.
+     * @return a stream of encrypted data.
+     */
     public InputStream decrypt(final SecretKey secretKey, final HttpURLConnection con) {
         requireNonNull(secretKey, "Secret key cannot be null.");
         requireNonNull(con, "Connection cannot be null.");

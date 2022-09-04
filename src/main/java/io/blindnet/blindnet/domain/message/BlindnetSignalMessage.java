@@ -109,27 +109,23 @@ public class BlindnetSignalMessage {
     }
 
     public static BlindnetSignalMessage create(JSONObject responseBody) {
-        // todo refactor
         return new BlindnetSignalMessage(responseBody.getInt("id"),
-                    responseBody.isNull("senderID") ? null: responseBody.getString("senderID"),
-                    responseBody.isNull("senderDeviceID") ? null: responseBody.getString("senderDeviceID"),
-                    responseBody.isNull("recipientID") ? null: responseBody.getString("recipientID"),
-                    !responseBody.has("recipientDeviceID") || responseBody.isNull("recipientDeviceID") ? null: responseBody.getString("recipientDeviceID"),
-                    responseBody.isNull("protocolVersion") ? null: responseBody.getString("protocolVersion"),
-                    responseBody.isNull("messageContent") ? null: responseBody.getString("messageContent"),
-                    responseBody.isNull("dhKey") ? null: responseBody.getString("dhKey"),
-                    responseBody.getString("timeSent"),
-                    responseBody.isNull("timeDelivered") ? null: responseBody.getString("timeDelivered"),
-                    !responseBody.has("timeRead") || responseBody.isNull("timeRead") ? null: responseBody.getString("timeRead"),
-                    new BlindnetSignalMessageSenderKeys(responseBody.getJSONObject("blindnetSignalMessageSenderKeys").getInt("id"),
-                            !responseBody.getJSONObject("blindnetSignalMessageSenderKeys").has("publicIk")
-                                    || responseBody.getJSONObject("blindnetSignalMessageSenderKeys").isNull("publicIk") ? null: responseBody.getJSONObject("blindnetSignalMessageSenderKeys").getString("publicIk"),
-                            !responseBody.getJSONObject("blindnetSignalMessageSenderKeys").has("publicEk")
-                                    || responseBody.getJSONObject("blindnetSignalMessageSenderKeys").isNull("publicEk") ? null: responseBody.getJSONObject("blindnetSignalMessageSenderKeys").getString("publicEk"),
-                            !responseBody.getJSONObject("blindnetSignalMessageSenderKeys").has("messageID")
-                                    || responseBody.getJSONObject("blindnetSignalMessageSenderKeys").isNull("messageID") ? -1: responseBody.getJSONObject("blindnetSignalMessageSenderKeys").getInt("messageID")),
-                    responseBody.isNull("senderApplicationID") ? null: responseBody.getString("senderApplicationID"),
-                    responseBody.isNull("recipientApplicationID") ? null: responseBody.getString("recipientApplicationID"));
+                getValueAsString(responseBody, "senderID"),
+                getValueAsString(responseBody, "senderDeviceID"),
+                getValueAsString(responseBody, "recipientID"),
+                getValueAsString(responseBody, "recipientDeviceID"),
+                getValueAsString(responseBody, "protocolVersion"),
+                getValueAsString(responseBody, "messageContent"),
+                getValueAsString(responseBody, "dhKey"),
+                getValueAsString(responseBody, "timeSent"),
+                getValueAsString(responseBody, "timeDelivered"),
+                getValueAsString(responseBody, "timeRead"),
+                new BlindnetSignalMessageSenderKeys(responseBody.getJSONObject("blindnetSignalMessageSenderKeys").getInt("id"),
+                        getValueAsString(responseBody.getJSONObject("blindnetSignalMessageSenderKeys"), "publicIk"),
+                        getValueAsString(responseBody.getJSONObject("blindnetSignalMessageSenderKeys"), "publicEk"),
+                        getValueAsInt(responseBody.getJSONObject("blindnetSignalMessageSenderKeys"), "messageID")),
+                getValueAsString(responseBody, "senderApplicationID"),
+                getValueAsString(responseBody, "recipientApplicationID"));
     }
 
     public int getId() {
@@ -186,6 +182,28 @@ public class BlindnetSignalMessage {
 
     public String getRecipientApplicationID() {
         return recipientApplicationID;
+    }
+
+    private static String getValueAsString(JSONObject body, String key) {
+        if (!body.has(key)) {
+            return null;
+        }
+        Object object = body.get(key);
+        if (object instanceof String) {
+            return (String) object;
+        }
+        return null;
+    }
+
+    private static int getValueAsInt(JSONObject body, String key) {
+        if (!body.has(key)) {
+            return -1;
+        }
+        Object object = body.get(key);
+        if (object instanceof Integer) {
+            return (Integer) object;
+        }
+        return -1;
     }
 
 }

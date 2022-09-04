@@ -20,6 +20,12 @@ class SignalSessionStore implements SessionStore {
         this.signalSessionDatabase = signalSessionDatabase;
     }
 
+    /**
+     * Loads session from the database.
+     *
+     * @param address The name and device ID of the remote client.
+     * @return a session record.
+     */
     @Override
     public SessionRecord loadSession(SignalProtocolAddress address) {
         synchronized (LOCK) {
@@ -27,6 +33,12 @@ class SignalSessionStore implements SessionStore {
         }
     }
 
+    /**
+     * Returns a list of all devices of the active device.
+     *
+     * @param name the name of the client.
+     * @return a list of device ids.
+     */
     @Override
     public List<Integer> getSubDeviceSessions(String name) {
         synchronized (LOCK) {
@@ -34,6 +46,12 @@ class SignalSessionStore implements SessionStore {
         }
     }
 
+    /**
+     * Stores a session to the database.
+     *
+     * @param address the address of the remote client.
+     * @param record  the current SessionRecord for the remote client.
+     */
     @Override
     public void storeSession(SignalProtocolAddress address, SessionRecord record) {
         synchronized (LOCK) {
@@ -45,6 +63,12 @@ class SignalSessionStore implements SessionStore {
         }
     }
 
+    /**
+     * Checks whether the database contains a session for the recipient's address.
+     *
+     * @param address the address of the remote client.
+     * @return an indicator whether the session is present in the database.
+     */
     @Override
     public boolean containsSession(SignalProtocolAddress address) {
         synchronized (LOCK) {
@@ -52,6 +76,11 @@ class SignalSessionStore implements SessionStore {
         }
     }
 
+    /**
+     * Deletes a session from the database.
+     *
+     * @param address the address of the remote client.
+     */
     @Override
     public void deleteSession(SignalProtocolAddress address) {
         synchronized (LOCK) {
@@ -59,6 +88,11 @@ class SignalSessionStore implements SessionStore {
         }
     }
 
+    /**
+     * Deletes all sessions from the database.
+     *
+     * @param name the name of the remote client.
+     */
     @Override
     public void deleteAllSessions(String name) {
         synchronized (LOCK) {

@@ -1,5 +1,7 @@
 package io.blindnet.blindnet.domain.key;
 
+import io.blindnet.blindnet.domain.message.BlindnetSignalMessage;
+import org.json.JSONObject;
 import org.whispersystems.libsignal.ecc.ECPublicKey;
 
 /**
