@@ -70,11 +70,6 @@ gradle clean test
 
 ## Usage
 
-<!-- FIXME: RESTRUCTURE and REWRITE in plain and correct english, using clear code examples -->
-
-<!-- FIXME: publish the API reference -->
-
-> 📑 The API reference of blindnet devkit Java client SDK is available on [blindnet.dev](https://blindnet.dev/docs/api_reference/[path-to-project}/latest).
 
 ### Requirements
 
