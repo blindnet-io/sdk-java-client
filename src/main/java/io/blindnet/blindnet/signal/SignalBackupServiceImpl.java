@@ -33,6 +33,13 @@ class SignalBackupServiceImpl implements SignalBackupService {
         this.encryptionService = encryptionService;
     }
 
+    /**
+     * Backups list of messages using Signal Blindnet API.
+     *
+     * @param password a backup password.
+     * @param newBackup flag indicating whether this is a new fresh backup.
+     * @param messages a list of messages.
+     */
     @Override
     public void backup(String password, boolean newBackup, List<MessageArrayWrapper> messages) {
         byte[] salt = keyFactory.generateRandom(NONCE_IV_ALGORITHM, BC_PROVIDER, SALT_LENGTH);
@@ -48,6 +55,13 @@ class SignalBackupServiceImpl implements SignalBackupService {
                 encryptedMessages);
     }
 
+    /**
+     * Backups a stream of messages using Signal Blindnet API.
+     *
+     * @param password a backup password.
+     * @param newBackup flag indicating whether this is a new fresh backup.
+     * @param messages a stream of messages.
+     */
     @Override
     public void backup(String password, boolean newBackup, InputStream messages) {
         byte[] salt = keyFactory.generateRandom(NONCE_IV_ALGORITHM, BC_PROVIDER, SALT_LENGTH);
@@ -60,6 +74,12 @@ class SignalBackupServiceImpl implements SignalBackupService {
                 encryptionService.encrypt(secretKey, messages));
     }
 
+    /**
+     * Recovers a list of messages from a backup.
+     *
+     * @param password a backup password.
+     * @return a list of messages.
+     */
     @Override
     public List<MessageArrayWrapper> recover(String password) {
         List<String> messages = signalApiClient.fetchBackup();
@@ -74,6 +94,12 @@ class SignalBackupServiceImpl implements SignalBackupService {
         return decryptedMessages;
     }
 
+    /**
+     * Recovers a stream of messages from a backup.
+     *
+     * @param password a backup password.
+     * @return a stream of messages.
+     */
     @Override
     public InputStream recoverAsStream(String password) {
         String salt = signalApiClient.fetchBackupSalt();

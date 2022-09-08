@@ -3,7 +3,7 @@ package io.blindnet.blindnet.internal;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Provides singleton instance for blindnet api server url.
+ * Provides singleton instance for Blindnet api server url.
  */
 public enum ApiConfig {
 
@@ -13,7 +13,7 @@ public enum ApiConfig {
     INSTANCE;
 
     /**
-     * A blindnet server url.
+     * A Blindnet server url.
      */
     private String serverUrl = "https://blindnet-api-xtevwj4sdq-ew.a.run.app";
 

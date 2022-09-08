@@ -62,7 +62,7 @@ class BlindnetImpl implements Blindnet {
     }
 
     /**
-     * Set token that will be used for authorization against blindnet api.
+     * Update token that will be used for authorization against Blindnet api.
      *
      * @param token a token object.
      */
@@ -72,7 +72,7 @@ class BlindnetImpl implements Blindnet {
     }
 
     /**
-     * Encrypts private keys and sends them to blindnet api.
+     * Encrypts/backups private keys and sends them to Blindnet api.
      *
      * @param password a password phrase used for encryption of private keys.
      */
@@ -82,7 +82,7 @@ class BlindnetImpl implements Blindnet {
     }
 
     /**
-     * Fetches private keys from blindnet api and stores them locally.
+     * Retrieves private keys from Blindnet api and stores them locally.
      *
      * @param password a password phrase used for decryption of private keys.
      */
@@ -142,7 +142,7 @@ class BlindnetImpl implements Blindnet {
     }
 
     /**
-     * Registers user on blindnet api.
+     * Registers user on Blindnet api.
      *
      * @return a user registration result object.
      */
@@ -152,7 +152,7 @@ class BlindnetImpl implements Blindnet {
     }
 
     /**
-     * Unregisters user from blindnet api.
+     * Unregisters/disconnects user from Blindnet api.
      */
     @Override
     public void disconnect() {
