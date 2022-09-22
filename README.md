@@ -1,6 +1,5 @@
-# Blindnet Java SDK
 <h1 align="center">
-  blindnet devkit<br />
+  blindnet encryption engine<br />
   Java Client SDK
 </h1>
 
@@ -8,7 +7,7 @@
 <p align=center><img src="https://user-images.githubusercontent.com/7578400/163549893-117bbd70-b81a-47fd-8e1f-844911e48d68.png#gh-dark-mode-only" height="80" /></p>
 
 <p align="center">
-  <strong>{One-Liner: Explain concretely what this project does in one short sentence}</strong>
+  <strong>End-to-end encryption made easy</strong>
 </p>
 
 <p align="center">
@@ -28,7 +27,7 @@
 ## About
 
 
-This is the Java client-side SDK component of blindnet devkit allowing you to:
+This is the Java client-side SDK of the blindnet encryption engine allowing you to:
 
 - encrypt and decrypt data for users,
 - and manage user and data encryption keys.
@@ -50,7 +49,7 @@ is provided through the interface named
 
 ## Get Started
 
-:rocket: Check out our [Quick Start Guide](https://blindnet.dev/docs/quickstart) to get started in a snap.
+:rocket: Check out our [Quick Start Guide](https://blindnet.dev/docs/encryption/quickstart) to get started in a snap.
 
 ## Installation
 
