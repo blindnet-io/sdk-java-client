@@ -7,6 +7,7 @@ import org.whispersystems.libsignal.state.IdentityKeyStore;
 
 import java.util.Optional;
 
+import static java.util.Objects.isNull;
 import static org.whispersystems.libsignal.state.IdentityKeyStore.Direction.RECEIVING;
 
 /**
@@ -22,16 +23,33 @@ class SignalIdentityKeyStore implements IdentityKeyStore {
         this.signalIdentityDatabase = signalIdentityDatabase;
     }
 
+    /**
+     * Returns the local identity key pair.
+     *
+     * @return an identity key pair object.
+     */
     @Override
     public IdentityKeyPair getIdentityKeyPair() {
         return signalIdentityDatabase.readLocalIdentity();
     }
 
+    /**
+     * Returns a local id.
+     *
+     * @return a local ID.
+     */
     @Override
     public int getLocalRegistrationId() {
         return signalIdentityDatabase.readLocalRegistrationId();
     }
 
+    /**
+     * Saves identity into database.
+     *
+     * @param address     The address of the remote client.
+     * @param identityKey The remote client's identity key.
+     * @return an indicator whether the save operation was successful.
+     */
     @Override
     public boolean saveIdentity(SignalProtocolAddress address, IdentityKey identityKey) {
         synchronized (LOCK) {
@@ -53,23 +71,41 @@ class SignalIdentityKeyStore implements IdentityKeyStore {
             if (direction == RECEIVING) {
                 return true;
             }
-            // todo check this
-//            else {
-//
-//            }
-            return true;
+            else {
+                IdentityKey loadedIdentityKey = getIdentity(address);
+                if (isNull(loadedIdentityKey)) return true;
+                return loadedIdentityKey.equals(identityKey);
+            }
         }
     }
 
+    /**
+     * Returns the identity.
+     *
+     * @param address The address of the remote client
+     * @return an identity key object.
+     */
     @Override
     public IdentityKey getIdentity(SignalProtocolAddress address) {
         return signalIdentityDatabase.readIdentity(address).orElse(null);
     }
 
+    /**
+     * Saves local identity to the database.
+     *
+     * @param registrationId  a registration ID.
+     * @param deviceId        a device ID.
+     * @param identityKeyPair an identity key pair.
+     */
     public void saveLocalIdentity(int registrationId, int deviceId, IdentityKeyPair identityKeyPair) {
         signalIdentityDatabase.saveLocalIdentity(registrationId, deviceId, identityKeyPair);
     }
 
+    /**
+     * Returns an id of the local device.
+     *
+     * @return an id of the local device.
+     */
     public int getLocalDeviceId() {
         return signalIdentityDatabase.readLocalDeviceId();
     }
