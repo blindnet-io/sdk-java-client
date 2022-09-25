@@ -7,6 +7,7 @@ import org.whispersystems.libsignal.state.IdentityKeyStore;
 
 import java.util.Optional;
 
+import static java.util.Objects.isNull;
 import static org.whispersystems.libsignal.state.IdentityKeyStore.Direction.RECEIVING;
 
 /**
@@ -79,7 +80,9 @@ class SignalIdentityKeyStore implements IdentityKeyStore {
                 return true;
             }
             else {
-                return getIdentity(address).equals(identityKey);
+                IdentityKey loadedIdentityKey = getIdentity(address);
+                if (isNull(loadedIdentityKey)) return true;
+                return loadedIdentityKey.equals(identityKey);
             }
         }
     }

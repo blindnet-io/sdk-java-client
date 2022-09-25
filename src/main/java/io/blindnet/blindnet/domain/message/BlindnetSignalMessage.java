@@ -1,5 +1,6 @@
 package io.blindnet.blindnet.domain.message;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
@@ -120,10 +121,7 @@ public class BlindnetSignalMessage {
                 getValueAsString(responseBody, "timeSent"),
                 getValueAsString(responseBody, "timeDelivered"),
                 getValueAsString(responseBody, "timeRead"),
-                new BlindnetSignalMessageSenderKeys(responseBody.getJSONObject("blindnetSignalMessageSenderKeys").getInt("id"),
-                        getValueAsString(responseBody.getJSONObject("blindnetSignalMessageSenderKeys"), "publicIk"),
-                        getValueAsString(responseBody.getJSONObject("blindnetSignalMessageSenderKeys"), "publicEk"),
-                        getValueAsInt(responseBody.getJSONObject("blindnetSignalMessageSenderKeys"), "messageID")),
+                parseSenderKeys(responseBody),
                 getValueAsString(responseBody, "senderApplicationID"),
                 getValueAsString(responseBody, "recipientApplicationID"));
     }
@@ -204,6 +202,20 @@ public class BlindnetSignalMessage {
             return (Integer) object;
         }
         return -1;
+    }
+
+    private static BlindnetSignalMessageSenderKeys parseSenderKeys(JSONObject responseBody) {
+        JSONArray senderKeysArray = responseBody.getJSONArray("messageSenderKeys");
+        JSONObject senderKeysJson;
+        if (senderKeysArray.isNull(0)) {
+            return null;
+        } else {
+            senderKeysJson = new JSONObject(senderKeysArray.get(0).toString());
+        }
+        return new BlindnetSignalMessageSenderKeys(getValueAsInt(senderKeysJson, "id"),
+                getValueAsString(senderKeysJson, "publicIk"),
+                getValueAsString(senderKeysJson, "publicEk"),
+                getValueAsInt(senderKeysJson, "messageID"));
     }
 
 }
