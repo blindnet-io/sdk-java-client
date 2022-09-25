@@ -26,7 +26,7 @@ public interface BlindnetSignal {
     /**
      * Encrypts message and sends to Signal Blindnet API.
      *
-     * @param recipientIds the list of recipient ids.
+     * @param recipientIds        the list of recipient ids.
      * @param messageArrayWrapper a message wrapper.
      */
     void encryptMessage(List<String> recipientIds, MessageArrayWrapper messageArrayWrapper);
@@ -42,18 +42,18 @@ public interface BlindnetSignal {
     /**
      * Backups a list of messages using Signal Blindnet API.
      *
-     * @param password a backup password.
+     * @param password  a backup password.
      * @param newBackup flag indicating whether this is a new fresh backup.
-     * @param messages a list of messages.
+     * @param messages  a list of messages.
      */
     void backupMessages(String password, boolean newBackup, List<MessageArrayWrapper> messages);
 
     /**
      * Backups a stream of messages using Signal Blindnet API.
      *
-     * @param password a backup password.
+     * @param password  a backup password.
      * @param newBackup flag indicating whether this is a new fresh backup.
-     * @param messages a stream of messages.
+     * @param messages  a stream of messages.
      */
     void backupMessages(String password, boolean newBackup, InputStream messages);
 
@@ -73,7 +73,11 @@ public interface BlindnetSignal {
      */
     InputStream recoverMessagesAsStream(String password);
 
-    // todo this will be removed
+    /**
+     * Returns an ID of the device.
+     *
+     * @return an ID of the device.
+     */
     int readDeviceId();
 
     /**

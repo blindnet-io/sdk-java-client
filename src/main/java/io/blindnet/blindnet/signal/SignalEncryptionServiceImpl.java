@@ -57,6 +57,12 @@ class SignalEncryptionServiceImpl implements SignalEncryptionService {
         this.signalIdentityKeyStore = signalIdentityKeyStore;
     }
 
+    /**
+     * Encrypts message and sends to Signal Blindnet API.
+     *
+     * @param recipientIds        the list of recipient ids.
+     * @param messageArrayWrapper a message wrapper.
+     */
     @Override
     public void encryptMessage(List<String> recipientIds, MessageArrayWrapper messageArrayWrapper) {
         int localDeviceId = signalIdentityKeyStore.getLocalDeviceId();
@@ -66,6 +72,12 @@ class SignalEncryptionServiceImpl implements SignalEncryptionService {
                 calculateEncryption(recipientId, localDeviceId, currentUserId, messageArrayWrapper));
     }
 
+    /**
+     * Fetches messages from Signal Blindnet API and decrypts them.
+     *
+     * @param deviceId the id of the device.
+     * @return a list of messages wrappers.
+     */
     @Override
     public List<MessageArrayWrapper> decryptMessage(String deviceId) {
         String messageIds = signalApiClient.fetchMessageIds(deviceId);
@@ -96,6 +108,14 @@ class SignalEncryptionServiceImpl implements SignalEncryptionService {
      * }
      */
 
+    /**
+     * Calculates (Signal algorithm) encryption.
+     *
+     * @param recipientId    a recipient ID.
+     * @param localDeviceId  a device ID.
+     * @param currentUserId  a user ID.
+     * @param messageWrapper a wrapper of the message.
+     */
     private void calculateEncryption(String recipientId,
                                      int localDeviceId,
                                      String currentUserId,
@@ -178,6 +198,13 @@ class SignalEncryptionServiceImpl implements SignalEncryptionService {
         }
     }
 
+    /**
+     * Encrypts message when there is no existing session.
+     *
+     * @param recipientId              a recipient ID.
+     * @param signalPublicKeysResponse a public key used for encryption.
+     * @param messageWrapper           a message wrapper.
+     */
     private void encryptNotExistingSession(String recipientId,
                                            List<BlindnetSignalPublicKeys> signalPublicKeysResponse,
                                            MessageWrapper messageWrapper) {
@@ -208,6 +235,13 @@ class SignalEncryptionServiceImpl implements SignalEncryptionService {
         });
     }
 
+    /**
+     * Encrypts message for the existing session.
+     *
+     * @param address        a receiver's address.
+     * @param messageWrapper a message wrapper.
+     * @return a Signal (encrypted) message.
+     */
     private SignalSendMessageResult encrypt(SignalProtocolAddress address, MessageWrapper messageWrapper) {
         CiphertextMessage message;
         byte[] preparedMessage;
@@ -261,6 +295,12 @@ class SignalEncryptionServiceImpl implements SignalEncryptionService {
                 publicEphemeralKey);
     }
 
+    /**
+     * Decrypts the Signal message.
+     *
+     * @param blindnetSignalMessage a Blindnet Signal message to be decrypted.
+     * @return a decrypted message.
+     */
     private MessageArrayWrapper decrypt(BlindnetSignalMessage blindnetSignalMessage) {
         SignalProtocolAddress address = new SignalProtocolAddress(blindnetSignalMessage.getSenderID(),
                 Integer.parseInt(blindnetSignalMessage.getSenderDeviceID()));

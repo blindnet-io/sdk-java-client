@@ -53,6 +53,11 @@ class SignalUserServiceImpl implements SignalUserService {
         this.signalPreKeyStore = signalPreKeyStore;
     }
 
+    /**
+     * Registers a Signal user using Blindnet API.
+     *
+     * @return a Signal user registration result object.
+     */
     public UserRegistrationResult register() {
         // generate device id, identity key pair, identity key pair id (registration id) and store them
         int deviceId = new SecureRandom().nextInt(Integer.MAX_VALUE);
@@ -100,6 +105,9 @@ class SignalUserServiceImpl implements SignalUserService {
         );
     }
 
+    /**
+     * Unregisters a Signal user using Blindnet API and deletes his local data.
+     */
     @Override
     public void unregister() {
         signalApiClient.unregister();

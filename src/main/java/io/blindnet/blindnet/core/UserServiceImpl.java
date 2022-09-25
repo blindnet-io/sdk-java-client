@@ -83,6 +83,7 @@ class UserServiceImpl implements UserService {
     /**
      * Unregisters a user using Blindnet API and deletes his local data.
      */
+    @Override
     public void unregister() {
         apiClient.unregister();
         keyStorage.deleteKeyFolder();

@@ -12,21 +12,21 @@ import java.io.InputStream;
 public interface Blindnet {
 
     /**
-     * Update token that will be used for authorization against blindnet api.
+     * Update token that will be used for authorization against Blindnet api.
      *
      * @param token a token object.
      */
     void updateToken(String token);
 
     /**
-     * Encrypts/backups private keys and sends them to blindnet api.
+     * Encrypts/backups private keys and sends them to Blindnet api.
      *
      * @param password a password phrase used for encryption of private keys.
      */
     void backupKeys(String password);
 
     /**
-     * Retrieves private keys from blindnet api and stores them locally.
+     * Retrieves private keys from Blindnet api and stores them locally.
      *
      * @param password a password phrase used for decryption of private keys.
      */
@@ -71,14 +71,14 @@ public interface Blindnet {
     MessageStreamWrapper decrypt(String senderId, String recipientId, InputStream inputData);
 
     /**
-     * Registers user on blindnet api.
+     * Registers user on Blindnet api.
      *
      * @return a user registration result object.
      */
     UserRegistrationResult register();
 
     /**
-     * Unregisters/disconnects user from blindnet api.
+     * Unregisters/disconnects user from Blindnet api.
      */
     void disconnect();
 

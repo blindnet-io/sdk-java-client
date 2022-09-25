@@ -65,6 +65,14 @@ class SignalIdentityKeyStore implements IdentityKeyStore {
         }
     }
 
+    /**
+     * Verifies whether the identity is trusted.
+     *
+     * @param address     The address of the remote client.
+     * @param identityKey The identity key to verify.
+     * @param direction   The direction (sending or receiving) this identity is being used for.
+     * @return an indicator whether the identity is trusted.
+     */
     @Override
     public boolean isTrustedIdentity(SignalProtocolAddress address, IdentityKey identityKey, Direction direction) {
         synchronized (LOCK) {
